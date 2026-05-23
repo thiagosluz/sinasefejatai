@@ -1,0 +1,120 @@
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { Printer, ArrowLeft } from 'lucide-react'
+
+export default async function EditalPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient()
+
+  // Buscar assembleia
+  const { data: assembleia } = await supabase
+    .from('assembleias')
+    .select('*')
+    .eq('id', params.id)
+    .single()
+
+  if (!assembleia) {
+    notFound()
+  }
+
+  const dataRealizacao = new Date(assembleia.data_realizacao).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  })
+
+  const dataHoje = new Date().toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  })
+
+  return (
+    <div className="min-h-screen bg-zinc-200 print:bg-white text-zinc-900 font-sans">
+      {/* Botões de Ação (Escondidos na Impressão) */}
+      <div className="print:hidden bg-zinc-950 p-4 sticky top-0 z-10 shadow-md flex justify-between items-center text-zinc-100">
+        <div className="flex items-center gap-4">
+          <Link href="/assembleias" className="flex items-center gap-2 hover:text-emerald-400 transition-colors">
+            <ArrowLeft size={18} />
+            Voltar
+          </Link>
+          <span className="text-zinc-600">|</span>
+          <span className="font-medium">Visualização de Impressão (Edital)</span>
+        </div>
+        <button 
+          type="button"
+          className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2"
+        >
+          <Printer size={18} />
+          <span dangerouslySetInnerHTML={{ __html: `<span onclick="window.print()">Imprimir Edital</span>` }} />
+        </button>
+      </div>
+
+      {/* Papel (A4 Simulação) */}
+      <div className="max-w-[210mm] mx-auto bg-white print:w-full print:max-w-none print:shadow-none shadow-2xl p-[25mm] min-h-[297mm] text-justify leading-relaxed">
+        {/* Cabeçalho Timbrado */}
+        <header className="flex flex-col items-center border-b-2 border-emerald-800 pb-6 mb-12 text-center">
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <div className="w-16 h-16 bg-red-700 text-white flex items-center justify-center font-bold text-2xl rounded shadow-inner">
+              S
+            </div>
+            <div className="text-left">
+              <h1 className="text-2xl font-black text-emerald-800 uppercase tracking-tight">SINASEFE</h1>
+              <h2 className="text-sm font-semibold text-zinc-700 uppercase">Seção Sindical Jataí - GO</h2>
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 mt-2">
+            Sindicato Nacional dos Servidores Federais da Educação Básica, Profissional e Tecnológica
+          </p>
+        </header>
+
+        {/* Título do Documento */}
+        <div className="text-center mb-12">
+          <h2 className="text-xl font-bold uppercase underline">
+            EDITAL DE CONVOCAÇÃO Nº {assembleia.numero || '___/____'}
+          </h2>
+          <h3 className="text-lg font-bold uppercase mt-2">
+            ASSEMBLEIA GERAL {assembleia.tipo.toUpperCase()}
+          </h3>
+        </div>
+
+        {/* Corpo do Edital */}
+        <div className="space-y-6 text-base">
+          <p>
+            A Coordenação da Seção Sindical Jataí do SINASEFE, no uso de suas atribuições estatutárias, 
+            convoca todos os seus filiados e filiadas para participarem da <strong>Assembleia Geral {assembleia.tipo}</strong>, 
+            que será realizada no dia <strong>{dataRealizacao}</strong>, no(a) <strong>{assembleia.local}</strong>.
+          </p>
+
+          <p>
+            A Assembleia instalar-se-á em primeira convocação às <strong>{assembleia.horario_1a_convocacao.slice(0, 5)}</strong>, 
+            com a presença de metade mais um dos filiados, ou em segunda e última convocação às <strong>{assembleia.horario_2a_convocacao.slice(0, 5)}</strong>, 
+            com qualquer número de presentes, para deliberar sobre a seguinte ordem do dia:
+          </p>
+
+          <div className="pl-8 my-8">
+            <ul className="list-decimal space-y-2 font-medium">
+              {assembleia.pautas?.map((pauta: string, index: number) => (
+                <li key={index}>{pauta}</li>
+              ))}
+            </ul>
+          </div>
+
+          <p>
+            Contamos com a presença de todos para fortalecimento das nossas lutas e deliberações.
+          </p>
+
+          <div className="mt-24 text-center">
+            <p className="mb-16">Jataí - GO, {dataHoje}.</p>
+            
+            <div className="w-64 mx-auto border-t border-zinc-900 pt-2">
+              <p className="font-bold">Coordenação Colegiada</p>
+              <p className="text-sm">SINASEFE Seção Jataí</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
