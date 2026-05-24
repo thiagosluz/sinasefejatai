@@ -46,6 +46,13 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
     .eq('assembleia_id', id)
     .single()
 
+  // Buscar configurações de cabeçalho
+  const { data: config } = await supabase
+    .from('configuracoes')
+    .select('*')
+    .eq('id', 1)
+    .single()
+
   return (
     <div className="min-h-screen bg-brand-cream p-4 md:p-8 text-brand-ink print:bg-white print:p-0 print:text-black font-sans selection:bg-brand-tinto selection:text-white">
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 print:hidden gap-4">
@@ -75,6 +82,7 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
       <AtaEditorCliente 
         assembleia={assembleia} 
         ataInicial={ata || undefined} 
+        config={config}
       />
     </div>
   )

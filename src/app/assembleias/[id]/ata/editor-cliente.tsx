@@ -17,6 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { saveAta } from '../../actions-ata'
+import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 
 interface Assembleia {
   id: string
@@ -41,9 +42,10 @@ interface Ata {
 interface AtaEditorClienteProps {
   assembleia: Assembleia
   ataInicial?: Ata
+  config?: DocumentHeaderConfig | null
 }
 
-export default function AtaEditorCliente({ assembleia, ataInicial }: AtaEditorClienteProps) {
+export default function AtaEditorCliente({ assembleia, ataInicial, config }: AtaEditorClienteProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   
   const [numero, setNumero] = useState(ataInicial?.numero || '')
@@ -320,12 +322,8 @@ export default function AtaEditorCliente({ assembleia, ataInicial }: AtaEditorCl
 
       {/* 3. Layout de Impressão Oficial A4 (Escondido na tela normal, exibido no Ctrl+P) */}
       <div className="hidden print:block font-serif text-black p-12 bg-white max-w-[800px] mx-auto text-justify text-sm leading-relaxed">
-        {/* Cabeçalho da Seção Sindical */}
-        <div className="flex flex-col items-center text-center border-b-2 border-black pb-4 mb-6">
-          <div className="text-base font-bold tracking-wide uppercase">Sindicato Nacional dos Servidores Federais da Educação Básica, Profissional e Tecnológica</div>
-          <div className="text-sm font-semibold tracking-wider uppercase mt-1">Seção Sindical Jataí - Goiás</div>
-          <div className="text-[10px] text-gray-600 mt-0.5">CNPJ: 03.658.820/0001-18 • Jataí - GO</div>
-        </div>
+        {/* Cabeçalho da Seção Sindical Dinâmico */}
+        <DocumentHeader config={config} />
 
         {/* Título Oficial do Documento */}
         <div className="text-center font-bold text-base uppercase mb-6 tracking-wide">

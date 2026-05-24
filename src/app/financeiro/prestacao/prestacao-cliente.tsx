@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Printer, ArrowLeft, Calendar, FileCheck, FileX } from 'lucide-react'
+import { Printer, Calendar, FileCheck, FileX } from 'lucide-react'
 import Link from 'next/link'
+import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 
 interface Transacao {
   id: string
@@ -17,6 +18,7 @@ interface Transacao {
 
 interface PrestacaoClienteProps {
   transacoes: Transacao[]
+  config?: DocumentHeaderConfig | null
 }
 
 const CATEGORIAS_ENTRADA = [
@@ -37,7 +39,7 @@ const CATEGORIAS_SAIDA = [
   'Outros'
 ]
 
-export default function PrestacaoCliente({ transacoes }: PrestacaoClienteProps) {
+export default function PrestacaoCliente({ transacoes, config }: PrestacaoClienteProps) {
   // Obter o mês atual ou o mais recente nas transações no formato YYYY-MM
   const obterMesPadrao = () => {
     if (transacoes.length === 0) {
@@ -152,12 +154,8 @@ export default function PrestacaoCliente({ transacoes }: PrestacaoClienteProps) 
       {/* Folha de Impressão Oficial A4 */}
       <main className="bg-white text-black p-12 max-w-[800px] mx-auto shadow-2xl font-serif text-sm leading-relaxed print:shadow-none print:p-0 print:max-w-none">
         
-        {/* Timbre do SINASEFE Jataí */}
-        <div className="flex flex-col items-center text-center border-b-2 border-black pb-4 mb-6">
-          <div className="text-base font-bold tracking-wide uppercase">Sindicato Nacional dos Servidores Federais da Educação Básica, Profissional e Tecnológica</div>
-          <div className="text-sm font-semibold tracking-wider uppercase mt-1">Seção Sindical Jataí - Goiás</div>
-          <div className="text-[10px] text-gray-600 mt-0.5">CNPJ: 03.658.820/0001-18 • Jataí - GO</div>
-        </div>
+        {/* Timbre do SINASEFE Jataí Dinâmico */}
+        <DocumentHeader config={config} />
 
         {/* Título */}
         <div className="text-center font-bold text-base uppercase tracking-wider mb-6">

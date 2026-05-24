@@ -20,7 +20,14 @@ export default async function PrestacaoPage() {
     .select('*')
     .order('data', { ascending: true })
 
+  // Buscar configurações de cabeçalho
+  const { data: config } = await supabase
+    .from('configuracoes')
+    .select('*')
+    .eq('id', 1)
+    .single()
+
   return (
-    <PrestacaoCliente transacoes={transacoes || []} />
+    <PrestacaoCliente transacoes={transacoes || []} config={config} />
   )
 }

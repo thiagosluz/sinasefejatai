@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Printer, ArrowLeft } from 'lucide-react'
+import DocumentHeader from '@/components/document-header'
 
 export default async function ListaPresencaPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -17,6 +18,13 @@ export default async function ListaPresencaPage(props: { params: Promise<{ id: s
   if (!assembleia) {
     notFound()
   }
+
+  // Buscar configuração do cabeçalho
+  const { data: config } = await supabase
+    .from('configuracoes')
+    .select('*')
+    .eq('id', 1)
+    .single()
 
   // Buscar filiados ativos
   const { data: filiados } = await supabase
@@ -56,22 +64,8 @@ export default async function ListaPresencaPage(props: { params: Promise<{ id: s
 
       {/* Papel (A4 Simulação) */}
       <div className="max-w-[210mm] mx-auto bg-white print:w-full print:max-w-none print:shadow-none shadow-2xl p-[20mm] min-h-[297mm]">
-        {/* Cabeçalho Timbrado */}
-        <header className="flex flex-col items-center border-b-2 border-emerald-800 pb-6 mb-8 text-center">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            {/* Logo Placeholder */}
-            <div className="w-16 h-16 bg-red-700 text-white flex items-center justify-center font-bold text-2xl rounded shadow-inner">
-              S
-            </div>
-            <div className="text-left">
-              <h1 className="text-2xl font-black text-emerald-800 uppercase tracking-tight">SINASEFE</h1>
-              <h2 className="text-sm font-semibold text-zinc-700 uppercase">Seção Sindical Jataí - GO</h2>
-            </div>
-          </div>
-          <p className="text-xs text-zinc-500 mt-2">
-            Sindicato Nacional dos Servidores Federais da Educação Básica, Profissional e Tecnológica
-          </p>
-        </header>
+        {/* Cabeçalho Timbrado Dinâmico */}
+        <DocumentHeader config={config} />
 
         {/* Título do Documento */}
         <div className="text-center mb-8">

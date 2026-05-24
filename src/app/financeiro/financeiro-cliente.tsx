@@ -9,7 +9,6 @@ import {
   Search, 
   Trash2, 
   FileText, 
-  Calendar, 
   Filter,
   X,
   Printer
@@ -51,7 +50,6 @@ const CATEGORIAS_SAIDA = [
 ]
 
 export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClienteProps) {
-  const [transacoes, setTransacoes] = useState<Transacao[]>(transacoesIniciais)
   const [busca, setBusca] = useState('')
   const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'Entrada' | 'Saída'>('Todos')
   const [filtroMesAno, setFiltroMesAno] = useState('')
@@ -102,8 +100,9 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
     if (confirm('Deseja realmente excluir este lançamento permanentemente do livro caixa? Esta ação removerá também o comprovante físico se houver.')) {
       try {
         await deleteTransacao(id)
-      } catch (err: any) {
-        alert(err.message || 'Erro ao deletar transação')
+      } catch (err) {
+        const error = err as Error
+        alert(error.message || 'Erro ao deletar transação')
       }
     }
   }

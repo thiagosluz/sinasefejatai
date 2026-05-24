@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { logout } from '../login/actions'
-import { Users, CalendarRange, Landmark, LogOut } from 'lucide-react'
+import { Users, CalendarRange, Landmark, LogOut, Sliders } from 'lucide-react'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
       </header>
 
       {/* Painel em Formato de Mural de Avisos da Seção */}
-      <main className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         
         {/* Bloco 1: Filiados */}
         <div className="bg-brand-card border border-zinc-350 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group">
@@ -112,6 +112,28 @@ export default async function DashboardPage() {
             className="inline-flex items-center justify-between border border-brand-ink bg-brand-cream hover:bg-brand-card py-2.5 px-4 text-xs font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_#121214] hover:shadow-[1px_1px_0px_#121214] hover:translate-x-[1px] hover:translate-y-[1px]"
           >
             <span>Livro Caixa</span>
+            <span>&rarr;</span>
+          </a>
+        </div>
+
+        {/* Bloco 4: Configurações de Layout */}
+        <div className="bg-brand-card border border-zinc-350 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-tinto/5 translate-x-8 -translate-y-8 rotate-45 transition-transform group-hover:scale-110"></div>
+          <div>
+            <div className="flex items-center gap-2 mb-4 text-brand-tinto">
+              <Sliders size={20} />
+              <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Identidade Visual</span>
+            </div>
+            <h2 className="font-serif font-bold text-xl mb-2 text-brand-ink">Cabeçalhos & Timbre</h2>
+            <p className="text-zinc-650 text-xs leading-relaxed mb-6">
+              Configure as informações oficiais impressas e altere o logotipo oficial dos editais, atas e relatórios financeiros da seção.
+            </p>
+          </div>
+          <a 
+            href="/admin/configuracoes" 
+            className="inline-flex items-center justify-between border border-brand-ink bg-brand-cream hover:bg-brand-card py-2.5 px-4 text-xs font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_#121214] hover:shadow-[1px_1px_0px_#121214] hover:translate-x-[1px] hover:translate-y-[1px]"
+          >
+            <span>Ajustar Documentos</span>
             <span>&rarr;</span>
           </a>
         </div>

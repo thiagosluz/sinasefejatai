@@ -94,3 +94,44 @@ on storage.objects for all to authenticated using (bucket_id = 'comprovantes') w
 
 create policy "Enable public read access on comprovantes"
 on storage.objects for select to public using (bucket_id = 'comprovantes');
+
+-- 6. Table: configuracoes (Header Layout Configurations)
+create table public.configuracoes (
+    id integer primary key default 1 check (id = 1),
+    titulo text not null default 'SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA',
+    secao_sindical text not null default 'SINASEFE - SEÇÃO SINDICAL JATAÍ',
+    endereco text not null default 'RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO',
+    cep text not null default 'CEP: 75804-020',
+    filiacao text not null default 'FILIADO À CEA',
+    fundacao text not null default 'FUNDADO EM 16/05/2005',
+    logo_url text,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS on configuracoes
+alter table public.configuracoes enable row level security;
+
+-- Policies for configuracoes
+create policy "Allow public read access on configuracoes" on public.configuracoes for select using (true);
+create policy "Allow full access for authenticated users on configuracoes" on public.configuracoes for all to authenticated using (true) with check (true);
+
+-- Storage bucket for system files (logos)
+insert into storage.buckets (id, name, public) values ('sistema', 'sistema', true) on conflict do nothing;
+
+create policy "Allow full access for authenticated users on sistema bucket"
+on storage.objects for all to authenticated using (bucket_id = 'sistema') with check (bucket_id = 'sistema');
+
+create policy "Allow public read access on sistema bucket"
+on storage.objects for select to public using (bucket_id = 'sistema');
+
+-- Insert initial seed data
+insert into public.configuracoes (id, titulo, secao_sindical, endereco, cep, filiacao, fundacao)
+values (
+  1,
+  'SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA',
+  'SINASEFE - SEÇÃO SINDICAL JATAÍ',
+  'RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO',
+  'CEP: 75804-020',
+  'FILIADO À CEA',
+  'FUNDADO EM 16/05/2005'
+) on conflict (id) do nothing;
