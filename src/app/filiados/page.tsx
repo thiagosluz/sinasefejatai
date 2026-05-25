@@ -18,14 +18,13 @@ export default async function FiliadosPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 gap-4">
         <div>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-zinc-550 hover:text-brand-ink transition-colors font-semibold text-sm">&larr; Painel</Link>
             <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Gestão de Filiados</h1>
           </div>
           <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Módulo de Cadastros e Fichas Sindicais</p>
         </div>
         <Link 
           href="/filiados/novo" 
-          className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_#121214] hover:shadow-[1px_1px_0px_#121214] hover:translate-x-[1px] hover:translate-y-[1px] flex items-center gap-2 cursor-pointer"
+          className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
         >
           <PlusCircle size={15} />
           <span>Cadastrar Filiado</span>
@@ -33,10 +32,10 @@ export default async function FiliadosPage() {
       </header>
 
       {/* Tabela estilo Fichário Físico */}
-      <div className="bg-brand-card border border-zinc-350 shadow-xl overflow-hidden">
+      <div className="bg-brand-card border border-brand-border shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
-            <thead className="bg-[#e9e6de] border-b border-zinc-350 text-zinc-650 text-xs font-bold uppercase tracking-wider">
+            <thead className="bg-brand-cream border-b border-brand-border text-brand-ink/70 text-xs font-bold uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4 border-r border-zinc-350">Nome do Filiado</th>
                 <th className="px-6 py-4 border-r border-zinc-350">Endereço de E-mail</th>
@@ -45,7 +44,7 @@ export default async function FiliadosPage() {
                 <th className="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-300">
+            <tbody className="divide-y divide-brand-border">
               {!filiados || filiados.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-zinc-550 italic font-serif">
@@ -54,19 +53,19 @@ export default async function FiliadosPage() {
                 </tr>
               ) : (
                 filiados.map((filiado) => (
-                  <tr key={filiado.id} className="hover:bg-brand-cream/40 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-brand-ink border-r border-zinc-300">
+                  <tr key={filiado.id} className="hover:bg-brand-ink/5 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-brand-ink border-r border-brand-border">
                       {filiado.nome}
                       {filiado.telefone && (
                         <div className="text-[11px] text-zinc-600 font-normal mt-0.5 tracking-wide">{filiado.telefone}</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-zinc-650 border-r border-zinc-300 text-xs font-medium">{filiado.email || '-'}</td>
-                    <td className="px-6 py-4 border-r border-zinc-300">
-                      <div className="text-zinc-800 text-xs font-bold">{filiado.siape || '-'}</div>
-                      <div className="text-[11px] text-zinc-550 font-semibold uppercase tracking-wider">{filiado.cargo || '-'}</div>
+                    <td className="px-6 py-4 text-brand-ink/80 border-r border-brand-border text-xs font-medium">{filiado.email || '-'}</td>
+                    <td className="px-6 py-4 border-r border-brand-border">
+                      <div className="text-brand-ink text-xs font-bold">{filiado.siape || '-'}</div>
+                      <div className="text-[11px] text-brand-ink/60 font-semibold uppercase tracking-wider">{filiado.cargo || '-'}</div>
                     </td>
-                    <td className="px-6 py-4 text-center border-r border-zinc-300">
+                    <td className="px-6 py-4 text-center border-r border-brand-border">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
                         filiado.ativo 
                           ? 'bg-brand-olive/10 text-brand-olive border-brand-olive/30' 
@@ -79,7 +78,7 @@ export default async function FiliadosPage() {
                       <div className="flex items-center justify-end gap-3.5">
                         <Link 
                           href={`/filiados/${filiado.id}/editar`}
-                          className="p-1 hover:bg-zinc-200 text-zinc-650 hover:text-brand-ink transition-all"
+                          className="p-1 hover:bg-brand-ink/10 text-brand-ink/70 hover:text-brand-ink transition-all"
                           title="Editar Ficha"
                         >
                           <Edit2 size={15} />
@@ -88,7 +87,7 @@ export default async function FiliadosPage() {
                         <form action={toggleAtivo.bind(null, filiado.id, filiado.ativo)}>
                           <button 
                             type="submit"
-                            className={`p-1 hover:bg-zinc-200 transition-colors cursor-pointer ${
+                            className={`p-1 hover:bg-brand-ink/10 transition-colors cursor-pointer ${
                               filiado.ativo ? 'text-brand-tinto hover:text-brand-tinto-light' : 'text-brand-olive hover:text-brand-olive-light'
                             }`}
                             title={filiado.ativo ? 'Desativar Ficha' : 'Reativar Ficha'}

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { saveAta } from '../../actions-ata'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
+import { useModal } from '@/providers/modal-provider'
 
 interface Assembleia {
   id: string
@@ -46,6 +47,7 @@ interface AtaEditorClienteProps {
 }
 
 export default function AtaEditorCliente({ assembleia, ataInicial, config }: AtaEditorClienteProps) {
+  const { confirm } = useModal()
   const editorRef = useRef<HTMLDivElement>(null)
   
   const [numero, setNumero] = useState(ataInicial?.numero || '')
@@ -105,7 +107,8 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
   }
 
   // Gerar o esboço oficial baseado nas melhores práticas jurídicas e administrativas de sindicatos federais
-  const handleGerarEsboço = () => {
+  const handleGerarEsboço = async (e: React.MouseEvent) => {
+    e.preventDefault()
     const dataExtenso = obterDataExtenso(assembleia.data_realizacao)
     const pautasFormatadas = assembleia.pautas && assembleia.pautas.length > 0
       ? assembleia.pautas.map((p, index) => `${index + 1}) ${p}`).join('; ')
@@ -120,8 +123,9 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
     `
 
     if (editorRef.current) {
-      if (editorRef.current.innerText.trim() !== '' && !confirm('A geração de esboço substituirá todo o conteúdo atual do editor. Deseja continuar?')) {
-        return
+      if (editorRef.current.innerText.trim() !== '') {
+        const confirmado = await confirm('A geração de esboço substituirá todo o conteúdo atual do editor. Deseja continuar?')
+        if (!confirmado) return
       }
       editorRef.current.innerHTML = template
       setConteudoRich(template)
@@ -129,8 +133,8 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
   }
 
   // Limpar todo o editor
-  const handleLimpar = () => {
-    if (confirm('Tem certeza de que deseja limpar todo o conteúdo do editor?')) {
+  const handleLimpar = async () => {
+    if (await confirm('Tem certeza de que deseja limpar todo o conteúdo do editor?')) {
       if (editorRef.current) {
         editorRef.current.innerHTML = ''
         setConteudoRich('')
@@ -141,8 +145,8 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* 1. Painel de Controle Lateral (Configurações da Ata) - 4 Colunas */}
-      <div className="lg:col-span-4 bg-brand-card border border-zinc-350 p-6 rounded-none space-y-6 print:hidden shadow-lg">
-        <h2 className="text-lg font-serif font-bold text-brand-ink border-b border-zinc-300 pb-3 flex items-center gap-2">
+      <div className="lg:col-span-4 bg-brand-card border border-brand-border p-6 rounded-none space-y-6 print:hidden shadow-lg">
+        <h2 className="text-lg font-serif font-bold text-brand-ink border-b border-brand-border pb-3 flex items-center gap-2">
           <span>Configuração da Ata</span>
         </h2>
 
@@ -151,7 +155,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
           <input type="hidden" name="conteudo_rich" value={conteudoRich} />
 
           <div>
-            <label htmlFor="numero" className="block text-xs font-bold text-zinc-550 uppercase tracking-wider mb-2 font-serif">
+            <label htmlFor="numero" className="block text-xs font-bold text-brand-ink/60 uppercase tracking-wider mb-2 font-serif">
               Número da Ata (Opcional)
             </label>
             <input 
@@ -161,12 +165,12 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
               placeholder="Ex: 03/2026"
               value={numero}
               onChange={(e) => setNumero(e.target.value)}
-              className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
+              className="w-full bg-brand-cream border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
             />
           </div>
 
           <div>
-            <label htmlFor="redator" className="block text-xs font-bold text-zinc-550 uppercase tracking-wider mb-2 font-serif">
+            <label htmlFor="redator" className="block text-xs font-bold text-brand-ink/60 uppercase tracking-wider mb-2 font-serif">
               Secretário / Redator da Ata
             </label>
             <input 
@@ -177,7 +181,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
               value={redator}
               onChange={(e) => setRedator(e.target.value)}
               required
-              className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
+              className="w-full bg-brand-cream border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
             />
           </div>
 
@@ -185,7 +189,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
             <button 
               type="submit"
               disabled={salvando}
-              className="w-full bg-brand-tinto hover:bg-brand-tinto-light disabled:bg-zinc-300 text-white text-xs font-serif font-bold uppercase tracking-wider py-3.5 transition-all shadow-[2px_2px_0px_#121214] flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full bg-brand-tinto hover:bg-brand-tinto-light disabled:bg-zinc-300 text-white text-xs font-serif font-bold uppercase tracking-wider py-3.5 transition-all shadow-[2px_2px_0px_var(--brand-ink)] flex items-center justify-center gap-2 cursor-pointer"
             >
               <Save size={15} />
               <span>{salvando ? 'Salvando...' : 'Salvar Ata'}</span>
@@ -193,10 +197,10 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
           </div>
         </form>
 
-        <div className="border-t border-zinc-300 pt-6 space-y-3">
+        <div className="border-t border-brand-border pt-6 space-y-3">
           <button 
             onClick={handleGerarEsboço}
-            className="w-full border border-brand-ink hover:border-zinc-700 bg-brand-cream hover:bg-brand-card text-brand-ink py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_#121214] flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full border border-brand-ink hover:border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] flex items-center justify-center gap-2 cursor-pointer"
           >
             <Sparkles size={14} className="text-amber-600" />
             <span>Gerar Esboço Oficial</span>
@@ -205,7 +209,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
           <div className="flex gap-2">
             <button 
               onClick={handleCopyText}
-              className="flex-1 border border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_#121214] cursor-pointer"
+              className="flex-1 border border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_var(--brand-ink)] cursor-pointer"
             >
               {copiado ? <Check size={12} className="text-brand-olive" /> : <Copy size={12} />}
               <span>{copiado ? 'Copiado!' : 'Copiar Texto'}</span>
@@ -213,7 +217,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
             
             <button 
               onClick={handlePrint}
-              className="flex-1 border border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_#121214] cursor-pointer"
+              className="flex-1 border border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_var(--brand-ink)] cursor-pointer"
             >
               <Printer size={12} />
               <span>Imprimir</span>
@@ -222,14 +226,14 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
 
           <button 
             onClick={handleLimpar}
-            className="w-full border border-brand-tinto hover:bg-brand-cream text-brand-tinto py-2 px-4 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-[1.5px_1.5px_0px_#991b1b] cursor-pointer"
+            className="w-full border border-brand-tinto hover:bg-brand-cream text-brand-tinto py-2 px-4 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-[1.5px_1.5px_0px_var(--brand-tinto)] cursor-pointer"
           >
             <Trash2 size={12} />
             <span>Excluir Rascunho</span>
           </button>
         </div>
 
-        <div className="bg-[#f5f2eb]/60 border border-zinc-300 p-4 text-[11px] text-zinc-650 leading-relaxed flex items-start gap-2.5">
+        <div className="bg-brand-cream/40 border border-brand-border p-4 text-[11px] text-brand-ink/70 leading-relaxed flex items-start gap-2.5">
           <AlertCircle size={15} className="text-brand-tinto shrink-0 mt-0.5" />
           <p>
             <strong>Ata Administrativa:</strong> Em conformidade com os padrões formais de sindicatos federais, a ata final gerada na visualização de impressão não possui divisões de parágrafos em branco ou saltos de linha desnecessários, evitando rasuras e garantindo integridade documental.
@@ -240,7 +244,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
       {/* 2. Editor WYSIWYG - 8 Colunas */}
       <div className="lg:col-span-8 space-y-4 print:hidden shadow-lg">
         {/* Barra de Ferramentas Rica */}
-        <div className="bg-brand-card border border-zinc-350 p-2.5 rounded-none flex flex-wrap items-center gap-1">
+        <div className="bg-brand-card border border-brand-border p-2.5 rounded-none flex flex-wrap items-center gap-1">
           <button
             onClick={() => formatDoc('bold')}
             title="Negrito"
@@ -256,7 +260,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
             <Italic size={15} />
           </button>
           
-          <div className="w-[1px] h-6 bg-zinc-300 mx-1"></div>
+          <div className="w-[1px] h-6 bg-brand-border mx-1"></div>
 
           <button
             onClick={() => formatDoc('insertUnorderedList')}
@@ -273,7 +277,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
             <ListOrdered size={15} />
           </button>
 
-          <div className="w-[1px] h-6 bg-zinc-300 mx-1"></div>
+          <div className="w-[1px] h-6 bg-brand-border mx-1"></div>
 
           <button
             onClick={() => formatDoc('justifyFull')}
@@ -291,7 +295,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
             <Heading2 size={15} />
           </button>
 
-          <div className="w-[1px] h-6 bg-zinc-300 mx-1"></div>
+          <div className="w-[1px] h-6 bg-brand-border mx-1"></div>
 
           <button
             onClick={() => formatDoc('removeFormat')}
@@ -303,8 +307,8 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
         </div>
 
         {/* Corpo do Editor */}
-        <div className="bg-[#fcfbf9] border border-zinc-350 rounded-none overflow-hidden shadow-md min-h-[580px] flex flex-col">
-          <div className="bg-[#e9e6de] px-6 py-3 border-b border-zinc-350 flex items-center justify-between text-xs font-bold text-zinc-650 uppercase tracking-wider">
+        <div className="bg-brand-cream border border-brand-border rounded-none overflow-hidden shadow-md min-h-[580px] flex flex-col">
+          <div className="bg-brand-border/30 px-6 py-3 border-b border-brand-border flex items-center justify-between text-xs font-bold text-brand-ink/70 uppercase tracking-wider">
             <span>Editor Documental</span>
             <span>Estilo Papel Contínuo</span>
           </div>

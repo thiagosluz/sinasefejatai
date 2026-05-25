@@ -100,6 +100,6 @@ test.describe('Financeiro - Fluxo Crítico', () => {
 
     // Verifica se os botões de Impressão e de Voltar estão na tela
     await expect(page.getByRole('button', { name: /Imprimir/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Livro Caixa/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: '← Livro Caixa' })).toBeVisible();
   });
 });

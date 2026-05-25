@@ -5,6 +5,7 @@ import { Save, Image as ImageIcon, RotateCcw, AlertTriangle, ArrowLeft, Trash2, 
 import Link from 'next/link'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 import { saveConfiguracoes } from './actions'
+import { useModal } from '@/providers/modal-provider'
 
 interface ConfiguracoesClienteProps {
   initialConfig: DocumentHeaderConfig | null
@@ -12,6 +13,7 @@ interface ConfiguracoesClienteProps {
 }
 
 export default function ConfiguracoesCliente({ initialConfig, userEmail }: ConfiguracoesClienteProps) {
+  const { confirm } = useModal()
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -66,8 +68,8 @@ export default function ConfiguracoesCliente({ initialConfig, userEmail }: Confi
   }
 
   // Restaurar padrões semente oficiais
-  const handleResetToDefault = () => {
-    if (confirm('Deseja restaurar todos os campos de texto para os valores oficiais padrões do SINASEFE Jataí? (O logotipo atual não será apagado)')) {
+  const handleResetToDefault = async () => {
+    if (await confirm('Deseja restaurar todos os campos de texto para os valores oficiais padrões do SINASEFE Jataí? (O logotipo atual não será apagado)')) {
       setTitulo('SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA')
       setSecaoSindical('SINASEFE - SEÇÃO SINDICAL JATAÍ')
       setEndereco('RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO')

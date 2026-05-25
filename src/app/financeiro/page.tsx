@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import FinanceiroCliente from './financeiro-cliente'
 
 interface FinanceiroPageProps {
@@ -37,7 +36,6 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 gap-4">
         <div>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-zinc-555 hover:text-brand-ink transition-colors font-semibold text-sm">&larr; Painel</Link>
             <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Livro Caixa</h1>
           </div>
           <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Controle do Fluxo Financeiro, Lançamentos e Comprovantes</p>
