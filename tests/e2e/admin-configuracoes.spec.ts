@@ -9,50 +9,11 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 const testEmail = process.env.TEST_EMAIL;
 const testPassword = process.env.TEST_PASSWORD;
 
-// Initialize an empty backup object
-let originalConfig: Record<string, unknown> | null = null;
+// Limpeza feita no global.teardown.ts
 
 test.describe('Admin - Configurações do Cabeçalho', () => {
   // Ignora os testes se não houver credenciais configuradas
   test.skip(!testEmail || !testPassword, 'Credenciais de teste não configuradas no .env.local (TEST_EMAIL, TEST_PASSWORD)');
-
-  test.beforeAll(async () => {
-    // 1. Iniciar o client do Supabase (Apenas se as variáveis existirem)
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      
-      // 2. Fazer backup da configuração atual
-      const { data, error } = await supabase
-        .from('configuracoes')
-        .select('*')
-        .eq('id', 1)
-        .single();
-        
-      if (!error && data) {
-        originalConfig = data;
-      }
-    }
-  });
-
-  test.afterAll(async () => {
-    // 1. Restaurar os dados originais após os testes (Para não poluir o banco)
-    if (supabaseUrl && supabaseKey && originalConfig) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      
-      await supabase
-        .from('configuracoes')
-        .update({
-          titulo: originalConfig.titulo,
-          secao_sindical: originalConfig.secao_sindical,
-          endereco: originalConfig.endereco,
-          cep: originalConfig.cep,
-          filiacao: originalConfig.filiacao,
-          fundacao: originalConfig.fundacao,
-          logo_url: originalConfig.logo_url
-        })
-        .eq('id', 1);
-    }
-  });
 
   test.beforeEach(async ({ page }) => {
     // Fazer login antes de cada teste

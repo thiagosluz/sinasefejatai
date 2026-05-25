@@ -16,16 +16,8 @@ test.describe('Financeiro - Fluxo Crítico', () => {
   // Ignora os testes se não houver credenciais configuradas
   test.skip(!testEmail || !testPassword, 'Credenciais de teste não configuradas no .env.local');
 
-  test.afterAll(async () => {
-    // Limpeza (Teardown): Deletar as transações de teste para não sujar o caixa real
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      await supabase
-        .from('financeiro')
-        .delete()
-        .in('descricao', [testDescricaoEntrada, testDescricaoSaida]);
-    }
-  });
+  // Limpeza feita no global.teardown.ts
+
 
   test.beforeEach(async ({ page }) => {
     // Fazer login antes de cada teste

@@ -5,6 +5,8 @@ dotenv.config({ path: '.env.local' });
 
 export default defineConfig({
   testDir: './tests/e2e',
+  globalSetup: require.resolve('./tests/e2e/global.setup'),
+  globalTeardown: require.resolve('./tests/e2e/global.teardown'),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

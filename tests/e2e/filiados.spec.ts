@@ -16,16 +16,8 @@ test.describe('Filiados - Fluxo Crítico', () => {
   // Ignora os testes se não houver credenciais configuradas
   test.skip(!testEmail || !testPassword, 'Credenciais de teste não configuradas no .env.local');
 
-  test.afterAll(async () => {
-    // Limpeza (Teardown): Deletar o filiado de teste para não sujar o banco real
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      await supabase
-        .from('filiados')
-        .delete()
-        .eq('siape', testSiape);
-    }
-  });
+  // Limpeza feita no global.teardown.ts
+
 
   test.beforeEach(async ({ page }) => {
     // Fazer login antes de cada teste

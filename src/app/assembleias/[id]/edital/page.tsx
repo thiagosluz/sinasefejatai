@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Printer, ArrowLeft } from 'lucide-react'
 import DocumentHeader from '@/components/document-header'
-
+import EditalRetificarBtn from './edital-retificar-btn'
 export default async function EditalPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createClient()
@@ -50,13 +50,16 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
           <span className="text-zinc-600">|</span>
           <span className="font-medium">Visualização de Impressão (Edital)</span>
         </div>
-        <button 
-          type="button"
-          className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2"
-        >
-          <Printer size={18} />
-          <span dangerouslySetInnerHTML={{ __html: `<span onclick="window.print()">Imprimir Edital</span>` }} />
-        </button>
+        <div className="flex items-center gap-3">
+          <EditalRetificarBtn id={assembleia.id} versaoAtual={assembleia.versao_edital || 1} status={assembleia.status} />
+          <button 
+            type="button"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2 text-sm"
+          >
+            <Printer size={18} />
+            <span dangerouslySetInnerHTML={{ __html: `<span onclick="window.print()">Imprimir Edital</span>` }} />
+          </button>
+        </div>
       </div>
 
       {/* Papel (A4 Simulação) */}
@@ -65,27 +68,36 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
         <DocumentHeader config={config} />
 
         {/* Título do Documento */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 relative">
           <h2 className="text-xl font-bold uppercase underline">
             EDITAL DE CONVOCAÇÃO Nº {assembleia.numero || '___/____'}
+            {assembleia.versao_edital > 1 && ` - RETIFICAÇÃO 0${assembleia.versao_edital - 1}`}
           </h2>
           <h3 className="text-lg font-bold uppercase mt-2">
             ASSEMBLEIA GERAL {assembleia.tipo.toUpperCase()}
           </h3>
+          
+          {assembleia.versao_edital > 1 && (
+            <div className="mt-4 text-xs font-bold text-red-600 border border-red-600 p-2 inline-block rounded">
+              ESTE DOCUMENTO RETIFICA E SUBSTITUI A VERSÃO ANTERIOR
+            </div>
+          )}
         </div>
 
         {/* Corpo do Edital */}
         <div className="space-y-6 text-base">
           <p>
-            A Coordenação da Seção Sindical Jataí do SINASEFE, no uso de suas atribuições estatutárias, 
-            convoca todos os seus filiados e filiadas para participarem da <strong>Assembleia Geral {assembleia.tipo}</strong>, 
+            A Coordenação da Seção Sindical Jataí do SINASEFE, no uso de suas atribuições estatutárias,{' '}
+            {assembleia.publico_alvo === 'servidores' 
+              ? <strong>CONVOCA OS SERVIDORES DOCENTES E TÉCNICO-ADMINISTRATIVOS</strong>
+              : <strong>CONVOCA OS SERVIDORES DOCENTES E TÉCNICO-ADMINISTRATIVOS FILIADOS</strong>
+            }{' '}
+            para participarem da <strong>Assembleia Geral {assembleia.tipo}</strong>, 
             que será realizada no dia <strong>{dataRealizacao}</strong>, no(a) <strong>{assembleia.local}</strong>.
           </p>
 
           <p>
-            A Assembleia instalar-se-á em primeira convocação às <strong>{assembleia.horario_1a_convocacao.slice(0, 5)}</strong>, 
-            com a presença de metade mais um dos filiados, ou em segunda e última convocação às <strong>{assembleia.horario_2a_convocacao.slice(0, 5)}</strong>, 
-            com qualquer número de presentes, para deliberar sobre a seguinte ordem do dia:
+            A Assembleia instalar-se-á em primeira convocação, com 1/3 (um terço) do número de sindicalizados, às <strong>{assembleia.horario_1a_convocacao.slice(0, 5)}</strong>, ou, em segunda convocação com qualquer quórum às <strong>{assembleia.horario_2a_convocacao.slice(0, 5)}</strong>, oportunidade em que {assembleia.pautas?.length === 1 ? 'será apreciado o seguinte ponto de pauta:' : 'serão apreciados os seguintes pontos de pauta:'}
           </p>
 
           <div className="pl-8 my-8">

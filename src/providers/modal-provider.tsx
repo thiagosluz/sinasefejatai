@@ -6,6 +6,7 @@ import { ConfirmModal, ModalType } from '@/components/ui/confirm-modal';
 interface ModalContextData {
   confirm: (message: string) => Promise<boolean>;
   alert: (message: string) => Promise<void>;
+  prompt: (message: string, placeholder?: string) => Promise<string | null>;
 }
 
 const ModalContext = createContext<ModalContextData | undefined>(undefined);
@@ -13,10 +14,11 @@ const ModalContext = createContext<ModalContextData | undefined>(undefined);
 export function ModalProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [placeholder, setPlaceholder] = useState('');
   const [type, setType] = useState<ModalType>('confirm');
   
   // Guardamos as funções de resolução da Promise atual
-  const resolver = useRef<{ resolve: (value: boolean) => void } | null>(null);
+  const resolver = useRef<{ resolve: (value: unknown) => void } | null>(null);
 
   const confirm = useCallback((msg: string): Promise<boolean> => {
     setMessage(msg);
@@ -24,7 +26,7 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     setIsOpen(true);
 
     return new Promise((resolve) => {
-      resolver.current = { resolve };
+      resolver.current = { resolve: resolve as (value: unknown) => void };
     });
   }, []);
 
@@ -39,29 +41,41 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const handleConfirm = useCallback(() => {
+  const prompt = useCallback((msg: string, ph: string = ''): Promise<string | null> => {
+    setMessage(msg);
+    setPlaceholder(ph);
+    setType('prompt');
+    setIsOpen(true);
+
+    return new Promise((resolve) => {
+      resolver.current = { resolve: resolve as (value: unknown) => void };
+    });
+  }, []);
+
+  const handleConfirm = useCallback((value?: string) => {
     setIsOpen(false);
     if (resolver.current) {
-      resolver.current.resolve(true);
+      resolver.current.resolve(type === 'prompt' ? (value || '') : true);
       resolver.current = null;
     }
-  }, []);
+  }, [type]);
 
   const handleCancel = useCallback(() => {
     setIsOpen(false);
     if (resolver.current) {
-      resolver.current.resolve(false);
+      resolver.current.resolve(type === 'prompt' ? null : false);
       resolver.current = null;
     }
-  }, []);
+  }, [type]);
 
   return (
-    <ModalContext.Provider value={{ confirm, alert }}>
+    <ModalContext.Provider value={{ confirm, alert, prompt }}>
       {children}
       <ConfirmModal
         isOpen={isOpen}
         type={type}
         message={message}
+        placeholder={placeholder}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />

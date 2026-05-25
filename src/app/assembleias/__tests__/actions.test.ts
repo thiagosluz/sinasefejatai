@@ -75,7 +75,9 @@ describe('Assembleias Actions', () => {
         horario_1a_convocacao: '14:00',
         horario_2a_convocacao: '14:30',
         local: 'Sede',
+        publico_alvo: 'filiados',
         pautas: ['Pauta 1', 'Pauta 2'],
+        status: 'Agendada',
       });
     });
 
@@ -136,7 +138,9 @@ describe('Assembleias Actions', () => {
         assembleia_id: '123',
         numero: '001',
         redator: 'João',
-        conteudo_rich: '<p>Texto da ata</p>'
+        conteudo_rich: '<p>Texto da ata</p>',
+        votos_pautas: {},
+        arquivo_pdf_url: null
       }, {
         onConflict: 'assembleia_id'
       });

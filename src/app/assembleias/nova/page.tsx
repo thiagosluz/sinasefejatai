@@ -1,8 +1,40 @@
 import Link from 'next/link'
-import { addAssembleia } from '../actions'
+import FormCliente from './form-cliente'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function NovaAssembleiaPage(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;
+  const supabase = await createClient();
+  
+  const anoAtual = new Date().getFullYear().toString();
+  
+  // Buscar todas assembleias do ano corrente que não estão canceladas
+  // Extrairemos a string de numero para pegar o máximo localmente
+  const { data: assembleias } = await supabase
+    .from('assembleias')
+    .select('numero')
+    .gte('data_realizacao', `${anoAtual}-01-01`)
+    .lte('data_realizacao', `${anoAtual}-12-31`)
+    .neq('status', 'Cancelada');
+    
+  let maxNum = 0;
+  if (assembleias && assembleias.length > 0) {
+    assembleias.forEach(a => {
+      const parts = a.numero.split('/');
+      const num = parseInt(parts[0], 10);
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num;
+      }
+    });
+  }
+  
+  const numeroSugerido = `${String(maxNum + 1).padStart(3, '0')}/${anoAtual}`;
+
+  // Buscar locais cadastrados
+  const { data: locais } = await supabase
+    .from('locais')
+    .select('id, nome_curto, texto_completo')
+    .order('created_at', { ascending: true });
   
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
@@ -14,136 +46,14 @@ export default async function NovaAssembleiaPage(props: { searchParams: Promise<
 
       <div className="max-w-2xl mx-auto bg-brand-card border border-zinc-350 shadow-2xl p-1">
         <div className="border border-dashed border-zinc-300">
-          <form action={addAssembleia} className="p-6 md:p-8 flex flex-col gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* Nº do Edital */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="numero" className="text-xs font-bold uppercase tracking-wider text-zinc-600 font-serif">
-                  Nº do Edital
-                </label>
-                <input 
-                  id="numero"
-                  name="numero"
-                  className="bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
-                  placeholder="Ex: 001/2026"
-                />
-              </div>
-
-              {/* Tipo */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="tipo" className="text-xs font-bold uppercase tracking-wider text-zinc-600 font-serif">
-                  Tipo de Assembleia *
-                </label>
-                <select 
-                  id="tipo"
-                  name="tipo"
-                  required
-                  className="bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto cursor-pointer"
-                >
-                  <option value="Ordinária">Ordinária</option>
-                  <option value="Extraordinária">Extraordinária</option>
-                </select>
-              </div>
-
-              {/* Data */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="data_realizacao" className="text-xs font-bold uppercase tracking-wider text-zinc-600 font-serif">
-                  Data de Realização *
-                </label>
-                <input 
-                  id="data_realizacao"
-                  name="data_realizacao"
-                  type="date"
-                  required
-                  className="bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
-                />
-              </div>
-
-              {/* Local */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="local" className="text-xs font-bold uppercase tracking-wider text-zinc-600 font-serif">
-                  Local de Encontro *
-                </label>
-                <input 
-                  id="local"
-                  name="local"
-                  required
-                  className="bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
-                  placeholder="Ex: Auditório Principal"
-                />
-              </div>
-
-              {/* Horário 1ª Convocação */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="horario_1a_convocacao" className="text-xs font-bold uppercase tracking-wider text-zinc-600 font-serif">
-                  Horário 1ª Convocação *
-                </label>
-                <input 
-                  id="horario_1a_convocacao"
-                  name="horario_1a_convocacao"
-                  type="time"
-                  required
-                  className="bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
-                />
-              </div>
-
-              {/* Horário 2ª Convocação */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="horario_2a_convocacao" className="text-xs font-bold uppercase tracking-wider text-zinc-600 font-serif">
-                  Horário 2ª Convocação *
-                </label>
-                <input 
-                  id="horario_2a_convocacao"
-                  name="horario_2a_convocacao"
-                  type="time"
-                  required
-                  className="bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
-                />
-              </div>
-
-              {/* Pautas */}
-              <div className="flex flex-col gap-1.5 md:col-span-2">
-                <label htmlFor="pautas" className="text-xs font-bold uppercase tracking-wider text-zinc-600 font-serif">
-                  Pauta de Deliberações (uma por linha) *
-                </label>
-                <textarea 
-                  id="pautas"
-                  name="pautas"
-                  required
-                  rows={4}
-                  className="bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto resize-none font-medium leading-relaxed"
-                  placeholder="Informe os pontos de pauta da assembleia..."
-                />
-              </div>
-            </div>
-
-            {/* Ações */}
-            <div className="pt-6 mt-2 border-t border-dashed border-zinc-300 flex flex-col sm:flex-row justify-end items-center gap-4">
-              {searchParams.error && (
-                <div className="text-brand-tinto text-xs font-bold uppercase tracking-wider flex-1 text-center sm:text-left">
-                  {searchParams.error}
-                </div>
-              )}
-              
-              <div className="flex gap-3 w-full sm:w-auto">
-                <Link 
-                  href="/assembleias"
-                  className="flex-1 sm:flex-none text-center border border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-3 px-6 text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_#121214] hover:shadow-[1px_1px_0px_#121214] hover:translate-x-[1px] hover:translate-y-[1px] cursor-pointer"
-                >
-                  Cancelar
-                </Link>
-                <button 
-                  type="submit"
-                  className="flex-1 sm:w-auto bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-3.5 px-6 transition-all shadow-[2px_2px_0px_#121214] active:scale-98 cursor-pointer"
-                >
-                  Agendar Assembleia &rarr;
-                </button>
-              </div>
-            </div>
-          </form>
+          <FormCliente 
+            numeroSugerido={numeroSugerido} 
+            error={searchParams.error} 
+            locais={locais || []} 
+          />
         </div>
       </div>
     </div>
   )
 }
+
