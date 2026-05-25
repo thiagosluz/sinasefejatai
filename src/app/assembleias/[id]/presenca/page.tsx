@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { Printer, ArrowLeft } from 'lucide-react'
-import DocumentHeader from '@/components/document-header'
+import PresencaCliente from './presenca-cliente'
 
 export default async function ListaPresencaPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -33,97 +31,11 @@ export default async function ListaPresencaPage(props: { params: Promise<{ id: s
     .eq('ativo', true)
     .order('nome', { ascending: true })
 
-  // Gerar linhas vazias para preenchimento manual (ex: 20 linhas)
-  const linhasManuais = Array.from({ length: 20 }, (_, i) => i + 1)
-
-  const dataRealizacao = new Date(assembleia.data_realizacao).toLocaleDateString('pt-BR')
-
   return (
-    <div className="min-h-screen bg-zinc-200 print:bg-white text-zinc-900 font-sans">
-      {/* Botões de Ação (Escondidos na Impressão) */}
-      <div className="print:hidden bg-zinc-950 p-4 sticky top-0 z-10 shadow-md flex justify-between items-center text-zinc-100">
-        <div className="flex items-center gap-4">
-          <Link href="/assembleias" className="flex items-center gap-2 hover:text-emerald-400 transition-colors">
-            <ArrowLeft size={18} />
-            Voltar
-          </Link>
-          <span className="text-zinc-600">|</span>
-          <span className="font-medium">Visualização de Impressão</span>
-        </div>
-        <button 
-          // we will use a client component wrapper or just a little script for print
-          // since this is server component, we can't use onClick directly easily without client component
-          // Instead of converting the whole page, we can use a tiny inline script
-          type="button"
-          className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2"
-        >
-          <Printer size={18} />
-          <span dangerouslySetInnerHTML={{ __html: `<span onclick="window.print()">Imprimir Lista</span>` }} />
-        </button>
-      </div>
-
-      {/* Papel (A4 Simulação) */}
-      <div className="max-w-[210mm] mx-auto bg-white print:w-full print:max-w-none print:shadow-none shadow-2xl p-[20mm] min-h-[297mm]">
-        {/* Cabeçalho Timbrado Dinâmico */}
-        <DocumentHeader config={config} />
-
-        {/* Título do Documento */}
-        <div className="text-center mb-8">
-          <h2 className="text-xl font-bold uppercase underline mb-2">Lista de Presença</h2>
-          <h3 className="text-lg font-semibold text-zinc-800">
-            Assembleia {assembleia.tipo}
-          </h3>
-          <p className="text-sm text-zinc-600 mt-2">
-            <strong>Data:</strong> {dataRealizacao} &nbsp;|&nbsp; 
-            <strong>Local:</strong> {assembleia.local} &nbsp;|&nbsp;
-            <strong>1ª Conv:</strong> {assembleia.horario_1a_convocacao.slice(0, 5)} &nbsp;|&nbsp;
-            <strong>2ª Conv:</strong> {assembleia.horario_2a_convocacao.slice(0, 5)}
-          </p>
-        </div>
-
-        {/* Tabela de Filiados Ativos */}
-        <table className="w-full text-sm border-collapse mb-8 border border-zinc-400">
-          <thead>
-            <tr className="bg-zinc-100 print:bg-zinc-100">
-              <th className="border border-zinc-400 p-2 text-left w-12 text-center">Nº</th>
-              <th className="border border-zinc-400 p-2 text-left">Nome do Filiado</th>
-              <th className="border border-zinc-400 p-2 text-left w-32">SIAPE</th>
-              <th className="border border-zinc-400 p-2 text-center w-64">Assinatura</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filiados?.map((filiado, index) => (
-              <tr key={index} className="break-inside-avoid">
-                <td className="border border-zinc-400 p-2 text-center text-zinc-600">{index + 1}</td>
-                <td className="border border-zinc-400 p-2 font-medium">{filiado.nome}</td>
-                <td className="border border-zinc-400 p-2 text-zinc-700">{filiado.siape || ''}</td>
-                <td className="border border-zinc-400 p-6"></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Tabela de Preenchimento Manual */}
-        <h3 className="text-base font-bold uppercase mb-4 mt-12 break-before-page">Inclusões Manuais / Visitantes</h3>
-        <table className="w-full text-sm border-collapse border border-zinc-400">
-          <thead>
-            <tr className="bg-zinc-100 print:bg-zinc-100">
-              <th className="border border-zinc-400 p-2 text-left">Nome</th>
-              <th className="border border-zinc-400 p-2 text-left w-32">SIAPE / RG</th>
-              <th className="border border-zinc-400 p-2 text-center w-64">Assinatura</th>
-            </tr>
-          </thead>
-          <tbody>
-            {linhasManuais.map((linha) => (
-              <tr key={`manual-${linha}`} className="break-inside-avoid">
-                <td className="border border-zinc-400 p-6"></td>
-                <td className="border border-zinc-400 p-6"></td>
-                <td className="border border-zinc-400 p-6"></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <PresencaCliente 
+      assembleia={assembleia}
+      config={config}
+      filiados={filiados || []}
+    />
   )
 }
