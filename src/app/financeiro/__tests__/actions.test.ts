@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addTransacao, deleteTransacao } from '../actions';
+import { addTransacao, deleteTransacao, updateTransacao } from '../actions';
 
 // 1. Mock Next.js Navigation
 vi.mock('next/navigation', () => ({
@@ -17,8 +17,10 @@ vi.mock('next/cache', () => ({
 const mockInsert = vi.fn();
 const mockDelete = vi.fn();
 const mockSelect = vi.fn();
+const mockUpdate = vi.fn();
 const mockEqSelect = vi.fn();
 const mockEqDelete = vi.fn();
+const mockEqUpdate = vi.fn();
 const mockSingle = vi.fn();
 
 // Mock Storage
@@ -34,6 +36,7 @@ vi.mock('@/lib/supabase/server', () => ({
           insert: mockInsert,
           delete: mockDelete,
           select: mockSelect,
+          update: mockUpdate,
         };
       }
       return {};
@@ -54,6 +57,7 @@ describe('Financeiro Actions', () => {
     mockSelect.mockReturnValue({ eq: mockEqSelect });
     mockEqSelect.mockReturnValue({ single: mockSingle });
     mockDelete.mockReturnValue({ eq: mockEqDelete });
+    mockUpdate.mockReturnValue({ eq: mockEqUpdate });
   });
 
   describe('addTransacao', () => {
@@ -142,6 +146,79 @@ describe('Financeiro Actions', () => {
       mockEqDelete.mockResolvedValueOnce({ error: { message: 'Erro Banco' } });
 
       await expect(deleteTransacao('id-123')).rejects.toThrow('Falha ao excluir o lançamento');
+    });
+  });
+
+  describe('updateTransacao', () => {
+    it('deve redirecionar com erro se campos obrigatórios faltarem', async () => {
+      const formData = new FormData();
+      formData.append('tipo', 'Entrada');
+      
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?error=Preencha todos os campos obrigatórios');
+      expect(mockUpdate).not.toHaveBeenCalled();
+    });
+
+    it('deve redirecionar com erro se o valor for inválido', async () => {
+      const formData = new FormData();
+      formData.append('tipo', 'Entrada');
+      formData.append('data', '2026-10-10');
+      formData.append('descricao', 'Material');
+      formData.append('categoria', 'Material');
+      formData.append('valor', '-10.00');
+
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?error=O valor inserido deve ser maior que zero');
+    });
+
+    it('deve atualizar transação com sucesso e manter comprovante se solicitado', async () => {
+      const formData = new FormData();
+      formData.append('tipo', 'Saída');
+      formData.append('data', '2026-10-10');
+      formData.append('descricao', 'Material editado');
+      formData.append('categoria', 'Material de Consumo');
+      formData.append('valor', '250.00');
+      formData.append('manterComprovante', 'true');
+
+      // Mock obter transação atual
+      mockSingle.mockResolvedValueOnce({ data: { comprovante_url: 'https://storage/comprovantes/atual.pdf' }, error: null });
+      // Mock update banco
+      mockEqUpdate.mockResolvedValueOnce({ error: null });
+
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?success=Lançamento atualizado com sucesso!');
+      
+      expect(mockRemove).not.toHaveBeenCalled();
+      expect(mockUpdate).toHaveBeenCalledWith({
+        tipo: 'Saída',
+        data: '2026-10-10',
+        descricao: 'Material editado',
+        valor: 250.00,
+        categoria: 'Material de Consumo',
+        comprovante_url: 'https://storage/comprovantes/atual.pdf',
+      });
+    });
+
+    it('deve remover comprovante antigo se manterComprovante for false', async () => {
+      const formData = new FormData();
+      formData.append('tipo', 'Saída');
+      formData.append('data', '2026-10-10');
+      formData.append('descricao', 'Material editado');
+      formData.append('categoria', 'Material de Consumo');
+      formData.append('valor', '250.00');
+      formData.append('manterComprovante', 'false');
+
+      mockSingle.mockResolvedValueOnce({ data: { comprovante_url: 'https://storage/comprovantes/atual.pdf' }, error: null });
+      mockEqUpdate.mockResolvedValueOnce({ error: null });
+
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?success=Lançamento atualizado com sucesso!');
+      
+      expect(mockRemove).toHaveBeenCalledWith(['atual.pdf']);
+      expect(mockUpdate).toHaveBeenCalledWith({
+        tipo: 'Saída',
+        data: '2026-10-10',
+        descricao: 'Material editado',
+        valor: 250.00,
+        categoria: 'Material de Consumo',
+        comprovante_url: null,
+      });
     });
   });
 });

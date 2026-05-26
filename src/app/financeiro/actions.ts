@@ -130,3 +130,123 @@ export async function deleteTransacao(id: string) {
   revalidatePath('/financeiro')
   revalidatePath('/financeiro/prestacao')
 }
+
+export async function updateTransacao(id: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const tipo = formData.get('tipo') as 'Entrada' | 'Saída'
+  const data = formData.get('data') as string
+  const descricao = formData.get('descricao') as string
+  const valorRaw = formData.get('valor') as string
+  const categoria = formData.get('categoria') as string
+  const file = formData.get('comprovante') as File | null
+  const manterComprovante = formData.get('manterComprovante') === 'true'
+
+  if (!tipo || !data || !descricao || !valorRaw || !categoria) {
+    redirect('/financeiro?error=Preencha todos os campos obrigatórios')
+  }
+
+  // Parse valor as numeric float
+  const valor = parseFloat(valorRaw.replace(',', '.'))
+  if (isNaN(valor) || valor <= 0) {
+    redirect('/financeiro?error=O valor inserido deve ser maior que zero')
+  }
+
+  // 1. Obter o lançamento atual do banco para saber se já tem um comprovante
+  const { data: transacaoAtual, error: fetchError } = await supabase
+    .from('financeiro')
+    .select('comprovante_url')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !transacaoAtual) {
+    redirect('/financeiro?error=Lançamento não encontrado para edição')
+  }
+
+  let comprovante_url = transacaoAtual.comprovante_url
+
+  // Se o usuário explicitamente pediu para remover o comprovante ou se enviou um novo
+  const enviouNovoArquivo = file && file.size > 0 && file.name !== 'undefined'
+  
+  if (!manterComprovante || enviouNovoArquivo) {
+    // Remover arquivo físico antigo se existir
+    if (transacaoAtual.comprovante_url) {
+      try {
+        const parts = transacaoAtual.comprovante_url.split('/')
+        const fileName = parts[parts.length - 1]
+        
+        await supabase.storage
+          .from('comprovantes')
+          .remove([fileName])
+      } catch (err) {
+        console.error('Erro ao deletar arquivo de comprovante antigo:', err)
+      }
+    }
+    comprovante_url = null
+  }
+
+  // 2. Se enviou novo comprovante, fazer upload
+  if (enviouNovoArquivo) {
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
+    if (!allowedTypes.includes(file.type)) {
+      redirect('/financeiro?error=Formato de comprovante não suportado. Use PDF, PNG ou JPEG.')
+    }
+    
+    // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
+      redirect('/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.')
+    }
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${crypto.randomUUID()}.${fileExt}`
+
+    try {
+      const bytes = await file.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+
+      const { error: uploadError } = await supabase.storage
+        .from('comprovantes')
+        .upload(fileName, buffer, {
+          contentType: file.type,
+          upsert: false
+        })
+
+      if (uploadError) {
+        console.error('Erro no upload do novo comprovante:', uploadError)
+        redirect('/financeiro?error=Falha ao carregar o arquivo de comprovante')
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('comprovantes')
+        .getPublicUrl(fileName)
+
+      comprovante_url = publicUrl
+    } catch (err) {
+      console.error('Falha ao processar novo comprovante no servidor:', err)
+      redirect('/financeiro?error=Erro ao salvar o comprovante')
+    }
+  }
+
+  // 3. Atualizar os dados no banco
+  const { error: updateError } = await supabase
+    .from('financeiro')
+    .update({
+      tipo,
+      data,
+      descricao,
+      valor,
+      categoria,
+      comprovante_url
+    })
+    .eq('id', id)
+
+  if (updateError) {
+    console.error('Erro ao atualizar transação:', updateError)
+    redirect('/financeiro?error=Erro ao atualizar o lançamento no banco de dados')
+  }
+
+  revalidatePath('/financeiro')
+  revalidatePath('/financeiro/prestacao')
+  
+  redirect('/financeiro?success=Lançamento atualizado com sucesso!')
+}

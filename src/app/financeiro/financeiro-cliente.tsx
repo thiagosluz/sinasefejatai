@@ -11,10 +11,13 @@ import {
   FileText, 
   Filter,
   X,
-  Printer
+  Printer,
+  Upload,
+  Edit,
+  Check
 } from 'lucide-react'
 import Link from 'next/link'
-import { addTransacao, deleteTransacao } from './actions'
+import { addTransacao, deleteTransacao, updateTransacao } from './actions'
 import { useModal } from '@/providers/modal-provider'
 
 interface Transacao {
@@ -57,15 +60,48 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
   const [filtroMesAno, setFiltroMesAno] = useState('')
   const [drawerAberto, setDrawerAberto] = useState(false)
   
-  // Estados do formulário de novo lançamento
+  // Estados do formulário de novo lançamento e edição
   const [formTipo, setFormTipo] = useState<'Saída' | 'Entrada'>('Saída')
   const [formCategoria, setFormCategoria] = useState(CATEGORIAS_SAIDA[0])
   const [salvando, setSalvando] = useState(false)
+  const [transacaoEmEdicao, setTransacaoEmEdicao] = useState<Transacao | null>(null)
+  const [formData, setFormData] = useState({
+    data: new Date().toISOString().split('T')[0],
+    descricao: '',
+    valor: '',
+  })
+  const [manterComprovante, setManterComprovante] = useState(true)
 
   // Mudar categorias automaticamente se o tipo mudar no formulário
   const handleFormTipoChange = (tipo: 'Entrada' | 'Saída') => {
     setFormTipo(tipo)
     setFormCategoria(tipo === 'Entrada' ? CATEGORIAS_ENTRADA[0] : CATEGORIAS_SAIDA[0])
+  }
+
+  const abrirNovoLancamento = () => {
+    setTransacaoEmEdicao(null)
+    setFormTipo('Saída')
+    setFormCategoria(CATEGORIAS_SAIDA[0])
+    setFormData({
+      data: new Date().toISOString().split('T')[0],
+      descricao: '',
+      valor: '',
+    })
+    setManterComprovante(true)
+    setDrawerAberto(true)
+  }
+
+  const abrirEdicaoLancamento = (t: Transacao) => {
+    setTransacaoEmEdicao(t)
+    setFormTipo(t.tipo)
+    setFormCategoria(t.categoria)
+    setFormData({
+      data: t.data,
+      descricao: t.descricao,
+      valor: Number(t.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    })
+    setManterComprovante(true)
+    setDrawerAberto(true)
   }
 
   // Filtragem local reativa
@@ -234,9 +270,17 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
             <Printer size={15} className="inline mr-1.5" />
             <span>Emitir Prestação</span>
           </Link>
+
+          <Link 
+            href="/financeiro/importar" 
+            className="border border-brand-ink hover:border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px] flex items-center gap-1.5"
+          >
+            <Upload size={15} />
+            <span>Importar Extrato</span>
+          </Link>
           
           <button 
-            onClick={() => setDrawerAberto(true)}
+            onClick={abrirNovoLancamento}
             className="bg-brand-tinto hover:bg-brand-tinto-light text-white py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px] flex items-center gap-2 cursor-pointer"
           >
             <PlusCircle size={15} />
@@ -307,13 +351,22 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
                       )}
                     </td>
                     <td className="py-4 px-6 text-center">
-                      <button 
-                        onClick={() => handleDelete(t.id)}
-                        className="p-1 hover:bg-brand-cream text-brand-ink/50 hover:text-brand-tinto transition-colors cursor-pointer"
-                        title="Excluir Lançamento"
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => abrirEdicaoLancamento(t)}
+                          className="p-1 hover:bg-brand-cream text-brand-ink/50 hover:text-brand-olive transition-colors cursor-pointer"
+                          title="Editar Lançamento"
+                        >
+                          <Edit size={15} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(t.id)}
+                          className="p-1 hover:bg-brand-cream text-brand-ink/50 hover:text-brand-tinto transition-colors cursor-pointer"
+                          title="Excluir Lançamento"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -332,7 +385,9 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
             <div>
               {/* Cabeçalho */}
               <div className="flex items-center justify-between border-b-2 border-brand-ink pb-4 mb-6">
-                <h3 className="text-lg font-serif font-bold text-brand-tinto">Lançar Movimentação</h3>
+                <h3 className="text-lg font-serif font-bold text-brand-tinto">
+                  {transacaoEmEdicao ? 'Editar Lançamento' : 'Lançar Movimentação'}
+                </h3>
                 <button 
                   onClick={() => setDrawerAberto(false)}
                   className="p-1 hover:bg-brand-card text-brand-ink/50 hover:text-brand-ink transition-colors cursor-pointer"
@@ -342,7 +397,11 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
               </div>
 
               {/* Formulário */}
-              <form action={addTransacao} onSubmit={() => setSalvando(true)} className="space-y-4">
+              <form 
+                action={transacaoEmEdicao ? updateTransacao.bind(null, transacaoEmEdicao.id) : addTransacao} 
+                onSubmit={() => setSalvando(true)} 
+                className="space-y-4"
+              >
                 {/* Tipo de Lançamento */}
                 <div>
                   <span className="block text-xs font-bold text-brand-ink/60 uppercase tracking-wider mb-2 font-serif">
@@ -384,7 +443,8 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
                     id="data"
                     name="data"
                     type="date" 
-                    defaultValue={new Date().toISOString().split('T')[0]}
+                    value={formData.data}
+                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
                     required
                     className="w-full bg-brand-card border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
                   />
@@ -399,6 +459,8 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
                     id="descricao"
                     name="descricao"
                     type="text" 
+                    value={formData.descricao}
+                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                     placeholder="Ex: Aquisição de resmas de papel para assembleia"
                     required
                     className="w-full bg-brand-card border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
@@ -414,6 +476,8 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
                     id="valor"
                     name="valor"
                     type="text" 
+                    value={formData.valor}
+                    onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
                     placeholder="0,00"
                     required
                     className="w-full bg-brand-card border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto font-bold"
@@ -439,10 +503,56 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
                   </select>
                 </div>
 
+                {/* Comprovante Físico Existente (para Edição) */}
+                {transacaoEmEdicao?.comprovante_url && (
+                  <div className="bg-brand-cream border border-brand-border p-3 flex flex-col gap-2 shadow-[1.5px_1.5px_0px_var(--brand-ink)]">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                      <span className="text-brand-ink/60">Recibo Anexado</span>
+                      {manterComprovante ? (
+                        <span className="text-brand-olive flex items-center gap-1">
+                          <Check size={11} /> Mantido
+                        </span>
+                      ) : (
+                        <span className="text-brand-tinto flex items-center gap-1">
+                          <Trash2 size={10} /> Será Removido
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <a 
+                        href={transacaoEmEdicao.comprovante_url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-[10px] text-brand-ink hover:text-brand-tinto font-bold underline uppercase"
+                      >
+                        Visualizar Recibo
+                      </a>
+                      {manterComprovante ? (
+                        <button
+                          type="button"
+                          onClick={() => setManterComprovante(false)}
+                          className="text-[9px] text-white bg-brand-tinto px-2 py-1 font-bold uppercase tracking-wider transition-colors cursor-pointer hover:bg-brand-tinto-light"
+                        >
+                          Remover
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setManterComprovante(true)}
+                          className="text-[9px] text-white bg-brand-olive px-2 py-1 font-bold uppercase tracking-wider transition-colors cursor-pointer hover:opacity-90"
+                        >
+                          Manter
+                        </button>
+                      )}
+                    </div>
+                    <input type="hidden" name="manterComprovante" value={manterComprovante ? 'true' : 'false'} />
+                  </div>
+                )}
+
                 {/* Arquivo de Comprovante */}
                 <div>
                   <label htmlFor="comprovante" className="block text-xs font-bold text-brand-ink/60 uppercase tracking-wider mb-2 font-serif">
-                    Comprovante / Recibo (Opcional)
+                    {transacaoEmEdicao?.comprovante_url ? 'Substituir Recibo' : 'Comprovante / Recibo (Opcional)'}
                   </label>
                   <input 
                     id="comprovante"
