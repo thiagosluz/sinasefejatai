@@ -26,5 +26,19 @@ Automatizar a comunicação burocrática dos Editais.
 * **Mecânica:** Um botão "Disparar Edital" na Assembleia, que cruza o Público-Alvo com a tabela de filiados e faz envio em massa de e-mails usando serviços como o Resend.
 * **Benefícios:** Economia severa de horas de trabalho da secretaria (elimina exportação de planilhas e BCC no Gmail).
 
+## Módulo: Financeiro
+
+O módulo atual trata de fluxo de caixa, importação de OFX e gerenciamento de recibos. Abaixo as ideias levantadas para evolução do nível de transparência na prestação de contas.
+
+### 1. Conciliação de Saldo com Investimentos
+Lidar com o cenário (comum no Banco do Brasil) onde o saldo global em extrato PDF inclui o dinheiro aplicado em investimentos de baixa automática, mas o arquivo de exportação de dados padrão OFX reflete apenas o saldo livre da conta corrente. As opções levantadas para uma implementação futura são:
+
+* **Opção A (Recomendada): Saldo de Investimentos Manual no Fechamento de Caixa**
+  O sistema audita e concilia automaticamente a conta corrente via OFX. Porém, no momento de emitir o relatório mensal ou anual de prestação de contas, o tesoureiro preenche manualmente o campo "Saldo em Aplicações Financeiras" (conforme extrato PDF). Benefício: O relatório final baterá o centavo com o extrato bancário oficial e garantirá transparência sem aumentar excessivamente o esforço.
+* **Opção B: Foco Exclusivo em Conta Corrente**
+  Ignorar o valor aplicado. Trabalhar apenas com o saldo reportado pelo OFX. Desvantagem: o relatório do sistema e o cabeçalho do PDF do banco sempre apresentarão valores divergentes, obrigando explicações verbais recorrentes durante assembleias.
+* **Opção C: Módulo de Importação Múltipla**
+  O tesoureiro exportaria arquivos de dados separados (Conta vs Investimentos) do Gerenciador Financeiro. O sistema processaria ambos. Benefício: automação total e acompanhamento de rentabilidade. Desvantagem: alto custo e complexidade de implementação no momento atual.
+
 ---
 *Documento vivo. Adicione novas ideias e módulos conforme surgirem discussões e feedbacks da diretoria.*
