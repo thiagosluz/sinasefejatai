@@ -29,7 +29,7 @@ export default async function EditarAssembleiaPage(props: { params: Promise<{ id
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
       <header className="max-w-2xl mx-auto mb-8">
-        <Link href="/assembleias" className="text-zinc-550 hover:text-brand-ink transition-colors mb-4 inline-block font-semibold text-xs uppercase tracking-wider">&larr; Voltar para lista</Link>
+        <Link href="/admin/assembleias" className="text-zinc-550 hover:text-brand-ink transition-colors mb-4 inline-block font-semibold text-xs uppercase tracking-wider">&larr; Voltar para lista</Link>
         <h1 className="text-3xl font-serif font-bold text-brand-tinto tracking-tight">Editar Assembleia</h1>
         <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider font-medium">Continuar Edição da Convocatória</p>
       </header>
@@ -204,7 +204,7 @@ export default async function EditarAssembleiaPage(props: { params: Promise<{ id
               
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <Link 
-                  href="/assembleias"
+                  href="/admin/assembleias"
                   className="text-center border border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-3 px-6 text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_#121214] hover:shadow-[1px_1px_0px_#121214] hover:translate-x-[1px] hover:translate-y-[1px] cursor-pointer"
                 >
                   Cancelar

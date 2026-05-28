@@ -23,7 +23,7 @@ export default async function FiliadosPage() {
           <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Módulo de Cadastros e Fichas Sindicais</p>
         </div>
         <Link 
-          href="/filiados/novo" 
+          href="/admin/filiados/novo" 
           className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
         >
           <PlusCircle size={15} />
@@ -77,7 +77,7 @@ export default async function FiliadosPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3.5">
                         <Link 
-                          href={`/filiados/${filiado.id}/editar`}
+                          href={`/admin/filiados/${filiado.id}/editar`}
                           className="p-1 hover:bg-brand-ink/10 text-brand-ink/70 hover:text-brand-ink transition-all"
                           title="Editar Ficha"
                         >

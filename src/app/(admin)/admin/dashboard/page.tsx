@@ -64,7 +64,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <a 
-            href="/filiados" 
+            href="/admin/filiados" 
             className="inline-flex items-center justify-between border border-brand-ink bg-brand-cream hover:bg-brand-card py-2.5 px-4 text-xs font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
           >
             <span>Gerenciar Servidores</span>
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <a 
-            href="/assembleias" 
+            href="/admin/assembleias" 
             className="inline-flex items-center justify-between border border-brand-ink bg-brand-cream hover:bg-brand-card py-2.5 px-4 text-xs font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
           >
             <span>Atos e Editais</span>
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <a 
-            href="/financeiro" 
+            href="/admin/financeiro" 
             className="inline-flex items-center justify-between border border-brand-ink bg-brand-cream hover:bg-brand-card py-2.5 px-4 text-xs font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
           >
             <span>Livro Caixa</span>

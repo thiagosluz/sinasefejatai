@@ -264,7 +264,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
         {/* Botões de Ação */}
         <div className="flex items-center gap-3">
           <Link 
-            href="/financeiro/prestacao" 
+            href="/admin/financeiro/prestacao" 
             className="border border-brand-ink hover:border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
           >
             <Printer size={15} className="inline mr-1.5" />
@@ -272,7 +272,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
           </Link>
 
           <Link 
-            href="/financeiro/importar" 
+            href="/admin/financeiro/importar" 
             className="border border-brand-ink hover:border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px] flex items-center gap-1.5"
           >
             <Upload size={15} />

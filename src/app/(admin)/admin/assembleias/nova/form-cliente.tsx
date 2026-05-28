@@ -184,7 +184,7 @@ export default function FormCliente({ numeroSugerido, error, locais }: FormClien
         
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Link 
-            href="/assembleias"
+            href="/admin/assembleias"
             className="text-center border border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-3 px-6 text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_#121214] hover:shadow-[1px_1px_0px_#121214] hover:translate-x-[1px] hover:translate-y-[1px] cursor-pointer"
           >
             Cancelar

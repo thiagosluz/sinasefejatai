@@ -119,7 +119,7 @@ export default function PrestacaoCliente({ transacoes, config }: PrestacaoClient
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 print:hidden gap-4">
         <div>
           <div className="flex items-center gap-4">
-            <Link href="/financeiro" className="text-zinc-555 hover:text-brand-ink transition-colors font-semibold text-sm">&larr; Livro Caixa</Link>
+            <Link href="/admin/financeiro" className="text-zinc-555 hover:text-brand-ink transition-colors font-semibold text-sm">&larr; Livro Caixa</Link>
             <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Prestação de Contas</h1>
           </div>
           <p className="text-zinc-650 text-xs mt-1 uppercase tracking-wider">Demonstrativos Mensais Consolidados Prontos para Impressão</p>

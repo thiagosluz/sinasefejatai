@@ -224,7 +224,7 @@ export default function ImportadorCliente() {
       {/* Botão Voltar */}
       <div className="print:hidden">
         <Link 
-          href="/financeiro" 
+          href="/admin/financeiro" 
           className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-ink hover:text-brand-tinto transition-colors"
         >
           <ArrowLeft size={16} />

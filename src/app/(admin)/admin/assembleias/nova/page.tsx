@@ -39,7 +39,7 @@ export default async function NovaAssembleiaPage(props: { searchParams: Promise<
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
       <header className="max-w-2xl mx-auto mb-8">
-        <Link href="/assembleias" className="text-zinc-550 hover:text-brand-ink transition-colors mb-4 inline-block font-semibold text-xs uppercase tracking-wider">&larr; Voltar para lista</Link>
+        <Link href="/admin/assembleias" className="text-zinc-550 hover:text-brand-ink transition-colors mb-4 inline-block font-semibold text-xs uppercase tracking-wider">&larr; Voltar para lista</Link>
         <h1 className="text-3xl font-serif font-bold text-brand-tinto tracking-tight">Agendar Assembleia</h1>
         <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider font-medium">Convocatória de Nova Assembleia Geral</p>
       </header>

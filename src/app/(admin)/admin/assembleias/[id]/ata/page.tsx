@@ -46,6 +46,15 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
     .eq('assembleia_id', id)
     .single()
 
+  // Buscar documento anexado (Ata Assinada)
+  const { data: documentos } = await supabase
+    .from('assembleia_documentos')
+    .select('id, arquivo_url, nome_arquivo')
+    .eq('assembleia_id', id)
+    .eq('tipo', 'ata')
+    
+  const documentoAta = documentos?.[0] || null
+
   // Buscar configurações de cabeçalho
   const { data: config } = await supabase
     .from('configuracoes')
@@ -58,7 +67,7 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 print:hidden gap-4">
         <div>
           <div className="flex items-center gap-4">
-            <Link href="/assembleias" className="text-zinc-555 hover:text-brand-ink transition-colors font-semibold text-sm">&larr; Assembleias</Link>
+            <Link href="/admin/assembleias" className="text-zinc-555 hover:text-brand-ink transition-colors font-semibold text-sm">&larr; Assembleias</Link>
             <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Redigir Ata de Assembleia</h1>
           </div>
           <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">
@@ -83,6 +92,7 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
         assembleia={assembleia} 
         ataInicial={ata || undefined} 
         config={config}
+        documentoExistente={documentoAta}
       />
     </div>
   )

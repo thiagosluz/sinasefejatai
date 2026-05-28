@@ -140,7 +140,6 @@ describe('Assembleias Actions', () => {
         redator: 'João',
         conteudo_rich: '<p>Texto da ata</p>',
         votos_pautas: {},
-        arquivo_pdf_url: null
       }, {
         onConflict: 'assembleia_id'
       });

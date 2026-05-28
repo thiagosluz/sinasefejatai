@@ -12,7 +12,6 @@ export async function saveAta(formData: FormData) {
   const redator = formData.get('redator') as string
   const conteudo_rich = formData.get('conteudo_rich') as string
   const votos_pautas = formData.get('votos_pautas') as string
-  const arquivo_pdf_url = formData.get('arquivo_pdf_url') as string
   if (!assembleiaId) {
     redirect('/admin/assembleias?error=Assembleia não especificada')
   }
@@ -22,8 +21,7 @@ export async function saveAta(formData: FormData) {
     numero: numero || null,
     redator: redator || null,
     conteudo_rich: conteudo_rich || '',
-    votos_pautas: votos_pautas ? JSON.parse(votos_pautas) : {},
-    arquivo_pdf_url: arquivo_pdf_url || null,
+    votos_pautas: JSON.parse(votos_pautas || '{}'),
   }, {
     onConflict: 'assembleia_id'
   })

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Printer, ArrowLeft } from 'lucide-react'
 import DocumentHeader from '@/components/document-header'
 import EditalRetificarBtn from './edital-retificar-btn'
+import AnexoUploadBtn from '../../anexo-upload-btn'
 export default async function EditalPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createClient()
@@ -26,6 +27,15 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
     .eq('id', 1)
     .single()
 
+  // Buscar documento anexado (Edital)
+  const { data: documentos } = await supabase
+    .from('assembleia_documentos')
+    .select('id, arquivo_url, nome_arquivo')
+    .eq('assembleia_id', params.id)
+    .eq('tipo', 'edital')
+    
+  const documentoEdital = documentos?.[0] || null
+
   const dataRealizacao = new Date(assembleia.data_realizacao).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
@@ -41,22 +51,23 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
   return (
     <div className="min-h-screen bg-zinc-200 print:bg-white text-zinc-900 font-sans">
       {/* Botões de Ação (Escondidos na Impressão) */}
-      <div className="print:hidden bg-zinc-950 p-4 sticky top-0 z-10 shadow-md flex justify-between items-center text-zinc-100">
+      <div className="print:hidden bg-brand-cream border-b border-brand-border p-4 sticky top-0 z-10 shadow-sm flex justify-between items-center text-brand-ink">
         <div className="flex items-center gap-4">
-          <Link href="/assembleias" className="flex items-center gap-2 hover:text-emerald-400 transition-colors">
-            <ArrowLeft size={18} />
+          <Link href="/admin/assembleias" className="flex items-center gap-2 hover:text-brand-tinto transition-colors text-xs font-bold uppercase tracking-wider">
+            <ArrowLeft size={16} />
             Voltar
           </Link>
-          <span className="text-zinc-600">|</span>
-          <span className="font-medium">Visualização de Impressão (Edital)</span>
+          <span className="text-brand-border">|</span>
+          <span className="font-serif font-bold text-sm">Visualização de Impressão (Edital)</span>
         </div>
         <div className="flex items-center gap-3">
+          <AnexoUploadBtn assembleiaId={assembleia.id} tipo="edital" documentoExistente={documentoEdital} label="Anexar PDF Assinado" />
           <EditalRetificarBtn id={assembleia.id} versaoAtual={assembleia.versao_edital || 1} status={assembleia.status} />
           <button 
             type="button"
-            className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2 text-sm"
+            className="bg-brand-ink hover:bg-brand-ink/90 text-white rounded-none px-4 py-2 font-bold uppercase tracking-wider transition-colors flex items-center gap-2 text-[10px] shadow-[1.5px_1.5px_0px_var(--brand-tinto)]"
           >
-            <Printer size={18} />
+            <Printer size={16} />
             <span dangerouslySetInnerHTML={{ __html: `<span onclick="window.print()">Imprimir Edital</span>` }} />
           </button>
         </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Printer, ArrowLeft } from 'lucide-react'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
+import AnexoUploadBtn from '../../anexo-upload-btn'
 
 type Filiado = {
   nome: string
@@ -25,9 +26,14 @@ type PresencaClienteProps = {
   assembleia: Assembleia
   config: DocumentHeaderConfig | null
   filiados: Filiado[]
+  documentoExistente?: {
+    id: string
+    arquivo_url: string
+    nome_arquivo: string
+  } | null
 }
 
-export default function PresencaCliente({ assembleia, config, filiados }: PresencaClienteProps) {
+export default function PresencaCliente({ assembleia, config, filiados, documentoExistente }: PresencaClienteProps) {
   const [modo, setModo] = useState<'hibrida' | 'filiados' | 'branca'>('hibrida')
   const [identificador, setIdentificador] = useState<'siape' | 'cpf' | 'nenhum'>('siape')
   const [linhasExtras, setLinhasExtras] = useState(20)
@@ -39,39 +45,39 @@ export default function PresencaCliente({ assembleia, config, filiados }: Presen
   return (
     <div className="min-h-screen bg-zinc-200 print:bg-white text-zinc-900 font-sans">
       {/* Botões de Ação e Controles (Escondidos na Impressão) */}
-      <div className="print:hidden bg-zinc-950 p-4 sticky top-0 z-10 shadow-md flex flex-wrap gap-4 justify-between items-center text-zinc-100">
+      <div className="print:hidden bg-brand-cream border-b border-brand-border p-4 sticky top-0 z-10 shadow-sm flex flex-wrap gap-4 justify-between items-center text-brand-ink">
         <div className="flex items-center gap-4">
-          <Link href="/assembleias" className="flex items-center gap-2 hover:text-emerald-400 transition-colors">
-            <ArrowLeft size={18} />
+          <Link href="/admin/assembleias" className="flex items-center gap-2 hover:text-brand-tinto transition-colors text-xs font-bold uppercase tracking-wider">
+            <ArrowLeft size={16} />
             Voltar
           </Link>
-          <span className="text-zinc-600 hidden sm:inline">|</span>
-          <span className="font-medium hidden sm:inline">Controles de Impressão</span>
+          <span className="text-brand-border/50 hidden sm:inline">|</span>
+          <span className="font-serif font-bold text-sm hidden sm:inline">Controles de Impressão</span>
         </div>
 
         {/* Painel de Controle */}
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
-            <label htmlFor="modo" className="text-zinc-400 font-medium">Modo da Lista:</label>
+        <div className="flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 border border-brand-border shadow-[1px_1px_0px_var(--brand-ink)]">
+            <label htmlFor="modo" className="text-brand-ink/70">Modo:</label>
             <select
               id="modo"
               value={modo}
               onChange={(e) => setModo(e.target.value as 'hibrida' | 'filiados' | 'branca')}
-              className="bg-zinc-800 text-zinc-100 border-none rounded outline-none py-1 px-2 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              className="bg-transparent text-brand-ink border-none outline-none focus:ring-0 cursor-pointer"
             >
-              <option value="hibrida">Híbrida (Filiados + Brancas)</option>
+              <option value="hibrida">Híbrida</option>
               <option value="filiados">Apenas Filiados</option>
-              <option value="branca">Totalmente em Branco</option>
+              <option value="branca">Branca</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
-            <label htmlFor="identificador" className="text-zinc-400 font-medium">Identificador:</label>
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 border border-brand-border shadow-[1px_1px_0px_var(--brand-ink)]">
+            <label htmlFor="identificador" className="text-brand-ink/70">Identificador:</label>
             <select
               id="identificador"
               value={identificador}
               onChange={(e) => setIdentificador(e.target.value as 'siape' | 'cpf' | 'nenhum')}
-              className="bg-zinc-800 text-zinc-100 border-none rounded outline-none py-1 px-2 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              className="bg-transparent text-brand-ink border-none outline-none focus:ring-0 cursor-pointer"
             >
               <option value="siape">SIAPE</option>
               <option value="cpf">CPF</option>
@@ -80,8 +86,8 @@ export default function PresencaCliente({ assembleia, config, filiados }: Presen
           </div>
 
           {(modo === 'hibrida' || modo === 'branca') && (
-            <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
-              <label htmlFor="linhas" className="text-zinc-400 font-medium">Linhas Extras:</label>
+            <div className="flex items-center gap-2 bg-white px-3 py-1.5 border border-brand-border shadow-[1px_1px_0px_var(--brand-ink)]">
+              <label htmlFor="linhas" className="text-brand-ink/70">Linhas:</label>
               <input
                 id="linhas"
                 type="number"
@@ -89,29 +95,31 @@ export default function PresencaCliente({ assembleia, config, filiados }: Presen
                 max="200"
                 value={linhasExtras}
                 onChange={(e) => setLinhasExtras(Number(e.target.value) || 0)}
-                className="bg-zinc-800 text-zinc-100 border-none rounded outline-none py-1 px-2 w-16 focus:ring-1 focus:ring-emerald-500"
+                className="bg-transparent text-brand-ink border-none outline-none w-12 focus:ring-0 p-0"
               />
             </div>
           )}
 
-          <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 border border-brand-border shadow-[1px_1px_0px_var(--brand-ink)] cursor-pointer">
             <input
               id="paisagem"
               type="checkbox"
               checked={paisagem}
               onChange={(e) => setPaisagem(e.target.checked)}
-              className="accent-emerald-500 w-4 h-4 cursor-pointer"
+              className="accent-brand-tinto w-4 h-4 cursor-pointer"
             />
-            <label htmlFor="paisagem" className="text-zinc-300 font-medium cursor-pointer">Modo Paisagem</label>
+            <label htmlFor="paisagem" className="cursor-pointer">Modo Paisagem</label>
           </div>
+
+          <AnexoUploadBtn assembleiaId={assembleia.id} tipo="presenca" documentoExistente={documentoExistente} label="Anexar Assinada" />
 
           <button
             type="button"
             onClick={() => window.print()}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2 ml-auto"
+            className="bg-brand-ink hover:bg-brand-ink/90 text-white rounded-none px-4 py-2 font-bold uppercase tracking-wider transition-colors flex items-center gap-2 text-[10px] shadow-[1.5px_1.5px_0px_var(--brand-tinto)] ml-auto"
           >
-            <Printer size={18} />
-            <span>Imprimir Lista</span>
+            <Printer size={16} />
+            <span>Imprimir</span>
           </button>
         </div>
       </div>

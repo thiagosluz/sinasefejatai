@@ -125,7 +125,7 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
           <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Agendamento e Emissão de Editais, Listas e Atas</p>
         </div>
         <Link 
-          href="/assembleias/nova" 
+          href="/admin/assembleias/nova" 
           className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
         >
           <PlusCircle size={15} />
@@ -277,7 +277,7 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
                 <div className={`flex flex-1 items-center gap-2 ${assembleia.status === 'Cancelada' ? 'pointer-events-none opacity-50' : ''}`}>
                   {(assembleia.status === 'Rascunho' || assembleia.status === 'Agendada') && (
                     <Link 
-                      href={`/assembleias/${assembleia.id}/editar`}
+                      href={`/admin/assembleias/${assembleia.id}/editar`}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 transition-colors text-[10px] font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px] ${
                         assembleia.status === 'Agendada' 
                           ? 'bg-brand-tinto/10 hover:bg-brand-tinto/20 border border-brand-tinto text-brand-tinto'
@@ -290,19 +290,19 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
                   {assembleia.status !== 'Rascunho' && (
                     <>
                       <Link 
-                        href={`/assembleias/${assembleia.id}/edital`}
+                        href={`/admin/assembleias/${assembleia.id}/edital`}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-brand-cream hover:bg-brand-card border border-brand-ink text-brand-ink transition-colors text-[10px] font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
                       >
                         Edital
                       </Link>
                       <Link 
-                        href={`/assembleias/${assembleia.id}/presenca`}
+                        href={`/admin/assembleias/${assembleia.id}/presenca`}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-brand-cream hover:bg-brand-card border border-brand-ink text-brand-ink transition-colors text-[10px] font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
                       >
                         Presença
                       </Link>
                       <Link 
-                        href={`/assembleias/${assembleia.id}/ata`}
+                        href={`/admin/assembleias/${assembleia.id}/ata`}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-brand-tinto hover:bg-brand-tinto-light border-transparent text-white transition-colors text-[10px] font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
                       >
                         Ata

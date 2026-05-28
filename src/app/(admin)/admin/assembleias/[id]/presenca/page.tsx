@@ -31,11 +31,21 @@ export default async function ListaPresencaPage(props: { params: Promise<{ id: s
     .eq('ativo', true)
     .order('nome', { ascending: true })
 
+  // Buscar documento anexado (Lista de Presença)
+  const { data: documentos } = await supabase
+    .from('assembleia_documentos')
+    .select('id, arquivo_url, nome_arquivo')
+    .eq('assembleia_id', params.id)
+    .eq('tipo', 'presenca')
+    
+  const documentoPresenca = documentos?.[0] || null
+
   return (
     <PresencaCliente 
       assembleia={assembleia}
       config={config}
       filiados={filiados || []}
+      documentoExistente={documentoPresenca}
     />
   )
 }

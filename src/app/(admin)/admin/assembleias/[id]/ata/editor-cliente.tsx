@@ -9,15 +9,12 @@ import {
   Save,
   Printer,
   Sparkles,
-  Check,
-  Upload,
-  Eye,
-  Download
+  Check
 } from 'lucide-react'
 import { saveAta } from '../../actions-ata'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 import { useModal } from '@/providers/modal-provider'
-import { createClient } from '@/lib/supabase/client'
+import AnexoUploadBtn from '../../anexo-upload-btn'
 
 interface Assembleia {
   id: string
@@ -45,12 +42,17 @@ interface AtaEditorClienteProps {
   assembleia: Assembleia
   ataInicial?: Ata
   config?: DocumentHeaderConfig | null
+  documentoExistente?: {
+    id: string
+    arquivo_url: string
+    nome_arquivo: string
+  } | null
 }
 
 type Voto = { aFavor: string, contra: string, abstencoes: string, encaminhamento?: string }
 type PautaExtra = { titulo: string, solicitante: string, status: 'aprovada' | 'rejeitada', motivoRecusa?: string }
 
-export default function AtaEditorCliente({ assembleia, ataInicial, config }: AtaEditorClienteProps) {
+export default function AtaEditorCliente({ assembleia, ataInicial, config, documentoExistente }: AtaEditorClienteProps) {
   const { confirm } = useModal()
   const editorRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -60,7 +62,6 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
   const [conteudoRich, setConteudoRich] = useState(ataInicial?.conteudo_rich || '')
   const [copiado, setCopiado] = useState(false)
   const [salvando, setSalvando] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const [ataSalva, setAtaSalva] = useState(!!ataInicial)
 
   // Omitimos o _presidente e _pautasExtras do estado de votos para os inputs do placar funcionarem bem
@@ -70,8 +71,6 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
   delete initVotos._pautasExtras
   const [votos, setVotos] = useState<Record<number, Voto>>(initVotos as Record<number, Voto>)
   const [pautasExtras, setPautasExtras] = useState<PautaExtra[]>(initPautasExtras)
-
-  const [arquivoUrl, setArquivoUrl] = useState(ataInicial?.arquivo_pdf_url || '')
 
   // Sincronizar o editor físico com o estado inicial ou rascunhos salvos
   useEffect(() => {
@@ -144,42 +143,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
     setPautasExtras(newPautas)
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
 
-    try {
-      setUploading(true)
-      const supabase = createClient()
-      const fileExt = file.name.split('.').pop()
-      const fileName = `ata-${assembleia.id}-${Date.now()}.${fileExt}`
-
-      const { error } = await supabase.storage
-        .from('documentos')
-        .upload(fileName, file)
-
-      if (error) throw error
-
-      const { data: publicUrlData } = supabase.storage
-        .from('documentos')
-        .getPublicUrl(fileName)
-
-      setArquivoUrl(publicUrlData.publicUrl)
-      // Auto-salvar ao anexar PDF
-      setTimeout(() => formRef.current?.requestSubmit(), 100)
-    } catch (err) {
-      console.error(err)
-      alert('Erro ao fazer upload da ata. Verifique se o bucket "documentos" existe e tem permissão.')
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const handleRemoverPdf = () => {
-    setArquivoUrl('')
-    // Auto-salvar ao remover PDF
-    setTimeout(() => formRef.current?.requestSubmit(), 100)
-  }
 
   const handleGerarEsboço = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -301,7 +265,6 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
             <input type="hidden" name="assembleia_id" value={assembleia.id} />
             <input type="hidden" name="conteudo_rich" value={conteudoRich} />
             <input type="hidden" name="votos_pautas" value={JSON.stringify({ ...votos, _presidente: presidente, _pautasExtras: pautasExtras })} />
-            <input type="hidden" name="arquivo_pdf_url" value={arquivoUrl} />
 
             {/* --- FASE 1: ELABORAÇÃO --- */}
             <div className="flex items-center gap-2 mb-4">
@@ -512,51 +475,12 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config }: Ata
                 <Printer size={14} />
                 <span className="hidden lg:inline">Imprimir</span>
               </button>
-              <div className="w-[1px] h-6 bg-brand-border mx-1"></div>
-              {arquivoUrl ? (
-                <>
-                  <a
-                    href={arquivoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Visualizar Ata Assinada"
-                    className="p-2 text-brand-olive hover:bg-brand-olive/10 rounded-none transition-colors flex items-center gap-1 text-[10px] font-bold uppercase"
-                  >
-                    <Eye size={14} />
-                    <span className="hidden lg:inline">Ver PDF</span>
-                  </a>
-                  <a
-                    href={arquivoUrl}
-                    download
-                    title="Baixar Ata Assinada"
-                    className="p-2 text-brand-olive hover:bg-brand-olive/10 rounded-none transition-colors flex items-center gap-1 text-[10px] font-bold uppercase"
-                  >
-                    <Download size={14} />
-                    <span className="hidden lg:inline">Baixar</span>
-                  </a>
-                  <button type="button" onClick={handleRemoverPdf} title="Remover PDF" className="p-1 text-brand-tinto hover:bg-brand-tinto/10 rounded-none transition-colors">
-                    <Trash2 size={12} />
-                  </button>
-                </>
-              ) : (
-                <label
-                  title="Enviar Ata Assinada (PDF)"
-                  className="p-2 rounded-none transition-colors flex items-center gap-1 text-[10px] font-bold uppercase cursor-pointer text-brand-ink hover:bg-brand-cream"
-                >
-                  <Upload size={14} />
-                  <span className="hidden lg:inline">Ata Assinada</span>
-                  <input type="file" accept="application/pdf" onChange={handleFileUpload} className="hidden" disabled={uploading} />
-                </label>
-              )}
+              <AnexoUploadBtn assembleiaId={assembleia.id} tipo="ata" documentoExistente={documentoExistente} label="Ata Assinada" />
             </div>
           )}
         </div>
 
-        {uploading && (
-          <div className="bg-amber-50 border border-amber-200 px-4 py-2 text-[10px] text-amber-700 font-bold uppercase animate-pulse text-center">
-            Enviando PDF para a nuvem...
-          </div>
-        )}
+
 
         {/* Corpo do Editor */}
         <div className="bg-brand-cream border border-brand-border rounded-none overflow-hidden shadow-md min-h-[580px] flex flex-col">

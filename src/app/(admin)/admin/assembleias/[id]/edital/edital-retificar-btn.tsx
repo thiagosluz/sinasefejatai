@@ -6,7 +6,7 @@ export default function EditalRetificarBtn({ id, versaoAtual, status }: { id: st
 
   return (
     <Link
-      href={`/assembleias/${id}/editar`}
+      href={`/admin/assembleias/${id}/editar`}
       className="bg-brand-tinto hover:bg-brand-tinto-light text-white rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2 text-sm"
     >
       <Edit3 size={16} />
