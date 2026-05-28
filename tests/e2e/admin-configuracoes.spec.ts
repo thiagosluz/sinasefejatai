@@ -16,7 +16,7 @@ test.describe('Admin - Configurações do Cabeçalho', () => {
     await page.fill('input[name="email"]', testEmail!);
     await page.fill('input[name="password"]', testPassword!);
     await page.click('button:has-text("Autenticar Carteira")');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/admin/dashboard');
   });
 
   test('Deve carregar a página de configurações e exibir o formulário', async ({ page }) => {

@@ -43,7 +43,7 @@ describe('Filiados Actions', () => {
       const formData = new FormData();
       formData.append('email', 'teste@teste.com');
 
-      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /filiados/novo?error=O nome é obrigatório');
+      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /admin/filiados/novo?error=O nome é obrigatório');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
@@ -54,7 +54,7 @@ describe('Filiados Actions', () => {
 
       mockInsert.mockResolvedValueOnce({ error: null });
 
-      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /filiados');
+      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /admin/filiados');
       
       expect(mockInsert).toHaveBeenCalledWith({
         nome: 'João Teste',
@@ -71,14 +71,14 @@ describe('Filiados Actions', () => {
 
       mockInsert.mockResolvedValueOnce({ error: { message: 'DB Error' } });
 
-      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /filiados/novo?error=Falha ao cadastrar filiado');
+      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /admin/filiados/novo?error=Falha ao cadastrar filiado');
     });
   });
 
   describe('editFiliado', () => {
     it('deve redirecionar com erro se o nome estiver ausente na edição', async () => {
       const formData = new FormData();
-      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /filiados/123/editar?error=O nome é obrigatório');
+      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /admin/filiados/123/editar?error=O nome é obrigatório');
     });
 
     it('deve atualizar os dados corretamente no banco', async () => {
@@ -88,7 +88,7 @@ describe('Filiados Actions', () => {
 
       mockEq.mockResolvedValueOnce({ error: null });
 
-      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /filiados');
+      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /admin/filiados');
       
       expect(mockUpdate).toHaveBeenCalledWith({
         nome: 'Maria Atualizada',
@@ -107,7 +107,7 @@ describe('Filiados Actions', () => {
 
       mockEq.mockResolvedValueOnce({ error: { message: 'Erro DB' } });
 
-      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /filiados/123/editar?error=Falha ao editar filiado');
+      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /admin/filiados/123/editar?error=Falha ao editar filiado');
     });
   });
 

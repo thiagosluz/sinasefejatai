@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Lora, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { TopMenu } from "@/components/top-menu";
+import { ModalProvider } from "@/providers/modal-provider";
 
 const lora = Lora({
   variable: "--font-lora",
@@ -16,11 +16,9 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-import { ModalProvider } from "@/providers/modal-provider";
-
 export const metadata: Metadata = {
-  title: "SINASEFE Jataí - Gestão Sindical",
-  description: "Sistema integrado de gestão de filiados, assembleias, atas e prestação de contas do SINASEFE Jataí.",
+  title: "SINASEFE Jataí",
+  description: "Sindicato Nacional dos Servidores Federais da Educação Básica, Profissional e Tecnológica — Seção Sindical Jataí.",
 };
 
 export default function RootLayout({
@@ -42,10 +40,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ModalProvider>
-            <TopMenu />
-            <main className="flex-1 flex flex-col">
-              {children}
-            </main>
+            {children}
           </ModalProvider>
         </ThemeProvider>
       </body>

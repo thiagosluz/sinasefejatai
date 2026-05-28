@@ -20,12 +20,12 @@ test.describe('Filiados - Fluxo Crítico', () => {
     await page.fill('input[name="email"]', testEmail!);
     await page.fill('input[name="password"]', testPassword!);
     await page.click('button:has-text("Autenticar Carteira")');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/admin/dashboard');
   });
 
   test('Deve cadastrar um novo filiado e listá-lo na tabela', async ({ page }) => {
     // 1. Navegar até a tela de novo filiado
-    await page.goto('/filiados/novo');
+    await page.goto('/admin/filiados/novo');
     await expect(page.getByRole('heading', { name: /Nova Ficha de Filiado/i })).toBeVisible();
 
     // 2. Preencher os dados do formulário
@@ -39,7 +39,7 @@ test.describe('Filiados - Fluxo Crítico', () => {
     await page.click('button:has-text("Salvar Ficha")');
 
     // 4. Validar redirecionamento de sucesso para a lista
-    await page.waitForURL('**/filiados');
+    await page.waitForURL('**/admin/filiados');
     await expect(page.getByRole('heading', { name: /Gestão de Filiados/i })).toBeVisible();
 
     // 5. Verificar se o filiado inserido aparece na tabela HTML

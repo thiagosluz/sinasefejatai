@@ -36,7 +36,7 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
     .single()
 
   if (assembleiaError || !assembleia) {
-    return redirect('/assembleias?error=Assembleia não encontrada')
+    return redirect('/admin/assembleias?error=Assembleia não encontrada')
   }
 
   // Buscar ata se já existir

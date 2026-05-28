@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { logout } from '../login/actions'
+import { logout } from '@/app/login/actions'
 import { Users, CalendarRange, Landmark, LogOut, Sliders, MapPin } from 'lucide-react'
 
 export default async function DashboardPage() {

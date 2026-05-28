@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -22,7 +22,7 @@ export async function addAssembleia(formData: FormData) {
   const status = formData.get('status') as string || 'Agendada'
 
   if (!tipo || !data_realizacao || !horario_1a_convocacao || !horario_2a_convocacao || !local) {
-    redirect('/assembleias/nova?error=Preencha os campos obrigatórios')
+    redirect('/admin/assembleias/nova?error=Preencha os campos obrigatórios')
   }
 
   const { error } = await supabase.from('assembleias').insert({
@@ -39,11 +39,11 @@ export async function addAssembleia(formData: FormData) {
 
   if (error) {
     console.error(error)
-    redirect('/assembleias/nova?error=Falha ao agendar assembleia')
+    redirect('/admin/assembleias/nova?error=Falha ao agendar assembleia')
   }
 
   revalidatePath('/assembleias')
-  redirect('/assembleias')
+  redirect('/admin/assembleias')
 }
 
 export async function updateStatusAssembleia(id: string, status: string) {
@@ -143,5 +143,5 @@ export async function editAssembleia(id: string, formData: FormData) {
   }
 
   revalidatePath('/assembleias')
-  redirect('/assembleias')
+  redirect('/admin/assembleias')
 }

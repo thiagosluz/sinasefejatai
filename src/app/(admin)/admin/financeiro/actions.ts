@@ -15,13 +15,13 @@ export async function addTransacao(formData: FormData) {
   const file = formData.get('comprovante') as File | null
 
   if (!tipo || !data || !descricao || !valorRaw || !categoria) {
-    redirect('/financeiro?error=Preencha todos os campos obrigatórios')
+    redirect('/admin/financeiro?error=Preencha todos os campos obrigatórios')
   }
 
   // Parse valor as numeric float
   const valor = parseFloat(valorRaw.replace(',', '.'))
   if (isNaN(valor) || valor <= 0) {
-    redirect('/financeiro?error=O valor inserido deve ser maior que zero')
+    redirect('/admin/financeiro?error=O valor inserido deve ser maior que zero')
   }
 
   let comprovante_url = null
@@ -30,12 +30,12 @@ export async function addTransacao(formData: FormData) {
   if (file && file.size > 0 && file.name !== 'undefined') {
     const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
     if (!allowedTypes.includes(file.type)) {
-      redirect('/financeiro?error=Formato de comprovante não suportado. Use PDF, PNG ou JPEG.')
+      redirect('/admin/financeiro?error=Formato de comprovante não suportado. Use PDF, PNG ou JPEG.')
     }
     
     // 5MB limit
     if (file.size > 5 * 1024 * 1024) {
-      redirect('/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.')
+      redirect('/admin/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.')
     }
 
     const fileExt = file.name.split('.').pop()
@@ -54,7 +54,7 @@ export async function addTransacao(formData: FormData) {
 
       if (uploadError) {
         console.error('Erro no upload do comprovante:', uploadError)
-        redirect('/financeiro?error=Falha ao carregar o arquivo de comprovante')
+        redirect('/admin/financeiro?error=Falha ao carregar o arquivo de comprovante')
       }
 
       const { data: { publicUrl } } = supabase.storage
@@ -64,7 +64,7 @@ export async function addTransacao(formData: FormData) {
       comprovante_url = publicUrl
     } catch (err) {
       console.error('Falha ao processar arquivo no servidor:', err)
-      redirect('/financeiro?error=Erro ao salvar o comprovante')
+      redirect('/admin/financeiro?error=Erro ao salvar o comprovante')
     }
   }
 
@@ -79,13 +79,13 @@ export async function addTransacao(formData: FormData) {
 
   if (error) {
     console.error('Erro ao registrar transação:', error)
-    redirect('/financeiro?error=Erro ao salvar o lançamento no banco de dados')
+    redirect('/admin/financeiro?error=Erro ao salvar o lançamento no banco de dados')
   }
 
   revalidatePath('/financeiro')
   revalidatePath('/financeiro/prestacao')
   
-  redirect('/financeiro?success=Lançamento registrado com sucesso!')
+  redirect('/admin/financeiro?success=Lançamento registrado com sucesso!')
 }
 
 export async function deleteTransacao(id: string) {
@@ -143,13 +143,13 @@ export async function updateTransacao(id: string, formData: FormData) {
   const manterComprovante = formData.get('manterComprovante') === 'true'
 
   if (!tipo || !data || !descricao || !valorRaw || !categoria) {
-    redirect('/financeiro?error=Preencha todos os campos obrigatórios')
+    redirect('/admin/financeiro?error=Preencha todos os campos obrigatórios')
   }
 
   // Parse valor as numeric float
   const valor = parseFloat(valorRaw.replace(',', '.'))
   if (isNaN(valor) || valor <= 0) {
-    redirect('/financeiro?error=O valor inserido deve ser maior que zero')
+    redirect('/admin/financeiro?error=O valor inserido deve ser maior que zero')
   }
 
   // 1. Obter o lançamento atual do banco para saber se já tem um comprovante
@@ -160,7 +160,7 @@ export async function updateTransacao(id: string, formData: FormData) {
     .single()
 
   if (fetchError || !transacaoAtual) {
-    redirect('/financeiro?error=Lançamento não encontrado para edição')
+    redirect('/admin/financeiro?error=Lançamento não encontrado para edição')
   }
 
   let comprovante_url = transacaoAtual.comprovante_url
@@ -189,12 +189,12 @@ export async function updateTransacao(id: string, formData: FormData) {
   if (enviouNovoArquivo) {
     const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
     if (!allowedTypes.includes(file.type)) {
-      redirect('/financeiro?error=Formato de comprovante não suportado. Use PDF, PNG ou JPEG.')
+      redirect('/admin/financeiro?error=Formato de comprovante não suportado. Use PDF, PNG ou JPEG.')
     }
     
     // 5MB limit
     if (file.size > 5 * 1024 * 1024) {
-      redirect('/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.')
+      redirect('/admin/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.')
     }
 
     const fileExt = file.name.split('.').pop()
@@ -213,7 +213,7 @@ export async function updateTransacao(id: string, formData: FormData) {
 
       if (uploadError) {
         console.error('Erro no upload do novo comprovante:', uploadError)
-        redirect('/financeiro?error=Falha ao carregar o arquivo de comprovante')
+        redirect('/admin/financeiro?error=Falha ao carregar o arquivo de comprovante')
       }
 
       const { data: { publicUrl } } = supabase.storage
@@ -223,7 +223,7 @@ export async function updateTransacao(id: string, formData: FormData) {
       comprovante_url = publicUrl
     } catch (err) {
       console.error('Falha ao processar novo comprovante no servidor:', err)
-      redirect('/financeiro?error=Erro ao salvar o comprovante')
+      redirect('/admin/financeiro?error=Erro ao salvar o comprovante')
     }
   }
 
@@ -242,11 +242,11 @@ export async function updateTransacao(id: string, formData: FormData) {
 
   if (updateError) {
     console.error('Erro ao atualizar transação:', updateError)
-    redirect('/financeiro?error=Erro ao atualizar o lançamento no banco de dados')
+    redirect('/admin/financeiro?error=Erro ao atualizar o lançamento no banco de dados')
   }
 
   revalidatePath('/financeiro')
   revalidatePath('/financeiro/prestacao')
   
-  redirect('/financeiro?success=Lançamento atualizado com sucesso!')
+  redirect('/admin/financeiro?success=Lançamento atualizado com sucesso!')
 }

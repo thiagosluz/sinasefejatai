@@ -11,10 +11,10 @@ export function TopMenu() {
   if (pathname === '/login') return null
 
   const links = [
-    { href: '/dashboard', label: 'Painel' },
-    { href: '/filiados', label: 'Filiados' },
-    { href: '/assembleias', label: 'Assembleias' },
-    { href: '/financeiro', label: 'Livro Caixa' },
+    { href: '/admin/dashboard', label: 'Painel' },
+    { href: '/admin/filiados', label: 'Filiados' },
+    { href: '/admin/assembleias', label: 'Assembleias' },
+    { href: '/admin/financeiro', label: 'Livro Caixa' },
   ]
 
   return (
@@ -22,7 +22,7 @@ export function TopMenu() {
       <div className="flex flex-col md:flex-row h-auto md:h-14">
         {/* Barra Superior Mobile (Logo + Toggle) */}
         <div className="flex h-14 items-center justify-between px-4 md:px-8 border-b-2 md:border-b-0 border-brand-ink md:flex-none md:w-[250px]">
-          <Link href="/dashboard" className="font-serif font-bold text-lg tracking-tight text-brand-tinto uppercase">
+          <Link href="/admin/dashboard" className="font-serif font-bold text-lg tracking-tight text-brand-tinto uppercase">
             SINASEFE <span className="font-sans text-brand-ink text-sm">JATAÍ</span>
           </Link>
           <div className="flex md:hidden">

@@ -19,12 +19,12 @@ test.describe('Assembleias - Fluxo Crítico', () => {
     await page.fill('input[name="email"]', testEmail!);
     await page.fill('input[name="password"]', testPassword!);
     await page.click('button:has-text("Autenticar Carteira")');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/admin/dashboard');
   });
 
   test('Deve criar uma nova assembleia e renderizar os botões de relatórios', async ({ page }) => {
     // 1. Navegar até a criação de assembleias
-    await page.goto('/assembleias/nova');
+    await page.goto('/admin/assembleias/nova');
     await expect(page.getByRole('heading', { name: /Agendar Assembleia/i })).toBeVisible();
 
     // O campo numero vem pré-preenchido, mas vamos setar um específico para o teste
@@ -43,7 +43,7 @@ test.describe('Assembleias - Fluxo Crítico', () => {
     await page.click('button:has-text("Agendar Oficialmente")');
 
     // 4. Validar redirecionamento e sucesso na lista
-    await page.waitForURL('**/assembleias');
+    await page.waitForURL('**/admin/assembleias');
     await expect(page.getByRole('heading', { name: /Atos & Assembleias/i })).toBeVisible();
 
     // 4.1 Limpar filtro de ano para garantir que a assembleia de teste apareça independente do ano atual

@@ -20,11 +20,11 @@ test.describe('Financeiro - Fluxo Crítico', () => {
     await page.fill('input[name="email"]', testEmail!);
     await page.fill('input[name="password"]', testPassword!);
     await page.click('button:has-text("Autenticar Carteira")');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/admin/dashboard');
   });
 
   test('Deve registrar uma Entrada no caixa e visualizá-la na tabela', async ({ page }) => {
-    await page.goto('/financeiro');
+    await page.goto('/admin/financeiro');
     await expect(page.getByRole('heading', { name: /Livro Caixa/i })).toBeVisible();
 
     // 1. Abrir Drawer de Lançamento
@@ -53,7 +53,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
   });
 
   test('Deve registrar uma Saída no caixa e visualizá-la na tabela', async ({ page }) => {
-    await page.goto('/financeiro');
+    await page.goto('/admin/financeiro');
     await expect(page.getByRole('heading', { name: /Livro Caixa/i })).toBeVisible();
 
     // 1. Abrir Drawer de Lançamento
@@ -82,7 +82,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
   });
 
   test('Deve visualizar o fluxo de Caixa na página de Prestação de Contas', async ({ page }) => {
-    await page.goto('/financeiro/prestacao');
+    await page.goto('/admin/financeiro/prestacao');
     await expect(page.getByRole('heading', { name: /Prestação de Contas/i, exact: true })).toBeVisible();
 
     // Verifica se os botões de Impressão e de Voltar estão na tela

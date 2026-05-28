@@ -50,7 +50,7 @@ describe('Assembleias Actions', () => {
       formData.append('tipo', 'Ordinária');
       // Faltam data, horario, local
 
-      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /assembleias/nova?error=Preencha os campos obrigatórios');
+      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /admin/assembleias/nova?error=Preencha os campos obrigatórios');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
@@ -66,7 +66,7 @@ describe('Assembleias Actions', () => {
       // Setup do mock para retornar sucesso
       mockInsert.mockResolvedValueOnce({ error: null });
 
-      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /assembleias');
+      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /admin/assembleias');
       
       expect(mockInsert).toHaveBeenCalledWith({
         numero: null,
@@ -92,7 +92,7 @@ describe('Assembleias Actions', () => {
       // Supabase falhando
       mockInsert.mockResolvedValueOnce({ error: { message: 'DB Error' } });
 
-      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /assembleias/nova?error=Falha ao agendar assembleia');
+      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /admin/assembleias/nova?error=Falha ao agendar assembleia');
     });
   });
 
@@ -120,7 +120,7 @@ describe('Assembleias Actions', () => {
   describe('saveAta', () => {
     it('deve redirecionar com erro se assembleiaId não for enviado', async () => {
       const formData = new FormData();
-      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /assembleias?error=Assembleia não especificada');
+      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /admin/assembleias?error=Assembleia não especificada');
     });
 
     it('deve upsert no banco e redirecionar com sucesso', async () => {
@@ -132,7 +132,7 @@ describe('Assembleias Actions', () => {
 
       mockUpsert.mockResolvedValueOnce({ error: null });
 
-      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /assembleias/123/ata?success=Ata salva com sucesso');
+      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /admin/assembleias/123/ata?success=Ata salva com sucesso');
 
       expect(mockUpsert).toHaveBeenCalledWith({
         assembleia_id: '123',
@@ -152,7 +152,7 @@ describe('Assembleias Actions', () => {
       
       mockUpsert.mockResolvedValueOnce({ error: { message: 'Erro' } });
 
-      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /assembleias/123/ata?error=Falha ao salvar a ata');
+      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /admin/assembleias/123/ata?error=Falha ao salvar a ata');
     });
   });
 });

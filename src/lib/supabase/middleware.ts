@@ -32,26 +32,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Proteger as rotas a não ser que sejam de login/auth ou públicas
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/'
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Rotas sob /admin/* exigem autenticação
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin/')
+
+  // Usuário não autenticado tentando acessar área admin → redirecionar para login
+  if (!user && isAdminRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Redirecionar usuário logado da página de login/landing para dashboard
-  if (
-    user &&
-    (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/')
-  ) {
+  // Usuário já autenticado na tela de login → redirecionar para dashboard
+  if (user && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = '/admin/dashboard'
     return NextResponse.redirect(url)
   }
 

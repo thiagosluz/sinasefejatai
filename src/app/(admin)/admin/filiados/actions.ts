@@ -14,7 +14,7 @@ export async function addFiliado(formData: FormData) {
   const cargo = formData.get('cargo') as string
 
   if (!nome) {
-    redirect('/filiados/novo?error=O nome é obrigatório')
+    redirect('/admin/filiados/novo?error=O nome é obrigatório')
   }
 
   const { error } = await supabase.from('filiados').insert({
@@ -27,11 +27,11 @@ export async function addFiliado(formData: FormData) {
 
   if (error) {
     console.error(error)
-    redirect('/filiados/novo?error=Falha ao cadastrar filiado')
+    redirect('/admin/filiados/novo?error=Falha ao cadastrar filiado')
   }
 
-  revalidatePath('/filiados')
-  redirect('/filiados')
+  revalidatePath('/admin/filiados')
+  redirect('/admin/filiados')
 }
 
 export async function editFiliado(id: string, formData: FormData) {
@@ -45,7 +45,7 @@ export async function editFiliado(id: string, formData: FormData) {
   const ativo = formData.get('ativo') === 'on'
 
   if (!nome) {
-    redirect(`/filiados/${id}/editar?error=O nome é obrigatório`)
+    redirect(`/admin/filiados/${id}/editar?error=O nome é obrigatório`)
   }
 
   const { error } = await supabase
@@ -62,11 +62,11 @@ export async function editFiliado(id: string, formData: FormData) {
 
   if (error) {
     console.error(error)
-    redirect(`/filiados/${id}/editar?error=Falha ao editar filiado`)
+    redirect(`/admin/filiados/${id}/editar?error=Falha ao editar filiado`)
   }
 
-  revalidatePath('/filiados')
-  redirect('/filiados')
+  revalidatePath('/admin/filiados')
+  redirect('/admin/filiados')
 }
 
 export async function toggleAtivo(id: string, currentStatus: boolean) {
@@ -82,5 +82,5 @@ export async function toggleAtivo(id: string, currentStatus: boolean) {
     throw new Error('Falha ao alterar status')
   }
 
-  revalidatePath('/filiados')
+  revalidatePath('/admin/filiados')
 }

@@ -14,7 +14,7 @@ export async function saveAta(formData: FormData) {
   const votos_pautas = formData.get('votos_pautas') as string
   const arquivo_pdf_url = formData.get('arquivo_pdf_url') as string
   if (!assembleiaId) {
-    redirect('/assembleias?error=Assembleia não especificada')
+    redirect('/admin/assembleias?error=Assembleia não especificada')
   }
 
   const { error } = await supabase.from('atas').upsert({
@@ -30,11 +30,11 @@ export async function saveAta(formData: FormData) {
 
   if (error) {
     console.error('Erro ao salvar ata:', error)
-    redirect(`/assembleias/${assembleiaId}/ata?error=Falha ao salvar a ata`)
+    redirect(`/admin/assembleias/${assembleiaId}/ata?error=Falha ao salvar a ata`)
   }
 
-  revalidatePath(`/assembleias/${assembleiaId}/ata`)
-  revalidatePath('/assembleias')
+  revalidatePath(`/admin/assembleias/${assembleiaId}/ata`)
+  revalidatePath('/admin/assembleias')
   
-  redirect(`/assembleias/${assembleiaId}/ata?success=Ata salva com sucesso`)
+  redirect(`/admin/assembleias/${assembleiaId}/ata?success=Ata salva com sucesso`)
 }

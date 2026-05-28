@@ -65,7 +65,7 @@ describe('Financeiro Actions', () => {
       const formData = new FormData();
       formData.append('tipo', 'Entrada');
       
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /financeiro?error=Preencha todos os campos obrigatórios');
+      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=Preencha todos os campos obrigatórios');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
@@ -77,7 +77,7 @@ describe('Financeiro Actions', () => {
       formData.append('categoria', 'Repasse');
       formData.append('valor', '-100,00');
 
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /financeiro?error=O valor inserido deve ser maior que zero');
+      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=O valor inserido deve ser maior que zero');
     });
 
     it('deve inserir transação com valor corretamente formatado sem comprovante', async () => {
@@ -90,7 +90,7 @@ describe('Financeiro Actions', () => {
 
       mockInsert.mockResolvedValueOnce({ error: null });
 
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /financeiro?success=Lançamento registrado com sucesso!');
+      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?success=Lançamento registrado com sucesso!');
       
       expect(mockInsert).toHaveBeenCalledWith({
         tipo: 'Saída',
@@ -114,7 +114,7 @@ describe('Financeiro Actions', () => {
       const mockFile = new File(['x'.repeat(6 * 1024 * 1024)], 'grande.pdf', { type: 'application/pdf' });
       formData.append('comprovante', mockFile);
 
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.');
+      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.');
     });
   });
 
@@ -154,7 +154,7 @@ describe('Financeiro Actions', () => {
       const formData = new FormData();
       formData.append('tipo', 'Entrada');
       
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?error=Preencha todos os campos obrigatórios');
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=Preencha todos os campos obrigatórios');
       expect(mockUpdate).not.toHaveBeenCalled();
     });
 
@@ -166,7 +166,7 @@ describe('Financeiro Actions', () => {
       formData.append('categoria', 'Material');
       formData.append('valor', '-10.00');
 
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?error=O valor inserido deve ser maior que zero');
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=O valor inserido deve ser maior que zero');
     });
 
     it('deve atualizar transação com sucesso e manter comprovante se solicitado', async () => {
@@ -183,7 +183,7 @@ describe('Financeiro Actions', () => {
       // Mock update banco
       mockEqUpdate.mockResolvedValueOnce({ error: null });
 
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?success=Lançamento atualizado com sucesso!');
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?success=Lançamento atualizado com sucesso!');
       
       expect(mockRemove).not.toHaveBeenCalled();
       expect(mockUpdate).toHaveBeenCalledWith({
@@ -208,7 +208,7 @@ describe('Financeiro Actions', () => {
       mockSingle.mockResolvedValueOnce({ data: { comprovante_url: 'https://storage/comprovantes/atual.pdf' }, error: null });
       mockEqUpdate.mockResolvedValueOnce({ error: null });
 
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /financeiro?success=Lançamento atualizado com sucesso!');
+      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?success=Lançamento atualizado com sucesso!');
       
       expect(mockRemove).toHaveBeenCalledWith(['atual.pdf']);
       expect(mockUpdate).toHaveBeenCalledWith({
