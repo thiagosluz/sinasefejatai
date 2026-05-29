@@ -26,7 +26,6 @@ export default async function ConfiguracoesPage() {
   return (
     <ConfiguracoesCliente 
       initialConfig={config} 
-      userEmail={user.email} 
     />
   )
 }

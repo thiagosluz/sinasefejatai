@@ -5,6 +5,8 @@ import { PlusCircle, Calendar, MapPin, Clock, Search, CheckCircle2, XCircle, Edi
 import Link from 'next/link'
 import { updateStatusAssembleia, deleteAssembleia } from './actions'
 import { useModal } from '@/providers/modal-provider'
+import AdminPageHeader from '@/components/admin-page-header'
+import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 interface Assembleia {
   id: string
@@ -115,15 +117,8 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
   }
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
-      {/* Cabeçalho */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 gap-4">
-        <div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Atos & Assembleias</h1>
-          </div>
-          <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Agendamento e Emissão de Editais, Listas e Atas</p>
-        </div>
+    <AdminPageWrapper>
+      <AdminPageHeader titulo="Atos & Assembleias" subtitulo="Agendamento e Emissão de Editais, Listas e Atas">
         <Link 
           href="/admin/assembleias/nova" 
           className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
@@ -131,7 +126,7 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
           <PlusCircle size={15} />
           <span>Agendar Assembleia</span>
         </Link>
-      </header>
+      </AdminPageHeader>
 
       {/* Barra de Filtros e Buscas */}
       <div className="mb-8 flex flex-col justify-between items-start gap-4 bg-brand-border/10 p-4 border-2 border-brand-border">
@@ -340,6 +335,6 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
           ))
         )}
       </div>
-    </div>
+    </AdminPageWrapper>
   )
 }

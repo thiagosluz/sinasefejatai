@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { logout } from '@/app/login/actions'
-import { Users, CalendarRange, Landmark, LogOut, Sliders, MapPin } from 'lucide-react'
+import { Users, CalendarRange, Landmark, LogOut, Sliders, MapPin, UsersRound } from 'lucide-react'
+import Link from 'next/link'
+import AdminPageHeader from '@/components/admin-page-header'
+import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -24,15 +27,8 @@ export default async function DashboardPage() {
   })
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
-      {/* Cabeçalho Editorial */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 border-b-2 border-brand-ink pb-6 gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-brand-ink/60">Painel de Controle</span>
-          <h1 className="text-3xl font-serif font-bold text-brand-tinto tracking-tight">SINASEFE Jataí</h1>
-          <p className="text-xs text-brand-ink/70 mt-1 uppercase tracking-wider">{dataFormatada}</p>
-        </div>
-        
+    <AdminPageWrapper>
+      <AdminPageHeader titulo="SINASEFE Jataí" subtitulo={dataFormatada}>
         <div className="flex items-center gap-4">
           <div className="text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-brand-ink/60 block">Operador Autenticado</span>
@@ -45,7 +41,7 @@ export default async function DashboardPage() {
             </button>
           </form>
         </div>
-      </header>
+      </AdminPageHeader>
 
       {/* Painel em Formato de Mural de Avisos da Seção */}
       <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -72,7 +68,29 @@ export default async function DashboardPage() {
           </a>
         </div>
         
-        {/* Bloco 2: Assembleias e Atas */}
+        {/* Bloco 2: Diretoria */}
+        <div className="bg-brand-card border border-brand-border p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-tinto/5 translate-x-8 -translate-y-8 rotate-45 transition-transform group-hover:scale-110"></div>
+          <div>
+            <div className="flex items-center gap-2 mb-4 text-brand-tinto">
+              <UsersRound size={20} />
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-ink/60">Módulo Institucional</span>
+            </div>
+            <h2 className="font-serif font-bold text-xl mb-2 text-brand-ink">Diretoria & Gestões</h2>
+            <p className="text-brand-ink/80 text-xs leading-relaxed mb-6">
+              Gerencie a atual direção, registre histórico de mandatos e mantenha o acervo público.
+            </p>
+          </div>
+          <Link 
+            href="/admin/diretoria" 
+            className="inline-flex items-center justify-between border border-brand-ink bg-brand-cream hover:bg-brand-card py-2.5 px-4 text-xs font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
+          >
+            <span>Gestões e Membros</span>
+            <span>&rarr;</span>
+          </Link>
+        </div>
+
+        {/* Bloco 3: Assembleias e Atas */}
         <div className="bg-brand-card border border-brand-border p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-brand-tinto/5 translate-x-8 -translate-y-8 rotate-45 transition-transform group-hover:scale-110"></div>
           <div>
@@ -166,6 +184,6 @@ export default async function DashboardPage() {
         <span>Sistema Gestão SINASEFE Jataí • Versão 2.0 (Retro-Editorial Edition)</span>
         <span>© 2026 Seção Sindical Jataí</span>
       </footer>
-    </div>
+    </AdminPageWrapper>
   )
 }

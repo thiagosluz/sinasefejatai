@@ -1,18 +1,18 @@
 'use client'
 
 import React, { useState, useTransition, useRef } from 'react'
-import { Save, Image as ImageIcon, RotateCcw, AlertTriangle, ArrowLeft, Trash2, CheckCircle2 } from 'lucide-react'
-import Link from 'next/link'
+import { Save, Image as ImageIcon, RotateCcw, AlertTriangle, Trash2, CheckCircle2 } from 'lucide-react'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 import { saveConfiguracoes } from './actions'
 import { useModal } from '@/providers/modal-provider'
+import AdminPageHeader from '@/components/admin-page-header'
+import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 interface ConfiguracoesClienteProps {
   initialConfig: DocumentHeaderConfig | null
-  userEmail?: string
 }
 
-export default function ConfiguracoesCliente({ initialConfig, userEmail }: ConfiguracoesClienteProps) {
+export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesClienteProps) {
   const { confirm } = useModal()
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -127,29 +127,8 @@ export default function ConfiguracoesCliente({ initialConfig, userEmail }: Confi
   }
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
-      {/* Cabeçalho Editorial */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 border-b-2 border-brand-ink pb-6 gap-4">
-        <div>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-zinc-500 hover:text-brand-ink transition-colors font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <ArrowLeft size={14} />
-              <span>Painel</span>
-            </Link>
-            <span className="text-zinc-300">/</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Configurações de Layout</span>
-          </div>
-          <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight mt-1">Configuração de Cabeçalhos</h1>
-          <p className="text-zinc-650 text-xs mt-1 uppercase tracking-wider">Ajuste os dados timbrados oficiais impressos nos documentos do sistema</p>
-        </div>
-
-        {userEmail && (
-          <div className="text-left md:text-right">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 block">Operador Responsável</span>
-            <span className="text-xs font-semibold text-brand-ink">{userEmail}</span>
-          </div>
-        )}
-      </header>
+    <AdminPageWrapper>
+      <AdminPageHeader titulo="Configuração de Cabeçalhos" subtitulo="Ajuste os dados timbrados oficiais impressos nos documentos do sistema" />
 
       {/* Main Grid: Form à esquerda, Preview Interativo à direita */}
       <main className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
@@ -367,6 +346,6 @@ export default function ConfiguracoesCliente({ initialConfig, userEmail }: Confi
           </div>
         </div>
       </main>
-    </div>
+    </AdminPageWrapper>
   )
 }

@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
-import { Edit2, Trash2, MapPin, ArrowLeft, Save, X } from 'lucide-react'
-import Link from 'next/link'
+import { Edit2, Trash2, Save, X } from 'lucide-react'
 import { useModal } from '@/providers/modal-provider'
 import { addLocal, updateLocal, deleteLocal } from './actions'
+import AdminPageHeader from '@/components/admin-page-header'
+import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 interface Local {
   id: string
@@ -62,24 +63,8 @@ export default function LocaisCliente({ locais }: { locais: Local[] }) {
   }
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
-      <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 border-b-2 border-brand-ink pb-6 gap-4">
-        <div>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-zinc-500 hover:text-brand-ink transition-colors font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <ArrowLeft size={14} />
-              <span>Painel</span>
-            </Link>
-            <span className="text-zinc-300">/</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Configurações</span>
-          </div>
-          <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight mt-1 flex items-center gap-2">
-            <MapPin className="text-brand-tinto" />
-            Locais de Encontro
-          </h1>
-          <p className="text-zinc-650 text-xs mt-1 uppercase tracking-wider">Gerencie os locais padronizados para as atas de assembleia</p>
-        </div>
-      </header>
+    <AdminPageWrapper>
+      <AdminPageHeader titulo="Locais de Encontro" subtitulo="Gerencie os locais padronizados para as atas de assembleia" />
 
       <main className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         {/* Formulário - 4 Colunas */}
@@ -190,6 +175,6 @@ export default function LocaisCliente({ locais }: { locais: Local[] }) {
           </div>
         </div>
       </main>
-    </div>
+    </AdminPageWrapper>
   )
 }

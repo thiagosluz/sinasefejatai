@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { PlusCircle, Edit2, UserX, UserCheck } from 'lucide-react'
 import Link from 'next/link'
+import AdminPageHeader from '@/components/admin-page-header'
+import AdminPageWrapper from '@/components/admin-page-wrapper'
 import { toggleAtivo } from './actions'
 
 export default async function FiliadosPage() {
@@ -13,15 +15,8 @@ export default async function FiliadosPage() {
     .order('nome', { ascending: true })
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
-      {/* Cabeçalho */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 gap-4">
-        <div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Gestão de Filiados</h1>
-          </div>
-          <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Módulo de Cadastros e Fichas Sindicais</p>
-        </div>
+    <AdminPageWrapper>
+      <AdminPageHeader titulo="Gestão de Filiados" subtitulo="Módulo de Cadastros e Fichas Sindicais">
         <Link 
           href="/admin/filiados/novo" 
           className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
@@ -29,7 +24,7 @@ export default async function FiliadosPage() {
           <PlusCircle size={15} />
           <span>Cadastrar Filiado</span>
         </Link>
-      </header>
+      </AdminPageHeader>
 
       {/* Tabela estilo Fichário Físico */}
       <div className="bg-brand-card border border-brand-border shadow-xl overflow-hidden">
@@ -104,6 +99,6 @@ export default async function FiliadosPage() {
           </table>
         </div>
       </div>
-    </div>
+    </AdminPageWrapper>
   )
 }

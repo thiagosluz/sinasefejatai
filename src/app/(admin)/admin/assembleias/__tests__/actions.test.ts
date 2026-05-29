@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addAssembleia, updateStatusAssembleia } from '../actions';
+import { addAssembleia, updateStatusAssembleia, deleteAssembleia, editAssembleia } from '../actions';
 import { saveAta } from '../actions-ata';
 
 // 1. Mock Next.js Navigation
@@ -18,7 +18,11 @@ vi.mock('next/cache', () => ({
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockUpsert = vi.fn();
+const mockDelete = vi.fn();
+const mockSelect = vi.fn();
 const mockEq = vi.fn();
+const mockEqSelect = vi.fn();
+const mockSingle = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => ({
@@ -27,11 +31,14 @@ vi.mock('@/lib/supabase/server', () => ({
         return {
           insert: mockInsert,
           update: mockUpdate,
+          delete: mockDelete,
+          select: mockSelect,
         };
       }
       if (table === 'atas') {
         return {
           upsert: mockUpsert,
+          delete: mockDelete,
         };
       }
       return {};
@@ -114,6 +121,74 @@ describe('Assembleias Actions', () => {
       mockEq.mockResolvedValueOnce({ error: { message: 'Erro no DB' } });
 
       await expect(updateStatusAssembleia('123', 'CONCLUIDA')).rejects.toThrow('Falha ao atualizar status');
+    });
+  });
+
+  describe('deleteAssembleia', () => {
+    beforeEach(() => {
+      mockDelete.mockReturnValue({ eq: mockEq });
+    });
+
+    it('deve deletar atas associadas e depois a assembleia', async () => {
+      mockEq.mockResolvedValueOnce({ error: null }); // mockDelete atas
+      mockEq.mockResolvedValueOnce({ error: null }); // mockDelete assembleia
+
+      await deleteAssembleia('123');
+
+      expect(mockDelete).toHaveBeenCalledTimes(2);
+      expect(mockEq).toHaveBeenCalledWith('assembleia_id', '123');
+      expect(mockEq).toHaveBeenCalledWith('id', '123');
+    });
+
+    it('deve lançar erro se falhar ao excluir a assembleia', async () => {
+      mockEq.mockResolvedValueOnce({ error: null }); // mockDelete atas
+      mockEq.mockResolvedValueOnce({ error: { message: 'Erro DB' } }); // falha na assembleia
+
+      await expect(deleteAssembleia('123')).rejects.toThrow('Falha ao excluir assembleia: Erro DB');
+    });
+  });
+
+  describe('editAssembleia', () => {
+    beforeEach(() => {
+      mockSelect.mockReturnValue({ eq: mockEqSelect });
+      mockEqSelect.mockReturnValue({ single: mockSingle });
+      mockUpdate.mockReturnValue({ eq: mockEq });
+    });
+
+    it('deve redirecionar com erro se faltarem campos', async () => {
+      const formData = new FormData();
+      formData.append('tipo', 'Ordinária');
+      await expect(editAssembleia('123', formData)).rejects.toThrow('Redirected to: /assembleias/123/editar?error=Preencha os campos obrigatórios');
+    });
+
+    it('deve incrementar versão do edital se status continuar Agendada e houver motivo', async () => {
+      const formData = new FormData();
+      formData.append('tipo', 'Ordinária');
+      formData.append('data_realizacao', '2024-10-10');
+      formData.append('horario_1a_convocacao', '14:00');
+      formData.append('horario_2a_convocacao', '14:30');
+      formData.append('local', 'Sede');
+      formData.append('status', 'Agendada');
+      formData.append('motivo_retificacao', 'Mudança de horário');
+
+      mockSingle.mockResolvedValueOnce({
+        data: { status: 'Agendada', versao_edital: 1, historico_retificacoes: [] },
+        error: null
+      });
+
+      mockEq.mockResolvedValueOnce({ error: null });
+
+      await expect(editAssembleia('123', formData)).rejects.toThrow('Redirected to: /admin/assembleias');
+
+      expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+        versao_edital: 2,
+        historico_retificacoes: [
+          expect.objectContaining({
+            versao_anterior: 1,
+            motivo: 'Mudança de horário'
+          })
+        ]
+      }));
     });
   });
 

@@ -61,5 +61,24 @@ test.describe('Assembleias - Fluxo Crítico', () => {
     await expect(assembleiaCard.getByRole('link', { name: /Edital/i })).toBeVisible();
     await expect(assembleiaCard.getByRole('link', { name: /Presença/i })).toBeVisible();
     await expect(assembleiaCard.getByRole('link', { name: 'Ata', exact: true })).toBeVisible();
+    
+    // 7. Navegar para a página da Ata para testar a renderização do botão de Anexo
+    await assembleiaCard.getByRole('link', { name: 'Ata', exact: true }).click();
+    await page.waitForURL('**/ata');
+    await expect(page.getByRole('heading', { name: /Redigir Ata de Assembleia/i })).toBeVisible();
+    
+    // Preencher campos obrigatórios para o formulário poder ser enviado
+    await page.getByLabel(/Presidente da Mesa/i).fill('João Silva');
+    await page.getByLabel(/Secretário \/ Redator da Ata/i).fill('Maria Souza');
+
+    // Precisamos salvar um rascunho da ata para o botão de anexo aparecer
+    await page.getByRole('button', { name: /Salvar Progressos da Ata/i }).click();
+
+    // Esperar a notificação de sucesso
+    await expect(page.getByText('Ata salva com sucesso')).toBeVisible({ timeout: 15000 });
+
+    // Verificar se o AnexoUploadBtn foi renderizado na página
+    await expect(page.getByText('Ata Assinada')).toBeVisible();
+    await expect(page.getByText('Ata Assinada')).toBeVisible();
   });
 });

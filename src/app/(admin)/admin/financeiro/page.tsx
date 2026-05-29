@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import FinanceiroCliente from './financeiro-cliente'
+import AdminPageHeader from '@/components/admin-page-header'
+import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 interface FinanceiroPageProps {
   searchParams: Promise<{
@@ -31,16 +33,8 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
   const resolvedSearchParams = await searchParams
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-ink p-6 md:p-8 font-sans selection:bg-brand-tinto selection:text-white">
-      {/* Cabeçalho */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-brand-ink pb-6 gap-4">
-        <div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Livro Caixa</h1>
-          </div>
-          <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Controle do Fluxo Financeiro, Lançamentos e Comprovantes</p>
-        </div>
-      </header>
+    <AdminPageWrapper>
+      <AdminPageHeader titulo="Livro Caixa" subtitulo="Controle do Fluxo Financeiro, Lançamentos e Comprovantes" />
 
       {resolvedSearchParams.success && (
         <div className="bg-brand-cream border-2 border-dashed border-brand-olive text-brand-olive px-4 py-3.5 text-xs font-bold uppercase tracking-wider mb-6">
@@ -55,6 +49,6 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
       )}
 
       <FinanceiroCliente transacoesIniciais={transacoes || []} />
-    </div>
+    </AdminPageWrapper>
   )
 }

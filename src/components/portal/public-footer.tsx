@@ -42,6 +42,7 @@ export async function PublicFooter() {
             <ul className="space-y-2">
               {[
                 { href: '/', label: 'Início' },
+                { href: '/diretoria', label: 'Diretoria' },
                 { href: '/assembleias', label: 'Assembleias' },
                 { href: '/filiacao', label: 'Filiação' },
                 { href: '/contato', label: 'Fale Conosco' },
