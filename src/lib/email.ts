@@ -12,7 +12,7 @@ interface SendEmailOptions {
   replyTo?: string
 }
 
-export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
+async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
   const { data, error } = await resend.emails.send({
     from: FROM_ADDRESS,
     to: Array.isArray(to) ? to : [to],
