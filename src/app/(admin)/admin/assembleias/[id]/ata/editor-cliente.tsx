@@ -11,6 +11,7 @@ import {
   Sparkles,
   Check
 } from 'lucide-react'
+import { formatarHora } from '@/lib/date-utils'
 import { saveAta } from '../../actions-ata'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 import { useModal } from '@/providers/modal-provider'
@@ -229,7 +230,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
 
     const template = `
       <div style="text-align: justify; line-height: 1.6; text-indent: 40px;">
-        Aos <strong>${dataExtenso}</strong>, às <strong>${assembleia.horario_1a_convocacao.slice(0, 5)}</strong> horas em primeira convocação, e às <strong>${assembleia.horario_2a_convocacao.slice(0, 5)}</strong> horas em segunda convocação, reuniu-se no(a) <strong>${assembleia.local}</strong>, a Assembleia Geral <strong>${assembleia.tipo}</strong> dos(as) filiados(as) da Seção Sindical de Jataí do SINASEFE, sob convocação formal expedida pelo Edital número <strong>${assembleia.numero || '_____'}</strong>, com a presença dos(as) servidores(as) técnico-administrativos(as) e docentes constantes da respectiva lista de presença. Para dirigir os trabalhos desta assembleia, ${textoDirecao}. Dando início à reunião, o(a) presidente declarou aberta a assembleia e procedeu-se à leitura da pauta de deliberações, constante dos seguintes pontos: <strong>${pautasResumo}</strong>.${textoInclusoes} Passando-se à ordem do dia: ${pautasDetalhes} E nada mais havendo a tratar, a sessão foi encerrada pelo(a) presidente, da qual eu, na qualidade de secretário(a) dos trabalhos, lavrei a presente ata que, após lida e considerada em conformidade por todos(as) os(as) presentes, será assinada pela coordenação, pela mesa diretora dos trabalhos e pelos(as) demais presentes interessados(as).
+        Aos <strong>${dataExtenso}</strong>, às <strong>${formatarHora(assembleia.horario_1a_convocacao)}</strong> em primeira convocação, e às <strong>${formatarHora(assembleia.horario_2a_convocacao)}</strong> em segunda convocação, reuniu-se no(a) <strong>${assembleia.local}</strong>, a Assembleia Geral <strong>${assembleia.tipo}</strong> dos(as) filiados(as) da Seção Sindical de Jataí do SINASEFE, sob convocação formal expedida pelo Edital número <strong>${assembleia.numero || '_____'}</strong>, com a presença dos(as) servidores(as) técnico-administrativos(as) e docentes constantes da respectiva lista de presença. Para dirigir os trabalhos desta assembleia, ${textoDirecao}. Dando início à reunião, o(a) presidente declarou aberta a assembleia e procedeu-se à leitura da pauta de deliberações, constante dos seguintes pontos: <strong>${pautasResumo}</strong>.${textoInclusoes} Passando-se à ordem do dia: ${pautasDetalhes} E nada mais havendo a tratar, a sessão foi encerrada pelo(a) presidente, da qual eu, na qualidade de secretário(a) dos trabalhos, lavrei a presente ata que, após lida e considerada em conformidade por todos(as) os(as) presentes, será assinada pela coordenação, pela mesa diretora dos trabalhos e pelos(as) demais presentes interessados(as).
       </div>
     `
 
@@ -501,7 +502,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
       </div>
 
       {/* 3. Layout de Impressão Oficial A4 */}
-      <div className="hidden print:block font-serif text-black p-12 bg-white max-w-[800px] mx-auto text-justify text-sm leading-relaxed">
+      <div className="hidden print:block font-serif text-black p-0 bg-white max-w-[800px] mx-auto text-justify text-sm leading-relaxed">
         <DocumentHeader config={config} />
         <div className="text-center font-bold text-base uppercase mb-6 tracking-wide">
           ATA DA ASSEMBLEIA GERAL {assembleia.tipo.toUpperCase()} {assembleia.numero ? `Nº ${assembleia.numero}` : ''}

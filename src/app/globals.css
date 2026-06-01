@@ -72,6 +72,9 @@ body {
 
 /* Otimização de layouts impressos formais */
 @media print {
+  @page {
+    margin: 20mm; /* Margem global consistente para impressão A4 */
+  }
   body {
     background-color: #ffffff !important;
     color: #000000 !important;

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CalendarDays, MapPin, ArrowRight, Users, Shield, FileText, ChevronRight } from 'lucide-react'
+import { formatarDataPtBR } from '@/lib/date-utils'
 
 async function getAssembleiasRecentes() {
   const supabase = await createClient()
@@ -24,7 +25,7 @@ async function getConfiguracoes() {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', {
+  return formatarDataPtBR(dateStr, {
     day: '2-digit',
     month: 'long',
     year: 'numeric',

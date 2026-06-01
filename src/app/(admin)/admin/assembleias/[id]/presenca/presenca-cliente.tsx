@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Printer, ArrowLeft } from 'lucide-react'
+import { formatarHora } from '@/lib/date-utils'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 import AnexoUploadBtn from '../../anexo-upload-btn'
 
@@ -135,7 +136,7 @@ export default function PresencaCliente({ assembleia, config, filiados, document
       )}
 
       {/* Papel (A4 Simulação) */}
-      <div className={`mx-auto bg-white print:w-full print:max-w-none print:shadow-none shadow-2xl p-[20mm] ${paisagem ? 'max-w-[297mm] min-h-[210mm]' : 'max-w-[210mm] min-h-[297mm]'}`}>
+      <div className={`mx-auto bg-white print:w-full print:max-w-none print:shadow-none shadow-2xl p-[20mm] print:p-0 ${paisagem ? 'max-w-[297mm] min-h-[210mm]' : 'max-w-[210mm] min-h-[297mm]'}`}>
         {/* Cabeçalho Timbrado Dinâmico */}
         <DocumentHeader config={config} />
 
@@ -151,8 +152,8 @@ export default function PresencaCliente({ assembleia, config, filiados, document
           <p className="text-sm text-zinc-600 mt-2">
             <strong>Data:</strong> {dataRealizacao} &nbsp;|&nbsp;
             <strong>Local:</strong> {assembleia.local} &nbsp;|&nbsp;
-            <strong>1ª Convocação:</strong> {assembleia.horario_1a_convocacao.slice(0, 5)} &nbsp;|&nbsp;
-            <strong>2ª Convocação:</strong> {assembleia.horario_2a_convocacao.slice(0, 5)}
+            <strong>1ª Convocação:</strong> {formatarHora(assembleia.horario_1a_convocacao)} &nbsp;|&nbsp;
+            <strong>2ª Convocação:</strong> {formatarHora(assembleia.horario_2a_convocacao)}
           </p>
         </div>
 

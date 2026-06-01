@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import AtaEditorCliente from './editor-cliente'
+import { formatarDataPtBR } from '@/lib/date-utils'
 
 interface AtaPageProps {
   params: Promise<{
@@ -71,7 +72,7 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
             <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Redigir Ata de Assembleia</h1>
           </div>
           <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">
-            Assembleia {assembleia.tipo} • Edital {assembleia.numero || 'S/N'} • {new Date(assembleia.data_realizacao).toLocaleDateString('pt-BR')}
+            Assembleia {assembleia.tipo} • Edital {assembleia.numero || 'S/N'} • {formatarDataPtBR(assembleia.data_realizacao)}
           </p>
         </div>
       </header>

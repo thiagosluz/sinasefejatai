@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { CalendarDays, MapPin, Users } from 'lucide-react'
+import { formatarDataPtBR, formatarHora } from '@/lib/date-utils'
 
 async function getAssembleias() {
   const supabase = await createClient()
@@ -12,7 +13,7 @@ async function getAssembleias() {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', {
+  return formatarDataPtBR(dateStr, {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
@@ -21,7 +22,7 @@ function formatDate(dateStr: string) {
 }
 
 function formatTime(timeStr: string) {
-  return timeStr?.slice(0, 5)
+  return formatarHora(timeStr)
 }
 
 const statusConfig: Record<string, { label: string; classes: string; dot: string }> = {

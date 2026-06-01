@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { PlusCircle, Calendar, MapPin, Clock, Search, CheckCircle2, XCircle, Edit3, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { updateStatusAssembleia, deleteAssembleia } from './actions'
+import { formatarDataExtenso, formatarHora } from '@/lib/date-utils'
 import { useModal } from '@/providers/modal-provider'
 import AdminPageHeader from '@/components/admin-page-header'
 import AdminPageWrapper from '@/components/admin-page-wrapper'
@@ -244,11 +245,11 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
                 <div className="space-y-2.5 mb-6 text-xs text-brand-ink/80">
                   <div className="flex items-center gap-2.5">
                     <Calendar size={14} className="text-brand-tinto" />
-                    <span className="font-semibold">{new Date(assembleia.data_realizacao).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    <span className="font-semibold capitalize">{formatarDataExtenso(assembleia.data_realizacao)}</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <Clock size={14} className="text-brand-tinto" />
-                    <span className="font-medium">1ª Convocação: {assembleia.horario_1a_convocacao.slice(0, 5)}h | 2ª Convocação: {assembleia.horario_2a_convocacao.slice(0, 5)}h</span>
+                    <span className="font-medium">1ª Convocação: {formatarHora(assembleia.horario_1a_convocacao)} | 2ª Convocação: {formatarHora(assembleia.horario_2a_convocacao)}</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <MapPin size={14} className="text-brand-tinto" />
