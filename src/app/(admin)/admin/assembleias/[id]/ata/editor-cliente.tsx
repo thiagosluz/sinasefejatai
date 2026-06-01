@@ -11,11 +11,12 @@ import {
   Sparkles,
   Check
 } from 'lucide-react'
-import { formatarHora } from '@/lib/date-utils'
 import { saveAta } from '../../actions-ata'
-import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
+import { DocumentHeaderConfig } from '@/components/document-header'
 import { useModal } from '@/providers/modal-provider'
 import AnexoUploadBtn from '../../anexo-upload-btn'
+import { useAtaBuilder } from './hooks/use-ata-builder'
+import { AtaPrintLayout } from './components/ata-print-layout'
 
 interface Assembleia {
   id: string
@@ -65,13 +66,21 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
   const [salvando, setSalvando] = useState(false)
   const [ataSalva, setAtaSalva] = useState(!!ataInicial)
 
-  // Omitimos o _presidente e _pautasExtras do estado de votos para os inputs do placar funcionarem bem
   const initVotos = { ... (ataInicial?.votos_pautas || {}) } as Record<string, unknown>
   const initPautasExtras = (initVotos._pautasExtras as PautaExtra[] | undefined) || []
   delete initVotos._presidente
   delete initVotos._pautasExtras
   const [votos, setVotos] = useState<Record<number, Voto>>(initVotos as Record<number, Voto>)
   const [pautasExtras, setPautasExtras] = useState<PautaExtra[]>(initPautasExtras)
+
+  // Custom hook para centralizar a lógica de esboço da Ata
+  const { gerarEsbocoHTML } = useAtaBuilder({
+    assembleia,
+    votos,
+    pautasExtras,
+    presidente,
+    redator
+  })
 
   // Sincronizar o editor físico com o estado inicial ou rascunhos salvos
   useEffect(() => {
@@ -80,7 +89,6 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
     }
   }, [ataInicial])
 
-  // Executar comandos de formatação de texto rico do navegador
   const formatDoc = (cmd: string, value: string = '') => {
     document.execCommand(cmd, false, value)
     if (editorRef.current) {
@@ -104,18 +112,6 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
 
   const handlePrint = () => {
     window.print()
-  }
-
-  const obterDataExtenso = (dataStr: string) => {
-    const data = new Date(dataStr + 'T12:00:00')
-    const meses = [
-      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
-    ]
-    const diaMes = data.getDate()
-    const mes = meses[data.getMonth()]
-    const ano = data.getFullYear()
-    return `${diaMes} dias do mês de ${mes} de ${ano}`
   }
 
   const handleVoto = (index: number, field: keyof Voto, value: string) => {
@@ -144,95 +140,9 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
     setPautasExtras(newPautas)
   }
 
-
-
   const handleGerarEsboço = async (e: React.MouseEvent) => {
     e.preventDefault()
-    const dataExtenso = obterDataExtenso(assembleia.data_realizacao)
-    
-    const pautasOficiais = assembleia.pautas || []
-    const pautasExtrasAprovadas = pautasExtras.filter(pe => pe.status === 'aprovada')
-    const pautasExtrasRejeitadas = pautasExtras.filter(pe => pe.status === 'rejeitada')
-    const todasPautasParaDiscussao = [
-      ...pautasOficiais,
-      ...pautasExtrasAprovadas.map(pe => pe.titulo || 'Pauta não especificada')
-    ]
-
-    const pautasResumo = todasPautasParaDiscussao.length > 0
-      ? todasPautasParaDiscussao.map((p, index) => `${index + 1}) ${p}`).join('; ')
-      : 'pauta não definida'
-
-    // Texto de menção às inclusões na abertura da sessão
-    let textoInclusoes = ''
-    if (pautasExtrasAprovadas.length > 0 || pautasExtrasRejeitadas.length > 0) {
-      const partesInclusao: string[] = []
-      pautasExtrasAprovadas.forEach(pe => {
-        const solicitante = pe.solicitante || 'a plenária'
-        partesInclusao.push(`o(a) filiado(a) <strong>${solicitante}</strong> solicitou ao(à) presidente da mesa a inclusão do ponto de pauta <strong>"${pe.titulo || 'não especificada'}"</strong> na Ordem do Dia, sendo o pedido submetido à apreciação dos presentes e <strong>aprovado</strong>`)
-      })
-      pautasExtrasRejeitadas.forEach(pe => {
-        const solicitante = pe.solicitante || 'a plenária'
-        const motivo = pe.motivoRecusa?.trim() ? `, tendo como justificativa: <strong>${pe.motivoRecusa.trim()}</strong>` : ''
-        partesInclusao.push(`o(a) filiado(a) <strong>${solicitante}</strong> solicitou ao(à) presidente da mesa a inclusão do ponto de pauta <strong>"${pe.titulo || 'não especificada'}"</strong> na Ordem do Dia, sendo o pedido submetido à apreciação dos presentes e <strong>rejeitado</strong>${motivo}`)
-      })
-      textoInclusoes = ' Antes de se passar à Ordem do Dia, ' + partesInclusao.join('; ') + '.'
-    }
-
-    // Detalhes de discussão de cada pauta (oficiais + extras aprovadas)
-    let pautasDetalhes = ''
-    if (todasPautasParaDiscussao.length > 0) {
-      pautasDetalhes = todasPautasParaDiscussao.map((p, index) => {
-        const isExtra = index >= pautasOficiais.length
-        const v = votos[index]
-        const temVotacao = v && (v.aFavor || v.contra || v.abstencoes)
-        let texto = `No <strong>${index + 1}º ponto da pauta (${p})</strong>, `
-        if (isExtra) {
-          texto += `ponto incluído a pedido da plenária conforme registrado na abertura, `
-        }
-        texto += `debateu-se amplamente sobre o tema. `
-
-        if (temVotacao) {
-          const numFavor = parseInt(v.aFavor) || 0
-          const numContra = parseInt(v.contra) || 0
-          const numAbsten = parseInt(v.abstencoes) || 0
-
-          if (numFavor > 0 && numContra === 0 && numAbsten === 0) {
-            texto += `Colocado em regime de votação, o ponto de pauta foi <strong>aprovado por unanimidade</strong> por todos(as) os(as) presentes.`
-          } else if (numContra > 0 && numFavor === 0 && numAbsten === 0) {
-            texto += `Colocado em regime de votação, o ponto de pauta foi <strong>rejeitado por unanimidade</strong> por todos(as) os(as) presentes.`
-          } else {
-            texto += `Colocado em regime de votação, a pauta resultou em: <strong>${numFavor} votos a favor, ${numContra} contra e ${numAbsten} abstenções.</strong>`
-          }
-        } else {
-          texto += `Após esclarecimentos, o ponto foi superado e encaminhado consensualmente pelos(as) presentes.`
-        }
-
-        if (v?.encaminhamento && v.encaminhamento.trim() !== '') {
-          texto += ` Como encaminhamento, a plenária decidiu: <strong>${v.encaminhamento.trim()}</strong>.`
-        }
-
-        return texto
-      }).join(' ')
-    } else {
-      pautasDetalhes = 'Não houve pautas definidas para esta reunião.'
-    }
-
-    let textoDirecao = ''
-    if (presidente && redator && presidente !== redator) {
-      textoDirecao = `foi aclamado(a) como presidente da mesa o(a) filiado(a) <strong>${presidente}</strong>, que convidou para secretariar os trabalhos o(a) filiado(a) <strong>${redator}</strong>`
-    } else if (presidente && (!redator || presidente === redator)) {
-      textoDirecao = `foi aclamado(a) como presidente da mesa o(a) filiado(a) <strong>${presidente}</strong>, que também assumiu a função de secretariar os trabalhos`
-    } else if (!presidente && redator) {
-      textoDirecao = `foi aclamado(a) como presidente da mesa o(a) filiado(a) <strong>${redator}</strong>, que também assumiu a função de secretariar os trabalhos`
-    } else {
-      textoDirecao = `foi aclamado(a) como presidente da mesa o(a) filiado(a) <strong>____________________</strong>, que convidou para secretariar os trabalhos o(a) filiado(a) <strong>____________________</strong>`
-    }
-
-    const template = `
-      <div style="text-align: justify; line-height: 1.6; text-indent: 40px;">
-        Aos <strong>${dataExtenso}</strong>, às <strong>${formatarHora(assembleia.horario_1a_convocacao)}</strong> em primeira convocação, e às <strong>${formatarHora(assembleia.horario_2a_convocacao)}</strong> em segunda convocação, reuniu-se no(a) <strong>${assembleia.local}</strong>, a Assembleia Geral <strong>${assembleia.tipo}</strong> dos(as) filiados(as) da Seção Sindical de Jataí do SINASEFE, sob convocação formal expedida pelo Edital número <strong>${assembleia.numero || '_____'}</strong>, com a presença dos(as) servidores(as) técnico-administrativos(as) e docentes constantes da respectiva lista de presença. Para dirigir os trabalhos desta assembleia, ${textoDirecao}. Dando início à reunião, o(a) presidente declarou aberta a assembleia e procedeu-se à leitura da pauta de deliberações, constante dos seguintes pontos: <strong>${pautasResumo}</strong>.${textoInclusoes} Passando-se à ordem do dia: ${pautasDetalhes} E nada mais havendo a tratar, a sessão foi encerrada pelo(a) presidente, da qual eu, na qualidade de secretário(a) dos trabalhos, lavrei a presente ata que, após lida e considerada em conformidade por todos(as) os(as) presentes, será assinada pela coordenação, pela mesa diretora dos trabalhos e pelos(as) demais presentes interessados(as).
-      </div>
-    `
+    const template = gerarEsbocoHTML()
 
     if (editorRef.current) {
       if (editorRef.current.innerText.trim() !== '') {
@@ -481,8 +391,6 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
           )}
         </div>
 
-
-
         {/* Corpo do Editor */}
         <div className="bg-brand-cream border border-brand-border rounded-none overflow-hidden shadow-md min-h-[580px] flex flex-col">
           <div className="bg-brand-border/30 px-6 py-3 border-b border-brand-border flex items-center justify-between text-xs font-bold text-brand-ink/70 uppercase tracking-wider">
@@ -501,40 +409,14 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
         </div>
       </div>
 
-      {/* 3. Layout de Impressão Oficial A4 */}
-      <div className="hidden print:block font-serif text-black p-0 bg-white max-w-[800px] mx-auto text-justify text-sm leading-relaxed">
-        <DocumentHeader config={config} />
-        <div className="text-center font-bold text-base uppercase mb-6 tracking-wide">
-          ATA DA ASSEMBLEIA GERAL {assembleia.tipo.toUpperCase()} {assembleia.numero ? `Nº ${assembleia.numero}` : ''}
-        </div>
-        <div
-          className="print-document-content text-justify"
-          dangerouslySetInnerHTML={{ __html: conteudoRich }}
-          style={{ textAlign: 'justify', textJustify: 'inter-word', lineHeight: '1.8', fontSize: '13px' }}
-        />
-        {presidente && redator && presidente !== redator ? (
-          <div className="mt-20 grid grid-cols-2 gap-12 text-center text-xs">
-            <div className="flex flex-col items-center">
-              <div className="w-[220px] border-b border-black mb-2"></div>
-              <div className="font-semibold uppercase">{redator}</div>
-              <div className="text-gray-600">Secretário(a) da Assembleia</div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-[220px] border-b border-black mb-2"></div>
-              <div className="font-semibold uppercase">{presidente}</div>
-              <div className="text-gray-600">Presidente da Mesa / Coordenador(a)</div>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-20 flex justify-center text-center text-xs">
-            <div className="flex flex-col items-center">
-              <div className="w-[280px] border-b border-black mb-2"></div>
-              <div className="font-semibold uppercase">{presidente || redator || 'Presidente / Secretário(a)'}</div>
-              <div className="text-gray-600">Presidente da Mesa e Secretário(a) da Assembleia</div>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* 3. Layout de Impressão Oficial A4 isolado em Componente */}
+      <AtaPrintLayout
+        config={config}
+        assembleia={assembleia}
+        conteudoRich={conteudoRich}
+        presidente={presidente}
+        redator={redator}
+      />
     </div>
   )
 }
