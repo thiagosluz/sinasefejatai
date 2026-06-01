@@ -1,6 +1,21 @@
 import React from 'react'
 
-export function Table({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+export type AlignVariant = 'left' | 'center' | 'right'
+
+export interface TableProps {
+  children: React.ReactNode
+  className?: string
+}
+
+export interface TableHeadProps extends TableProps {
+  align?: AlignVariant
+}
+
+export interface TableCellProps extends TableProps {
+  align?: AlignVariant
+}
+
+export function Table({ children, className = '' }: TableProps) {
   return (
     <div className={`bg-brand-card border border-brand-border shadow-xl overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
@@ -12,7 +27,7 @@ export function Table({ children, className = '' }: { children: React.ReactNode,
   )
 }
 
-export function TableHeader({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+export function TableHeader({ children, className = '' }: TableProps) {
   return (
     <thead className={`bg-brand-border/40 border-b border-brand-border text-brand-ink/70 text-xs font-bold uppercase tracking-wider ${className}`}>
       {children}
@@ -20,7 +35,7 @@ export function TableHeader({ children, className = '' }: { children: React.Reac
   )
 }
 
-export function TableRow({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+export function TableRow({ children, className = '' }: TableProps) {
   return (
     <tr className={`hover:bg-brand-cream/40 transition-colors ${className}`}>
       {children}
@@ -28,7 +43,7 @@ export function TableRow({ children, className = '' }: { children: React.ReactNo
   )
 }
 
-export function TableHead({ children, className = '', align = 'left' }: { children: React.ReactNode, className?: string, align?: 'left'|'center'|'right' }) {
+export function TableHead({ children, className = '', align = 'left' }: TableHeadProps) {
   const alignment = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'
   return (
     <th className={`px-6 py-4 border-r border-zinc-350 last:border-r-0 ${alignment} ${className}`}>
@@ -37,7 +52,7 @@ export function TableHead({ children, className = '', align = 'left' }: { childr
   )
 }
 
-export function TableCell({ children, className = '', align = 'left' }: { children: React.ReactNode, className?: string, align?: 'left'|'center'|'right' }) {
+export function TableCell({ children, className = '', align = 'left' }: TableCellProps) {
   const alignment = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'
   return (
     <td className={`px-6 py-4 border-r border-brand-border last:border-r-0 ${alignment} ${className}`}>
@@ -46,7 +61,7 @@ export function TableCell({ children, className = '', align = 'left' }: { childr
   )
 }
 
-export function TableBody({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+export function TableBody({ children, className = '' }: TableProps) {
   return (
     <tbody className={`divide-y divide-brand-border ${className}`}>
       {children}
