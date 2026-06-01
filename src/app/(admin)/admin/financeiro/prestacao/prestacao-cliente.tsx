@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { Printer, Calendar } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { DocumentHeaderConfig } from '@/components/document-header'
 import { usePrestacaoMath } from './hooks/use-prestacao-math'
 import { PrestacaoPrintLayout } from './components/prestacao-print-layout'
@@ -24,9 +25,27 @@ interface PrestacaoClienteProps {
 }
 
 export default function PrestacaoCliente({ transacoes, config }: PrestacaoClienteProps) {
-  const { obterMesPadrao } = usePrestacaoMath(transacoes, '') // We will manage mesAno locally and pass it
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
-  const [mesAno, setMesAno] = useState(obterMesPadrao())
+  const { obterMesPadrao } = usePrestacaoMath(transacoes, '')
+  
+  // Read from URL, fallback to default month
+  const urlMes = searchParams.get('mes')
+  const mesAno = urlMes || obterMesPadrao()
+
+  // Injetar o default na URL na primeira carga se estiver vazio
+  useEffect(() => {
+    if (!urlMes) {
+      const defaultMes = obterMesPadrao()
+      router.replace(`${pathname}?mes=${defaultMes}`, { scroll: false })
+    }
+  }, [urlMes, obterMesPadrao, pathname, router])
+
+  const handleMesChange = (novoMes: string) => {
+    router.replace(`${pathname}?mes=${novoMes}`, { scroll: false })
+  }
 
   // We re-call the hook with the correct mesAno state for reactive filtering
   const math = usePrestacaoMath(transacoes, mesAno)
@@ -57,7 +76,7 @@ export default function PrestacaoCliente({ transacoes, config }: PrestacaoClient
           <div className="relative">
             <select 
               value={mesAno}
-              onChange={(e) => setMesAno(e.target.value)}
+              onChange={(e) => handleMesChange(e.target.value)}
               className="bg-brand-cream border border-zinc-350 text-brand-ink text-xs px-4 py-2.5 focus:outline-none focus:border-brand-tinto pr-10 cursor-pointer rounded-none font-bold uppercase tracking-wider appearance-none"
             >
               {mesesOpcoes.map(m => (

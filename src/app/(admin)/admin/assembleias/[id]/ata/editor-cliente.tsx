@@ -1,6 +1,7 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useEffect, useReducer } from 'react'
+import { ataEditorReducer, AtaEditorState, Voto, PautaExtra } from './hooks/use-ata-editor-reducer'
 import {
   Bold,
   Italic,
@@ -51,27 +52,30 @@ interface AtaEditorClienteProps {
   } | null
 }
 
-type Voto = { aFavor: string, contra: string, abstencoes: string, encaminhamento?: string }
-type PautaExtra = { titulo: string, solicitante: string, status: 'aprovada' | 'rejeitada', motivoRecusa?: string }
 
 export default function AtaEditorCliente({ assembleia, ataInicial, config, documentoExistente }: AtaEditorClienteProps) {
   const { confirm } = useModal()
   const editorRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
-  const [presidente, setPresidente] = useState<string>((ataInicial?.votos_pautas?._presidente as string) || '')
-  const [redator, setRedator] = useState(ataInicial?.redator || '')
-  const [conteudoRich, setConteudoRich] = useState(ataInicial?.conteudo_rich || '')
-  const [copiado, setCopiado] = useState(false)
-  const [salvando, setSalvando] = useState(false)
-  const [ataSalva, setAtaSalva] = useState(!!ataInicial)
-
   const initVotos = { ... (ataInicial?.votos_pautas || {}) } as Record<string, unknown>
   const initPautasExtras = (initVotos._pautasExtras as PautaExtra[] | undefined) || []
   delete initVotos._presidente
   delete initVotos._pautasExtras
-  const [votos, setVotos] = useState<Record<number, Voto>>(initVotos as Record<number, Voto>)
-  const [pautasExtras, setPautasExtras] = useState<PautaExtra[]>(initPautasExtras)
+
+  const initialState: AtaEditorState = {
+    presidente: (ataInicial?.votos_pautas?._presidente as string) || '',
+    redator: ataInicial?.redator || '',
+    conteudoRich: ataInicial?.conteudo_rich || '',
+    votos: initVotos as Record<number, Voto>,
+    pautasExtras: initPautasExtras,
+    copiado: false,
+    salvando: false,
+    ataSalva: !!ataInicial
+  }
+
+  const [state, dispatch] = useReducer(ataEditorReducer, initialState)
+  const { presidente, redator, conteudoRich, votos, pautasExtras, copiado, salvando, ataSalva } = state
 
   // Custom hook para centralizar a lógica de esboço da Ata
   const { gerarEsbocoHTML } = useAtaBuilder({
@@ -91,22 +95,23 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
 
   const formatDoc = (cmd: string, value: string = '') => {
     document.execCommand(cmd, false, value)
+    document.execCommand(cmd, false, value)
     if (editorRef.current) {
-      setConteudoRich(editorRef.current.innerHTML)
+      dispatch({ type: 'SET_CONTEUDO_RICH', payload: editorRef.current.innerHTML })
     }
   }
 
   const handleEditorInput = () => {
     if (editorRef.current) {
-      setConteudoRich(editorRef.current.innerHTML)
+      dispatch({ type: 'SET_CONTEUDO_RICH', payload: editorRef.current.innerHTML })
     }
   }
 
   const handleCopyText = () => {
     if (editorRef.current) {
       navigator.clipboard.writeText(editorRef.current.innerText)
-      setCopiado(true)
-      setTimeout(() => setCopiado(false), 2000)
+      dispatch({ type: 'SET_COPIADO', payload: true })
+      setTimeout(() => dispatch({ type: 'SET_COPIADO', payload: false }), 2000)
     }
   }
 
@@ -115,29 +120,19 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
   }
 
   const handleVoto = (index: number, field: keyof Voto, value: string) => {
-    setVotos(prev => ({
-      ...prev,
-      [index]: {
-        ...(prev[index] || { aFavor: '', contra: '', abstencoes: '', encaminhamento: '' }),
-        [field]: value
-      }
-    }))
+    dispatch({ type: 'UPDATE_VOTO', payload: { index, field, value } })
   }
 
   const handlePautaExtraAdd = () => {
-    setPautasExtras([...pautasExtras, { titulo: '', solicitante: '', status: 'aprovada' }])
+    dispatch({ type: 'ADD_PAUTA_EXTRA' })
   }
 
   const handlePautaExtraChange = (index: number, field: keyof PautaExtra, value: string) => {
-    const newPautas = [...pautasExtras]
-    newPautas[index] = { ...newPautas[index], [field]: value } as PautaExtra
-    setPautasExtras(newPautas)
+    dispatch({ type: 'UPDATE_PAUTA_EXTRA', payload: { index, field, value } })
   }
 
   const handlePautaExtraRemove = (index: number) => {
-    const newPautas = [...pautasExtras]
-    newPautas.splice(index, 1)
-    setPautasExtras(newPautas)
+    dispatch({ type: 'REMOVE_PAUTA_EXTRA', payload: { index } })
   }
 
   const handleGerarEsboço = async (e: React.MouseEvent) => {
@@ -150,7 +145,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
         if (!confirmado) return
       }
       editorRef.current.innerHTML = template
-      setConteudoRich(template)
+      dispatch({ type: 'SET_CONTEUDO_RICH', payload: template })
     }
   }
 
@@ -158,7 +153,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
     if (await confirm('Tem certeza de que deseja limpar todo o conteúdo do editor?')) {
       if (editorRef.current) {
         editorRef.current.innerHTML = ''
-        setConteudoRich('')
+        dispatch({ type: 'SET_CONTEUDO_RICH', payload: '' })
       }
     }
   }
@@ -171,7 +166,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
           <span>Configuração da Ata</span>
         </h2>
 
-        <form ref={formRef} action={saveAta} onSubmit={() => { setSalvando(true); setAtaSalva(true) }} className="space-y-4 flex flex-col min-h-[calc(100%-60px)]">
+        <form ref={formRef} action={saveAta} onSubmit={() => { dispatch({ type: 'SET_SALVANDO', payload: true }); dispatch({ type: 'SET_ATA_SALVA', payload: true }) }} className="space-y-4 flex flex-col min-h-[calc(100%-60px)]">
           <div className="flex-1 space-y-4">
             <input type="hidden" name="assembleia_id" value={assembleia.id} />
             <input type="hidden" name="conteudo_rich" value={conteudoRich} />
@@ -193,7 +188,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
                 type="text"
                 placeholder="Ex: Nome do Presidente"
                 value={presidente}
-                onChange={(e) => setPresidente(e.target.value)}
+                onChange={(e) => dispatch({ type: 'SET_PRESIDENTE', payload: e.target.value })}
                 required
                 className="w-full bg-brand-cream border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
               />
@@ -209,7 +204,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
                 type="text"
                 placeholder="Ex: Nome do Secretário"
                 value={redator}
-                onChange={(e) => setRedator(e.target.value)}
+                onChange={(e) => dispatch({ type: 'SET_REDATOR', payload: e.target.value })}
                 required
                 className="w-full bg-brand-cream border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
               />

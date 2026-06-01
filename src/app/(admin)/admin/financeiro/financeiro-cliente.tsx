@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { PlusCircle, Search, Filter, Printer, Upload } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { deleteTransacao } from './actions'
 import { useModal } from '@/providers/modal-provider'
 import { FinanceiroStats } from './components/financeiro-stats'
@@ -26,11 +27,27 @@ interface FinanceiroClienteProps {
 
 export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClienteProps) {
   const { confirm, alert } = useModal()
-  const [busca, setBusca] = useState('')
-  const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'Entrada' | 'Saída'>('Todos')
-  const [filtroMesAno, setFiltroMesAno] = useState('')
+  
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const busca = searchParams.get('busca') || ''
+  const filtroTipo = (searchParams.get('tipo') || 'Todos') as 'Todos' | 'Entrada' | 'Saída'
+  const filtroMesAno = searchParams.get('mes') || ''
+
   const [drawerAberto, setDrawerAberto] = useState(false)
   const [transacaoEmEdicao, setTransacaoEmEdicao] = useState<Transacao | null>(null)
+
+  const updateQueryParam = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value && value !== 'Todos') {
+      params.set(key, value)
+    } else {
+      params.delete(key)
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   const abrirNovoLancamento = () => {
     setTransacaoEmEdicao(null)
@@ -120,7 +137,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
               type="text" 
               placeholder="Buscar lançamento ou categoria..." 
               value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              onChange={(e) => updateQueryParam('busca', e.target.value)}
               className="w-full bg-brand-cream border border-brand-border rounded-none pl-9 pr-4 py-2 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto focus:ring-1 focus:ring-brand-tinto"
             />
           </div>
@@ -129,7 +146,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
             {(['Todos', 'Entrada', 'Saída'] as const).map(t => (
               <button
                 key={t}
-                onClick={() => setFiltroTipo(t)}
+                onClick={() => updateQueryParam('tipo', t)}
                 className={`px-3 py-1 transition-colors cursor-pointer ${
                   filtroTipo === t 
                     ? 'bg-brand-card text-brand-ink border border-brand-border font-extrabold shadow-inner' 
@@ -144,7 +161,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
           <div className="relative">
             <select 
               value={filtroMesAno}
-              onChange={(e) => setFiltroMesAno(e.target.value)}
+              onChange={(e) => updateQueryParam('mes', e.target.value)}
               className="bg-brand-cream border border-brand-border text-brand-ink text-xs px-3 py-2 focus:outline-none focus:border-brand-tinto pr-8 cursor-pointer rounded-none font-semibold appearance-none"
             >
               <option value="">Todos os meses</option>
@@ -159,7 +176,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
         {/* Botões de Ação */}
         <div className="flex items-center gap-3">
           <Link 
-            href="/admin/financeiro/prestacao" 
+            href={`/admin/financeiro/prestacao${filtroMesAno ? `?mes=${filtroMesAno}` : ''}`} 
             className="border border-brand-ink hover:border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
           >
             <Printer size={15} className="inline mr-1.5" />
