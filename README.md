@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema Integrado SINASEFE Jataí
 
-## Getting Started
+Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seção Sindical Jataí do SINASEFE. O sistema foca em transparência, gestão de base e eficiência burocrática, com um Design System "Retro-Editorial" e infraestrutura serverless na nuvem.
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)
+![Supabase](https://img.shields.io/badge/Supabase-DB_&_Auth-3ECF8E?logo=supabase)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)
+![Licença](https://img.shields.io/badge/License-MIT-blue.svg)
 
+## 📚 Documentação Profunda
+
+Toda a documentação analítica e de arquitetura do sistema foi transferida para a pasta `docs/`. Lá você encontrará detalhes técnicos essenciais para desenvolvedores futuros:
+
+- [Visão da Arquitetura e Módulos](./docs/arquitetura.md)
+- [Roadmap de Implementações](./docs/roadmap.md)
+- [Script SQL Master (Setup Banco de Dados)](./docs/setup_completo.sql)
+
+## 🚀 Como Executar o Projeto Localmente
+
+Certifique-se de ter o Node.js e o `pnpm` instalados na sua máquina. O projeto depende de variáveis de ambiente do Supabase (`NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`) configuradas num arquivo `.env.local`.
+
+1. Instale as dependências:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Rode o servidor de desenvolvimento:
+```bash
+pnpm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Acesse no navegador:
+Abra [http://localhost:3000](http://localhost:3000) para ver o Portal Público, ou navegue para [http://localhost:3000/login](http://localhost:3000/login) para acessar o Painel Administrativo.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📝 Licenciamento
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Este projeto é open-source e está sob a [Licença MIT](./LICENSE). Isso significa que outros sindicatos e entidades podem usá-lo livremente, desde que mantenham os créditos originais.
