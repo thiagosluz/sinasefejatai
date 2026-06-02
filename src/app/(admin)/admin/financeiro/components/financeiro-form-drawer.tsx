@@ -259,6 +259,7 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
               </button>
               <button 
                 type="submit"
+                data-testid="btn-confirmar-lancamento"
                 disabled={salvando}
                 className="flex-1 bg-brand-tinto hover:bg-brand-tinto-light text-white py-3 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)]"
               >

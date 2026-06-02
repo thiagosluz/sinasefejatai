@@ -28,7 +28,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
     await expect(page.getByRole('heading', { name: /Livro Caixa/i })).toBeVisible();
 
     // 1. Abrir Drawer de Lançamento
-    await page.click('button:has-text("Lançar Movimento")');
+    await page.getByTestId('btn-lancar-movimento').click();
     await expect(page.getByRole('heading', { name: /Lançar Movimentação/i })).toBeVisible();
 
     // 2. Selecionar Entrada
@@ -39,7 +39,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
     await page.fill('input[name="valor"]', '100,50');
     
     // 4. Confirmar Lançamento
-    await page.click('button:has-text("Confirmar")');
+    await page.getByTestId('btn-confirmar-lancamento').click();
 
     // 5. Esperar a mensagem de sucesso e o fechamento do Drawer
     await expect(page.getByText('Lançamento registrado!')).toBeVisible({ timeout: 15000 });
@@ -57,7 +57,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
     await expect(page.getByRole('heading', { name: /Livro Caixa/i })).toBeVisible();
 
     // 1. Abrir Drawer de Lançamento
-    await page.click('button:has-text("Lançar Movimento")');
+    await page.getByTestId('btn-lancar-movimento').click();
     await expect(page.getByRole('heading', { name: /Lançar Movimentação/i })).toBeVisible();
 
     // 2. Selecionar Saída (Default) - Garantir clicando
@@ -68,7 +68,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
     await page.fill('input[name="valor"]', '50,00');
     
     // 4. Confirmar Lançamento
-    await page.click('button:has-text("Confirmar")');
+    await page.getByTestId('btn-confirmar-lancamento').click();
 
     // 5. Esperar a mensagem de sucesso e o fechamento do Drawer
     await expect(page.getByText('Lançamento registrado!')).toBeVisible({ timeout: 15000 });

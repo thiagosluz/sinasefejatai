@@ -40,7 +40,7 @@ test.describe('Assembleias - Fluxo Crítico', () => {
     await page.fill('textarea[name="pautas"]', '1. Avaliação de conjuntura\n2. Aprovação de contas');
 
     // 3. Submeter
-    await page.click('button:has-text("Agendar Oficialmente")');
+    await page.getByTestId('btn-agendar-assembleia').click();
 
     // 4. Validar redirecionamento e sucesso na lista
     await page.waitForURL('**/admin/assembleias');

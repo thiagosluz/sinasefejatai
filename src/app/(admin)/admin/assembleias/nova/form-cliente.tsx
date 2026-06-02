@@ -220,6 +220,7 @@ export default function FormCliente({ numeroSugerido, locais }: FormClienteProps
             type="submit"
             name="status"
             value="Agendada"
+            data-testid="btn-agendar-assembleia"
             disabled={loading}
             className="bg-brand-tinto hover:bg-brand-tinto-light disabled:bg-zinc-400 text-white text-xs font-serif font-bold uppercase tracking-wider py-3.5 px-6 transition-all shadow-[2px_2px_0px_#121214] disabled:shadow-none active:scale-98 cursor-pointer disabled:cursor-not-allowed"
           >
