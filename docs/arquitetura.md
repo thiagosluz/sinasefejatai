@@ -22,8 +22,12 @@ O sistema é um portal web e aplicativo de gestão de retaguarda focado em centr
 Por padrão, toda página de rota (`page.tsx`) é um Server Component que busca os dados no Supabase e gerencia autorização (redirects).
 Para evitar sobrecarga de estado no servidor e manter a performance, as interações ricas de UI (formulários, filtros, modais) são delegadas a componentes Client anexos (geralmente nomeados como `modulo-cliente.tsx`).
 
-### Server Actions
-A manipulação de dados (mutations como Create, Update, Delete) é feita unicamente via Server Actions (arquivos `actions.ts` dentro de cada módulo). Isso remove a necessidade de construir e manter rotas de API REST tradicionais, permitindo chamadas diretas de funções assíncronas a partir dos botões do frontend.
+### Server Actions & Segurança (DAL)
+A manipulação de dados (mutations como Create, Update, Delete) é feita unicamente via Server Actions (arquivos `actions.ts` dentro de cada módulo). Para garantir a integridade, o sistema usa o padrão **DAL (Data Access Layer)**: todo arquivo de mutação administrativa DEVE importar e chamar `requireAdmin()` na primeira linha da função para evitar ataques CSRF ou invasão de endpoint.
+
+### Logs e Auditoria
+- **Application Logger:** É TERMINANTEMENTE proibido o uso de `console.log` para depuração no backend em produção. O sistema utiliza a biblioteca Pino configurada em `src/lib/logger.ts`, que mascara automaticamente (Redaction) e-mails, tokens, e dados sensíveis de filiados para evitar vazamentos de logs de container.
+- **Triggers Passivos:** A auditoria de modificações em tabelas ("quem apagou", "quem editou") **não é** feita no código TypeScript para evitar falha humana. Nós utilizamos `Triggers` no PostgreSQL (`process_audit_log()`) que rodam em background, interceptam qualquer alteração e salvam os deltas completos em JSON na tabela `audit_logs`.
 
 ### Row Level Security (RLS)
 O banco de dados PostgreSQL roda sob políticas estritas de segurança em nível de linha:
@@ -54,3 +58,6 @@ Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual o
 
 ### 4.6. Locais & Configurações de Layout
 - **Escopo:** Parametrização global. Permite à própria diretoria alterar o endereço do sindicato, gestão e logo sem necessitar de alteração no código fonte. Todos os documentos gerados pelo sistema buscam os "timbres oficiais" desta configuração central.
+
+### 4.7. Auditoria (Logs)
+- **Escopo:** Painel de visualização ("Fichário Físico") imutável para a diretoria enxergar todas as movimentações críticas da plataforma (Logins, Criações, Edições e Exclusões) com acesso ao payload cru (JSON) da alteração. Retenção automática de 1 ano.

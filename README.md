@@ -7,6 +7,13 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)
 ![Licença](https://img.shields.io/badge/License-MIT-blue.svg)
 
+## 🛡️ Segurança e Auditoria
+
+O sistema foi desenhado com foco total em rastreabilidade e proteção de dados:
+- **DAL (Data Access Layer)**: Todas as Server Actions passam por uma verificação rigorosa `requireAdmin()` impedindo mutações não autorizadas (CSRF e manipulação via terminal).
+- **Triggers Nativos**: Inserções, edições e exclusões nas tabelas críticas (`filiados`, `assembleias`, `financeiro`, etc) geram automaticamente um snapshot em JSON na tabela de `audit_logs` pelo próprio PostgreSQL, sem intervenção do backend.
+- **Log Centralizado (`Pino`)**: Todos os erros de sistema e acessos sensíveis mascaram senhas e informações pessoais (PII) antes de serem impressos no console.
+
 ## 📚 Documentação Profunda
 
 Toda a documentação analítica e de arquitetura do sistema foi transferida para a pasta `docs/`. Lá você encontrará detalhes técnicos essenciais para desenvolvedores futuros:

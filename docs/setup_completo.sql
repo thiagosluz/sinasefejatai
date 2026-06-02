@@ -146,6 +146,20 @@ CREATE TABLE public.configuracoes (
 );
 
 
+-- 2.11 Auditoria (Logs do Sistema)
+CREATE TABLE public.audit_logs (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL, 
+    user_email TEXT,
+    action TEXT NOT NULL,
+    resource TEXT NOT NULL, 
+    details JSONB, 
+    ip_address TEXT,
+    user_agent TEXT
+);
+
+
 -- ==========================================
 -- 3. HABILITANDO SEGURANÇA DE LINHAS (RLS)
 -- ==========================================
@@ -160,6 +174,7 @@ ALTER TABLE public.gestoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gestao_membros ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mensagens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- ==========================================
 -- 4. POLÍTICAS DE ACESSO (POLICIES)
@@ -177,6 +192,7 @@ CREATE POLICY "Permitir tudo para autenticados em gestoes" ON public.gestoes FOR
 CREATE POLICY "Permitir tudo para autenticados em gestao_membros" ON public.gestao_membros FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir tudo para autenticados em mensagens" ON public.mensagens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir tudo para autenticados em configuracoes" ON public.configuracoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Permitir tudo para autenticados em audit_logs" ON public.audit_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 4.2. PERMISSÕES DO PORTAL PÚBLICO (Usuários Anonimos)
 -- Qualquer visitante pode ver as configurações e layouts timbrados
@@ -228,3 +244,57 @@ INSERT INTO public.locais (nome_curto, texto_completo) VALUES
 ('Miniauditório 1 (Campus Jataí)', 'no Miniauditório 1 da unidade Flamboyant do Campus Jataí do Instituto Federal de Educação, Ciência e Tecnologia de Goiás – IFG, Av. Presidente Juscelino Kubitschek, nº 775, Residencial Flamboyant, CEP 75.804-714, no município de Jataí-GO'),
 ('Auditório Principal (Campus Jataí)', 'no Auditório Principal da unidade Flamboyant do Campus Jataí do Instituto Federal de Educação, Ciência e Tecnologia de Goiás – IFG, Av. Presidente Juscelino Kubitschek, nº 775, Residencial Flamboyant, CEP 75.804-714, no município de Jataí-GO')
 ON CONFLICT DO NOTHING;
+
+
+-- ==========================================
+-- 7. TRIGGERS DE AUDITORIA (LOGS NATIVOS)
+-- ==========================================
+
+-- Função Principal (SECURITY DEFINER para ter permissão de escrita sempre)
+CREATE OR REPLACE FUNCTION process_audit_log() RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id UUID;
+  v_details JSONB;
+BEGIN
+  v_user_id := auth.uid();
+
+  IF (TG_OP = 'DELETE') THEN
+    v_details := jsonb_build_object('old_data', row_to_json(OLD));
+  ELSIF (TG_OP = 'UPDATE') THEN
+    v_details := jsonb_build_object('old_data', row_to_json(OLD), 'new_data', row_to_json(NEW));
+  ELSIF (TG_OP = 'INSERT') THEN
+    v_details := jsonb_build_object('new_data', row_to_json(NEW));
+  END IF;
+
+  INSERT INTO audit_logs (user_id, user_email, action, resource, details)
+  VALUES (v_user_id, NULL, TG_OP, TG_TABLE_NAME, v_details);
+
+  RETURN NULL;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE WARNING 'Audit log failed: %', SQLERRM;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Triggers atrelados
+CREATE TRIGGER audit_atas_trigger AFTER INSERT OR UPDATE OR DELETE ON atas FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_assembleias_trigger AFTER INSERT OR UPDATE OR DELETE ON assembleias FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_filiados_trigger AFTER INSERT OR UPDATE OR DELETE ON filiados FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_financeiro_trigger AFTER INSERT OR UPDATE OR DELETE ON financeiro FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_gestoes_trigger AFTER INSERT OR UPDATE OR DELETE ON gestoes FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_membros_gestao_trigger AFTER INSERT OR UPDATE OR DELETE ON gestao_membros FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_configuracoes_trigger AFTER INSERT OR UPDATE OR DELETE ON configuracoes FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+
+
+-- ==========================================
+-- 8. TAREFAS AGENDADAS (CRON)
+-- ==========================================
+
+-- Habilita extensão pg_cron para limpar logs antigos automaticamente
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+-- Limpar logs mais velhos que 1 ano (Roda todo domingo à meia-noite)
+SELECT cron.schedule('cleanup_old_audit_logs', '0 0 * * 0', $$
+    DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '1 year';
+$$);
