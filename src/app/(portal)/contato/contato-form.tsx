@@ -1,23 +1,30 @@
 'use client'
 
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+
+import { ContatoFormData, ContatoSchema } from '@/schemas/contato-schema'
 
 import { enviarMensagem } from './actions'
 
 export function ContatoForm() {
-  const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  const handleSubmit = async (formData: FormData) => {
-    setLoading(true)
-    setErro(null)
-    const res = await enviarMensagem(formData)
-    setLoading(false)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ContatoFormData>({
+    resolver: zodResolver(ContatoSchema),
+  })
 
-    // A action faz redirect no sucesso, 
-    // mas se falhar nós pegamos aqui:
+  const onSubmit = async (data: ContatoFormData) => {
+    setErro(null)
+    const res = await enviarMensagem(data)
+
     if (res?.success) {
       toast.success('Mensagem enviada com sucesso!')
     } else if (res?.error) {
@@ -40,7 +47,7 @@ export function ContatoForm() {
         </div>
       )}
 
-      <form action={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="nome" className="block text-sm font-medium text-brand-ink mb-1.5">
@@ -48,13 +55,12 @@ export function ContatoForm() {
             </label>
             <input
               id="nome"
-              name="nome"
-              type="text"
-              required
-              disabled={loading}
+              {...register('nome')}
+              disabled={isSubmitting}
               placeholder="Seu nome"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream disabled:opacity-50"
+              className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream disabled:opacity-50 ${errors.nome ? 'border-brand-tinto' : 'border-brand-border'}`}
             />
+            {errors.nome && <p className="mt-1 text-xs text-brand-tinto">{errors.nome.message}</p>}
           </div>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-brand-ink mb-1.5">
@@ -62,13 +68,13 @@ export function ContatoForm() {
             </label>
             <input
               id="email"
-              name="email"
               type="email"
-              required
-              disabled={loading}
+              {...register('email')}
+              disabled={isSubmitting}
               placeholder="seu@email.com"
-              className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream disabled:opacity-50"
+              className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream disabled:opacity-50 ${errors.email ? 'border-brand-tinto' : 'border-brand-border'}`}
             />
+            {errors.email && <p className="mt-1 text-xs text-brand-tinto">{errors.email.message}</p>}
           </div>
         </div>
 
@@ -78,12 +84,12 @@ export function ContatoForm() {
           </label>
           <input
             id="assunto"
-            name="assunto"
-            type="text"
-            disabled={loading}
+            {...register('assunto')}
+            disabled={isSubmitting}
             placeholder="Qual é o assunto?"
-            className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream disabled:opacity-50"
+            className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream disabled:opacity-50 ${errors.assunto ? 'border-brand-tinto' : 'border-brand-border'}`}
           />
+          {errors.assunto && <p className="mt-1 text-xs text-brand-tinto">{errors.assunto.message}</p>}
         </div>
 
         <div>
@@ -92,22 +98,22 @@ export function ContatoForm() {
           </label>
           <textarea
             id="mensagem"
-            name="mensagem"
-            required
+            {...register('mensagem')}
             rows={5}
-            disabled={loading}
+            disabled={isSubmitting}
             placeholder="Descreva sua dúvida ou demanda..."
-            className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream resize-none disabled:opacity-50"
+            className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream resize-none disabled:opacity-50 ${errors.mensagem ? 'border-brand-tinto' : 'border-brand-border'}`}
           />
+          {errors.mensagem && <p className="mt-1 text-xs text-brand-tinto">{errors.mensagem.message}</p>}
         </div>
 
         <button
           id="submit-contato"
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="w-full bg-brand-tinto text-white font-bold py-3.5 rounded-xl hover:bg-brand-tinto-light transition-all shadow-md hover:shadow-lg active:scale-[0.99] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Enviando...' : 'Enviar Mensagem'}
+          {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
         </button>
       </form>
     </>

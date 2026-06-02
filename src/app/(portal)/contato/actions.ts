@@ -5,19 +5,19 @@ import { redirect } from 'next/navigation'
 import { ActionResponse, handleError } from '@/lib/action-utils'
 import { notificarNovoContato } from '@/lib/email'
 import { createClient } from '@/lib/supabase/server'
+import { ContatoFormData, ContatoSchema } from '@/schemas/contato-schema'
 
-export async function enviarMensagem(formData: FormData): Promise<ActionResponse> {
+export async function enviarMensagem(dadosRaw: ContatoFormData): Promise<ActionResponse> {
   try {
     const supabase = await createClient()
 
-    const nome = (formData.get('nome') as string)?.trim()
-    const email = (formData.get('email') as string)?.trim()
-    const assunto = (formData.get('assunto') as string)?.trim()
-    const mensagem = (formData.get('mensagem') as string)?.trim()
-
-    if (!nome || !email || !mensagem) {
-      return { success: false, error: 'Preencha os campos obrigatórios: Nome, E-mail e Mensagem.' }
+    // 1. Validação com Zod no servidor
+    const validacao = ContatoSchema.safeParse(dadosRaw)
+    if (!validacao.success) {
+      return { success: false, error: 'Dados preenchidos incorretamente. Verifique os campos.' }
     }
+
+    const { nome, email, assunto, mensagem } = validacao.data
 
     const { error } = await supabase.from('mensagens').insert({
       nome,

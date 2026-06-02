@@ -5,23 +5,19 @@ import { redirect } from 'next/navigation'
 import { ActionResponse, handleError } from '@/lib/action-utils'
 import { notificarPedidoFiliacao } from '@/lib/email'
 import { createClient } from '@/lib/supabase/server'
+import { FiliacaoFormData, FiliacaoSchema } from '@/schemas/filiacao-schema'
 
-export async function solicitarFiliacao(formData: FormData): Promise<ActionResponse> {
+export async function solicitarFiliacao(dadosRaw: FiliacaoFormData): Promise<ActionResponse> {
   try {
     const supabase = await createClient()
 
-    const nome = (formData.get('nome') as string)?.trim()
-    const email = (formData.get('email') as string)?.trim()
-    const telefone = (formData.get('telefone') as string)?.trim()
-    const siape = (formData.get('siape') as string)?.trim()
-    const unidade_lotacao = (formData.get('unidade_lotacao') as string)?.trim()
-    const campus = (formData.get('campus') as string)?.trim()
-    const categoria = formData.get('categoria') as string
-    const situacao = formData.get('situacao') as string
-
-    if (!nome || !email || !siape || !categoria || !situacao) {
-      return { success: false, error: 'Preencha todos os campos obrigatórios' }
+    // 1. Validação com Zod no servidor
+    const validacao = FiliacaoSchema.safeParse(dadosRaw)
+    if (!validacao.success) {
+      return { success: false, error: 'Dados preenchidos incorretamente. Verifique os campos.' }
     }
+
+    const { nome, email, telefone, siape, unidade_lotacao, campus, categoria, situacao } = validacao.data
 
     const { error } = await supabase.from('filiados').insert({
       nome,
