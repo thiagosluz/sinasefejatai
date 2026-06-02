@@ -17,6 +17,7 @@ export function TopMenu() {
     { href: '/admin/filiados', label: 'Filiados' },
     { href: '/admin/assembleias', label: 'Assembleias' },
     { href: '/admin/financeiro', label: 'Livro Caixa' },
+    { href: '/admin/auditoria', label: 'Auditoria' },
   ]
 
   return (
