@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useReducer,useRef } from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 import {
   Bold,
   Check,
@@ -12,7 +12,9 @@ import {
   Trash2} from 'lucide-react'
 import { toast } from 'sonner'
 
+import { AssinaturasWidget } from '@/components/assinaturas-widget'
 import { DocumentHeaderConfig } from '@/components/document-header'
+import { DocumentoVerificacao } from '@/lib/actions-assinaturas'
 import { useModal } from '@/providers/modal-provider'
 
 import { saveAta } from '../../actions-ata'
@@ -20,7 +22,7 @@ import AnexoUploadBtn from '../../anexo-upload-btn'
 
 import { AtaPrintLayout } from './components/ata-print-layout'
 import { useAtaBuilder } from './hooks/use-ata-builder'
-import { ataEditorReducer, AtaEditorState, PautaExtra,Voto } from './hooks/use-ata-editor-reducer'
+import { ataEditorReducer, AtaEditorState, PautaExtra, Voto } from './hooks/use-ata-editor-reducer'
 
 interface Assembleia {
   id: string
@@ -53,10 +55,12 @@ interface AtaEditorClienteProps {
     arquivo_url: string
     nome_arquivo: string
   } | null
+  verificacaoInicial?: DocumentoVerificacao | null
+  currentUserId?: string
 }
 
 
-export default function AtaEditorCliente({ assembleia, ataInicial, config, documentoExistente }: AtaEditorClienteProps) {
+export default function AtaEditorCliente({ assembleia, ataInicial, config, documentoExistente, verificacaoInicial, currentUserId }: AtaEditorClienteProps) {
   const { confirm } = useModal()
   const editorRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -169,15 +173,15 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
           <span>Configuração da Ata</span>
         </h2>
 
-        <form 
-          ref={formRef} 
-          onSubmit={async (e) => { 
+        <form
+          ref={formRef}
+          onSubmit={async (e) => {
             e.preventDefault()
             const formData = new FormData(e.currentTarget)
             dispatch({ type: 'SET_SALVANDO', payload: true })
-            
+
             const result = await saveAta(formData)
-            
+
             if (result.success) {
               dispatch({ type: 'SET_ATA_SALVA', payload: true })
               toast.success('Ata salva com sucesso')
@@ -185,7 +189,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
               toast.error(result.error || 'Ocorreu um erro')
             }
             dispatch({ type: 'SET_SALVANDO', payload: false })
-          }} 
+          }}
           className="space-y-4 flex flex-col min-h-[calc(100%-60px)]"
         >
           <div className="flex-1 space-y-4">
@@ -234,7 +238,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
             {/* Votações e Encaminhamentos */}
             <div className="border-t border-brand-border pt-4 mt-4">
               <h3 className="text-xs font-bold text-brand-ink/60 uppercase tracking-wider mb-3 font-serif">Placar de Votações & Encaminhamentos</h3>
-              
+
               {assembleia.pautas?.map((pauta, idx) => (
                 <div key={idx} className="mb-4 bg-brand-cream p-3 border border-brand-border">
                   <p className="text-[11px] font-semibold text-brand-ink mb-2 truncate" title={pauta}>{idx + 1}. {pauta}</p>
@@ -252,7 +256,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
                       <input type="number" min="0" value={votos[idx]?.abstencoes || ''} onChange={(e) => handleVoto(idx, 'abstencoes', e.target.value)} className="w-full text-xs p-1 border border-brand-border focus:outline-none" />
                     </div>
                   </div>
-                  <textarea 
+                  <textarea
                     placeholder="Encaminhamento ou Resumo (Opcional)"
                     value={votos[idx]?.encaminhamento || ''}
                     onChange={(e) => handleVoto(idx, 'encaminhamento', e.target.value)}
@@ -327,7 +331,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
                 )
               })}
 
-              <button 
+              <button
                 type="button"
                 onClick={handlePautaExtraAdd}
                 className="mb-4 w-full border border-amber-600/50 hover:bg-amber-50 text-amber-700 py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer border-dashed"
@@ -335,7 +339,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
                 <span>+ Incluir Pauta de Plenária</span>
               </button>
 
-              <button 
+              <button
                 type="button"
                 onClick={handleGerarEsboço}
                 className="w-full border border-brand-ink hover:bg-brand-cream bg-white text-brand-ink py-2 px-4 text-[10px] font-bold uppercase tracking-wider transition-all shadow-[1.5px_1.5px_0px_var(--brand-ink)] flex items-center justify-center gap-2 cursor-pointer"
@@ -366,6 +370,15 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
                 <span>Excluir Rascunho do Editor</span>
               </button>
             </div>
+
+            {/* Bloco de Assinaturas (Option A) */}
+            <AssinaturasWidget 
+              tipoDocumento="ata"
+              documentoId={ataInicial?.id || ''}
+              verificacaoInicial={verificacaoInicial}
+              currentUserId={currentUserId}
+              variant="sidebar-list"
+            />
           </div>
         </form>
       </div>
@@ -402,7 +415,17 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
                 <Printer size={14} />
                 <span className="hidden lg:inline">Imprimir</span>
               </button>
-              <AnexoUploadBtn assembleiaId={assembleia.id} tipo="ata" documentoExistente={documentoExistente} label="Ata Assinada" />
+              
+              <AssinaturasWidget 
+                tipoDocumento="ata"
+                documentoId={ataInicial?.id || ''}
+                verificacaoInicial={verificacaoInicial}
+                currentUserId={currentUserId}
+                variant="button"
+                disabled={!ataInicial}
+              />
+              
+              <AnexoUploadBtn assembleiaId={assembleia.id} tipo="ata" documentoExistente={documentoExistente} label="ANEXAR PDF ASSINADO" />
             </div>
           )}
         </div>
@@ -432,6 +455,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
         conteudoRich={conteudoRich}
         presidente={presidente}
         redator={redator}
+        verificacao={verificacaoInicial}
       />
     </div>
   )

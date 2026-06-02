@@ -78,7 +78,6 @@ test.describe('Assembleias - Fluxo Crítico', () => {
     await expect(page.getByText('Ata salva com sucesso')).toBeVisible({ timeout: 15000 });
 
     // Verificar se o AnexoUploadBtn foi renderizado na página
-    await expect(page.getByText('Ata Assinada')).toBeVisible();
-    await expect(page.getByText('Ata Assinada')).toBeVisible();
+    await expect(page.getByText('ANEXAR PDF ASSINADO')).toBeVisible();
   });
 });

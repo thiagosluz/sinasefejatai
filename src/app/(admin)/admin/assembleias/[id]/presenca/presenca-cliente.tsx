@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft,Printer } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
 import Link from 'next/link'
 
+import { AssinaturasWidget } from '@/components/assinaturas-widget'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
+import { DocumentSignatureFooter } from '@/components/layout/document-signature-footer'
+import { DocumentoVerificacao } from '@/lib/actions-assinaturas'
 import { formatarHora } from '@/lib/date-utils'
 
 import AnexoUploadBtn from '../../anexo-upload-btn'
@@ -34,9 +37,11 @@ type PresencaClienteProps = {
     arquivo_url: string
     nome_arquivo: string
   } | null
+  verificacaoInicial?: DocumentoVerificacao | null
+  currentUserId?: string
 }
 
-export default function PresencaCliente({ assembleia, config, filiados, documentoExistente }: PresencaClienteProps) {
+export default function PresencaCliente({ assembleia, config, filiados, documentoExistente, verificacaoInicial, currentUserId }: PresencaClienteProps) {
   const [modo, setModo] = useState<'hibrida' | 'filiados' | 'branca'>('hibrida')
   const [identificador, setIdentificador] = useState<'siape' | 'cpf' | 'nenhum'>('siape')
   const [linhasExtras, setLinhasExtras] = useState(20)
@@ -114,7 +119,15 @@ export default function PresencaCliente({ assembleia, config, filiados, document
             <label htmlFor="paisagem" className="cursor-pointer">Modo Paisagem</label>
           </div>
 
-          <AnexoUploadBtn assembleiaId={assembleia.id} tipo="presenca" documentoExistente={documentoExistente} label="Anexar Assinada" />
+          <AnexoUploadBtn assembleiaId={assembleia.id} tipo="presenca" documentoExistente={documentoExistente} label="ANEXAR PDF ASSINADO" />
+
+          <AssinaturasWidget
+            tipoDocumento="presenca"
+            documentoId={assembleia.id}
+            verificacaoInicial={verificacaoInicial}
+            currentUserId={currentUserId}
+            variant="toolbar"
+          />
 
           <button
             type="button"
@@ -153,7 +166,9 @@ export default function PresencaCliente({ assembleia, config, filiados, document
           </p>
           <p className="text-sm text-zinc-600 mt-2">
             <strong>Data:</strong> {dataRealizacao} &nbsp;|&nbsp;
-            <strong>Local:</strong> {assembleia.local} &nbsp;|&nbsp;
+            <strong>Local:</strong> {assembleia.local}
+          </p>
+          <p>
             <strong>1ª Convocação:</strong> {formatarHora(assembleia.horario_1a_convocacao)} &nbsp;|&nbsp;
             <strong>2ª Convocação:</strong> {formatarHora(assembleia.horario_2a_convocacao)}
           </p>
@@ -251,6 +266,11 @@ export default function PresencaCliente({ assembleia, config, filiados, document
             </table>
           </>
         )}
+
+        {/* Footer de Assinatura Eletrônica na impressão */}
+        <div className="mt-16 print:block hidden">
+          <DocumentSignatureFooter verificacao={verificacaoInicial || null} />
+        </div>
       </div>
     </div>
   )

@@ -2,7 +2,10 @@ import { ArrowLeft,Printer } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { AssinaturasWidget } from '@/components/assinaturas-widget'
 import DocumentHeader from '@/components/document-header'
+import { DocumentSignatureFooter } from '@/components/layout/document-signature-footer'
+import { getDocumentoVerificacao } from '@/lib/actions-assinaturas'
 import { formatarDataComDiaParenteses, formatarHora } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
@@ -12,6 +15,8 @@ import EditalRetificarBtn from './edital-retificar-btn'
 export default async function EditalPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Buscar assembleia
   const { data: assembleia } = await supabase
@@ -48,6 +53,9 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
     year: 'numeric'
   })
 
+  // Buscar lacre de verificação
+  const verificacao = await getDocumentoVerificacao('edital', assembleia.id)
+
   return (
     <div className="min-h-screen bg-zinc-200 print:bg-white text-zinc-900 font-sans">
       {/* Botões de Ação (Escondidos na Impressão) */}
@@ -62,6 +70,15 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
         </div>
         <div className="flex items-center gap-3">
           <AnexoUploadBtn assembleiaId={assembleia.id} tipo="edital" documentoExistente={documentoEdital} label="Anexar PDF Assinado" />
+          
+          <AssinaturasWidget 
+            tipoDocumento="edital"
+            documentoId={assembleia.id}
+            verificacaoInicial={verificacao}
+            currentUserId={user?.id}
+            variant="toolbar"
+          />
+
           <EditalRetificarBtn id={assembleia.id} versaoAtual={assembleia.versao_edital || 1} status={assembleia.status} />
           <button
             type="button"
@@ -127,6 +144,11 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
               <p className="text-sm">SINASEFE - Seção Sindical de Jataí</p>
             </div>
           </div>
+        </div>
+        
+        {/* Footer de Assinatura Eletrônica na impressão */}
+        <div className="mt-16 print:block hidden">
+          <DocumentSignatureFooter verificacao={verificacao} />
         </div>
       </div>
     </div>

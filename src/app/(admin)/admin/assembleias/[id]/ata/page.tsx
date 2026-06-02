@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import { getDocumentoVerificacao } from '@/lib/actions-assinaturas'
 import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
@@ -58,6 +59,12 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
     
   const documentoAta = documentos?.[0] || null
 
+  // Buscar lacre de verificação (se a ata já existe no banco)
+  let verificacao = null
+  if (ata) {
+    verificacao = await getDocumentoVerificacao('ata', ata.id)
+  }
+
   // Buscar configurações de cabeçalho
   const { data: config } = await supabase
     .from('configuracoes')
@@ -96,6 +103,8 @@ export default async function AtaPage({ params, searchParams }: AtaPageProps) {
         ataInicial={ata || undefined} 
         config={config}
         documentoExistente={documentoAta}
+        verificacaoInicial={verificacao}
+        currentUserId={user.id}
       />
     </div>
   )

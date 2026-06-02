@@ -1,4 +1,6 @@
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
+import { DocumentSignatureFooter } from '@/components/layout/document-signature-footer'
+import { DocumentoVerificacao } from '@/lib/actions-assinaturas'
 
 interface Assembleia {
   numero: string | null
@@ -11,6 +13,7 @@ interface AtaPrintLayoutProps {
   conteudoRich: string
   presidente: string
   redator: string
+  verificacao?: DocumentoVerificacao | null
 }
 
 export function AtaPrintLayout({
@@ -18,7 +21,8 @@ export function AtaPrintLayout({
   assembleia,
   conteudoRich,
   presidente,
-  redator
+  redator,
+  verificacao
 }: AtaPrintLayoutProps) {
   return (
     <div className="hidden print:block font-serif text-black p-0 bg-white max-w-[800px] mx-auto text-justify text-sm leading-relaxed">
@@ -53,6 +57,11 @@ export function AtaPrintLayout({
           </div>
         </div>
       )}
+
+      {/* Footer de Assinatura Eletrônica (Sempre empurrado para baixo caso haja espaço, mas evita quebrar) */}
+      <div className="mt-16">
+        <DocumentSignatureFooter verificacao={verificacao || null} />
+      </div>
     </div>
   )
 }
