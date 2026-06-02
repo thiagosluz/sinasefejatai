@@ -3,10 +3,12 @@
 import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { requireAdmin } from '@/lib/dal'
 import { createClient } from '@/lib/supabase/server'
 
 export async function addTransacao(formData: FormData): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     const tipo = formData.get('tipo') as 'Entrada' | 'Saída'
@@ -92,6 +94,7 @@ export async function addTransacao(formData: FormData): Promise<ActionResponse> 
 
 export async function deleteTransacao(id: string): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     // Buscar lançamento para ver se existe comprovante
@@ -140,6 +143,7 @@ export async function deleteTransacao(id: string): Promise<ActionResponse> {
 
 export async function updateTransacao(id: string, formData: FormData): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     const tipo = formData.get('tipo') as 'Entrada' | 'Saída'

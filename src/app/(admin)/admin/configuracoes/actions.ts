@@ -3,10 +3,12 @@
 import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { requireAdmin } from '@/lib/dal'
 import { createClient } from '@/lib/supabase/server'
 
 export async function saveConfiguracoes(formData: FormData): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     // Verificar se o usuário está autenticado

@@ -3,10 +3,12 @@
 import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { requireAdmin } from '@/lib/dal'
 import { createClient } from '@/lib/supabase/server'
 
 export async function addLocal(formData: FormData): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
     const nome_curto = formData.get('nome_curto') as string
     const texto_completo = formData.get('texto_completo') as string
@@ -33,6 +35,7 @@ export async function addLocal(formData: FormData): Promise<ActionResponse> {
 
 export async function updateLocal(id: string, formData: FormData): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
     const nome_curto = formData.get('nome_curto') as string
     const texto_completo = formData.get('texto_completo') as string
@@ -60,6 +63,7 @@ export async function updateLocal(id: string, formData: FormData): Promise<Actio
 
 export async function deleteLocal(id: string): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     const { error } = await supabase

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { requireAdmin } from '@/lib/dal'
 import { createClient } from '@/lib/supabase/server'
 
 export async function addFiliado(formData: FormData): Promise<ActionResponse> {
@@ -17,6 +18,7 @@ export async function addFiliado(formData: FormData): Promise<ActionResponse> {
   }
 
   try {
+    await requireAdmin()
     const supabase = await createClient()
     const { error } = await supabase.from('filiados').insert({
       nome,
@@ -50,6 +52,7 @@ export async function editFiliado(id: string, formData: FormData): Promise<Actio
   }
 
   try {
+    await requireAdmin()
     const supabase = await createClient()
     const { error } = await supabase
       .from('filiados')
@@ -76,6 +79,7 @@ export async function editFiliado(id: string, formData: FormData): Promise<Actio
 
 export async function toggleAtivo(id: string, currentStatus: boolean): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
     const { error } = await supabase
       .from('filiados')

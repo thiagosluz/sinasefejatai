@@ -30,3 +30,12 @@ vi.mock('next/navigation', () => ({
     return new URLSearchParams();
   },
 }));
+
+// Mock para server-only
+vi.mock('server-only', () => ({}));
+
+// Mock global do Data Access Layer (DAL) para evitar bloqueio nos testes unitários
+vi.mock('@/lib/dal', () => ({
+  verifySession: vi.fn().mockResolvedValue({ email: 'test@admin.com' }),
+  requireAdmin: vi.fn().mockResolvedValue({ email: 'test@admin.com' }),
+}));

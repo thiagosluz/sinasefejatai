@@ -3,10 +3,12 @@
 import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { requireAdmin } from '@/lib/dal'
 import { createClient } from '@/lib/supabase/server'
 
 export async function addAssembleia(formData: FormData): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     const numero = formData.get('numero') as string
@@ -52,6 +54,7 @@ export async function addAssembleia(formData: FormData): Promise<ActionResponse>
 
 export async function updateStatusAssembleia(id: string, status: string): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     const { error } = await supabase
@@ -72,6 +75,7 @@ export async function updateStatusAssembleia(id: string, status: string): Promis
 
 export async function deleteAssembleia(id: string): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     // Deletar possíveis atas associadas para evitar erro de Foreign Key
@@ -95,6 +99,7 @@ export async function deleteAssembleia(id: string): Promise<ActionResponse> {
 
 export async function editAssembleia(id: string, formData: FormData): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
 
     const numero = formData.get('numero') as string

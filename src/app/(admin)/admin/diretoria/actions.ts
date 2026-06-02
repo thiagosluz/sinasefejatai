@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { requireAdmin } from '@/lib/dal'
 import { createClient } from '@/lib/supabase/server'
 
 /**
@@ -147,6 +148,7 @@ export async function criarGestao(nome: string): Promise<ActionResponse<string>>
  */
 export async function deletarGestao(id: string): Promise<ActionResponse> {
   try {
+    await requireAdmin()
     const supabase = await createClient()
     
     const { data: gestao } = await supabase.from('gestoes').select('is_atual').eq('id', id).single()

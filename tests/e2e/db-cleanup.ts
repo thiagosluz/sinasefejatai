@@ -29,7 +29,21 @@ export async function cleanTestData(caller: string) {
     return;
   }
 
-  // 2. Apagar assembleia teste
+  // 2. Apagar atas vinculadas às assembleias de teste e depois as assembleias
+  const { data: assembleiasTeste } = await supabase
+    .from('assembleias')
+    .select('id')
+    .ilike('numero', '%TESTE%');
+
+  if (assembleiasTeste && assembleiasTeste.length > 0) {
+    const ids = assembleiasTeste.map(a => a.id);
+    const { error: errAtas } = await supabase
+      .from('atas')
+      .delete()
+      .in('assembleia_id', ids);
+    if (errAtas) console.error('Erro ao deletar atas:', errAtas.message);
+  }
+
   const { error: errAss } = await supabase
     .from('assembleias')
     .delete()
