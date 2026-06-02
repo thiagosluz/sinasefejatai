@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Plus, Users, Star, Trash2, Check } from 'lucide-react'
@@ -20,7 +20,7 @@ export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais:
   const { alert, confirm, prompt } = useModal()
   const [loading, setLoading] = useState(false)
 
-  const handleNovaGestao = async () => {
+  const handleNovaGestao = useCallback(async () => {
     const nome = await prompt(
       'Nova Gestão', 
       'Digite o nome da gestão (ex: Biênio 2024-2026):'
@@ -37,9 +37,9 @@ export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais:
     } finally {
       setLoading(false)
     }
-  }
+  }, [prompt, router, alert])
 
-  const handleExcluir = async (id: string, is_atual: boolean) => {
+  const handleExcluir = useCallback(async (id: string, is_atual: boolean) => {
     if (is_atual) {
       await alert('Você não pode excluir a gestão ativa publicamente. Defina outra gestão como ativa primeiro.')
       return
@@ -57,9 +57,9 @@ export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais:
     } finally {
       setLoading(false)
     }
-  }
+  }, [alert, confirm])
 
-  const handleDefinirAtual = async (id: string) => {
+  const handleDefinirAtual = useCallback(async (id: string) => {
     const isConfirmed = await confirm('Tem certeza que deseja definir esta como a gestão ATUAL? Isso mudará a página pública imediatamente.')
     if (!isConfirmed) return
 
@@ -72,7 +72,7 @@ export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais:
     } finally {
       setLoading(false)
     }
-  }
+  }, [confirm, alert])
 
   return (
     <div className="space-y-6">

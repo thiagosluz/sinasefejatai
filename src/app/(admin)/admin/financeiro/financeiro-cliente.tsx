@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { PlusCircle, Search, Filter, Printer, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
@@ -40,7 +40,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
   const [drawerAberto, setDrawerAberto] = useState(false)
   const [transacaoEmEdicao, setTransacaoEmEdicao] = useState<Transacao | null>(null)
 
-  const updateQueryParam = (key: string, value: string) => {
+  const updateQueryParam = useCallback((key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value && value !== 'Todos') {
       params.set(key, value)
@@ -48,48 +48,56 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
       params.delete(key)
     }
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-  }
+  }, [searchParams, router, pathname])
 
-  const abrirNovoLancamento = () => {
+  const abrirNovoLancamento = useCallback(() => {
     setTransacaoEmEdicao(null)
     setDrawerAberto(true)
-  }
+  }, [])
 
-  const abrirEdicaoLancamento = (t: Transacao) => {
+  const abrirEdicaoLancamento = useCallback((t: Transacao) => {
     setTransacaoEmEdicao(t)
     setDrawerAberto(true)
-  }
+  }, [])
 
   // Filtragem local reativa
-  const transacoesFiltradas = transacoesIniciais.filter(t => {
-    const bateBusca = t.descricao.toLowerCase().includes(busca.toLowerCase()) || 
-                      t.categoria.toLowerCase().includes(busca.toLowerCase())
-    const bateTipo = filtroTipo === 'Todos' || t.tipo === filtroTipo
-    
-    let bateMesAno = true
-    if (filtroMesAno) {
-      const [ano, mes] = filtroMesAno.split('-')
-      const transacaoData = new Date(t.data + 'T12:00:00')
-      const transacaoAno = transacaoData.getFullYear().toString()
-      const transacaoMes = (transacaoData.getMonth() + 1).toString().padStart(2, '0')
-      bateMesAno = transacaoAno === ano && transacaoMes === mes
-    }
+  const transacoesFiltradas = useMemo(() => {
+    return transacoesIniciais.filter(t => {
+      const bateBusca = t.descricao.toLowerCase().includes(busca.toLowerCase()) || 
+                        t.categoria.toLowerCase().includes(busca.toLowerCase())
+      const bateTipo = filtroTipo === 'Todos' || t.tipo === filtroTipo
+      
+      let bateMesAno = true
+      if (filtroMesAno) {
+        const [ano, mes] = filtroMesAno.split('-')
+        const transacaoData = new Date(t.data + 'T12:00:00')
+        const transacaoAno = transacaoData.getFullYear().toString()
+        const transacaoMes = (transacaoData.getMonth() + 1).toString().padStart(2, '0')
+        bateMesAno = transacaoAno === ano && transacaoMes === mes
+      }
 
-    return bateBusca && bateTipo && bateMesAno
-  })
+      return bateBusca && bateTipo && bateMesAno
+    })
+  }, [transacoesIniciais, busca, filtroTipo, filtroMesAno])
 
   // Consolidação de saldos baseada no filtro/busca ativa
-  const totalEntradas = transacoesFiltradas
-    .filter(t => t.tipo === 'Entrada')
-    .reduce((sum, t) => sum + Number(t.valor), 0)
+  const { totalEntradas, totalSaidas, saldoTotal } = useMemo(() => {
+    const entradas = transacoesFiltradas
+      .filter(t => t.tipo === 'Entrada')
+      .reduce((sum, t) => sum + Number(t.valor), 0)
 
-  const totalSaidas = transacoesFiltradas
-    .filter(t => t.tipo === 'Saída')
-    .reduce((sum, t) => sum + Number(t.valor), 0)
+    const saidas = transacoesFiltradas
+      .filter(t => t.tipo === 'Saída')
+      .reduce((sum, t) => sum + Number(t.valor), 0)
 
-  const saldoTotal = totalEntradas - totalSaidas
+    return {
+      totalEntradas: entradas,
+      totalSaidas: saidas,
+      saldoTotal: entradas - saidas
+    }
+  }, [transacoesFiltradas])
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (await confirm('Deseja realmente excluir este lançamento permanentemente do livro caixa? Esta ação removerá também o comprovante físico se houver.')) {
       const result = await deleteTransacao(id)
       if (!result.success) {
@@ -98,10 +106,10 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
         toast.success('Lançamento removido com sucesso!')
       }
     }
-  }
+  }, [confirm])
 
   // Obter a lista única de meses que contêm transações para popular o seletor de filtros
-  const obterMesesDisponiveis = () => {
+  const mesesDisponiveis = useMemo(() => {
     const meses = transacoesIniciais.map(t => {
       const d = new Date(t.data + 'T12:00:00')
       const ano = d.getFullYear()
@@ -113,9 +121,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
     meses.forEach(m => { unicos[m.value] = m.label })
     
     return Object.entries(unicos).map(([value, label]) => ({ value, label }))
-  }
-
-  const mesesDisponiveis = obterMesesDisponiveis()
+  }, [transacoesIniciais])
 
   return (
     <div className="relative min-h-screen text-brand-ink">

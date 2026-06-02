@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useTransition } from 'react'
+import React, { useState, useTransition, useCallback } from 'react'
 import { Edit2, Trash2, Save, X } from 'lucide-react'
 import { useModal } from '@/providers/modal-provider'
 import { addLocal, updateLocal, deleteLocal } from './actions'
@@ -23,19 +23,19 @@ export default function LocaisCliente({ locais }: { locais: Local[] }) {
   const [nomeCurto, setNomeCurto] = useState('')
   const [textoCompleto, setTextoCompleto] = useState('')
 
-  const handleEdit = (local: Local) => {
+  const handleEdit = useCallback((local: Local) => {
     setEditingId(local.id)
     setNomeCurto(local.nome_curto)
     setTextoCompleto(local.texto_completo)
-  }
+  }, [])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setEditingId(null)
     setNomeCurto('')
     setTextoCompleto('')
-  }
+  }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     startTransition(async () => {
       const formData = new FormData()
@@ -52,15 +52,15 @@ export default function LocaisCliente({ locais }: { locais: Local[] }) {
       setNomeCurto('')
       setTextoCompleto('')
     })
-  }
+  }, [editingId, nomeCurto, textoCompleto])
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (await confirm('Tem certeza que deseja excluir este local? As atas passadas não serão afetadas, mas ele não aparecerá mais para novos agendamentos.')) {
       startTransition(async () => {
         await deleteLocal(id)
       })
     }
-  }
+  }, [confirm])
 
   return (
     <AdminPageWrapper>

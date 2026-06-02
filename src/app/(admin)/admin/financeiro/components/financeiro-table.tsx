@@ -1,4 +1,5 @@
 import { FileText, Edit, Trash2 } from 'lucide-react'
+import { memo } from 'react'
 
 interface Transacao {
   id: string
@@ -17,7 +18,7 @@ interface FinanceiroTableProps {
   onDelete: (id: string) => void
 }
 
-export function FinanceiroTable({ transacoes, onEdit, onDelete }: FinanceiroTableProps) {
+export const FinanceiroTable = memo(function FinanceiroTable({ transacoes, onEdit, onDelete }: FinanceiroTableProps) {
   return (
     <div className="bg-brand-card border border-brand-border shadow-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -105,4 +106,4 @@ export function FinanceiroTable({ transacoes, onEdit, onDelete }: FinanceiroTabl
       </div>
     </div>
   )
-}
+})

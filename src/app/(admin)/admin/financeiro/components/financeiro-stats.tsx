@@ -1,4 +1,5 @@
 import { ArrowUpRight, ArrowDownRight, DollarSign } from 'lucide-react'
+import { memo } from 'react'
 
 interface FinanceiroStatsProps {
   totalEntradas: number
@@ -6,7 +7,7 @@ interface FinanceiroStatsProps {
   saldoTotal: number
 }
 
-export function FinanceiroStats({ totalEntradas, totalSaidas, saldoTotal }: FinanceiroStatsProps) {
+export const FinanceiroStats = memo(function FinanceiroStats({ totalEntradas, totalSaidas, saldoTotal }: FinanceiroStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       {/* Card Entradas */}
@@ -53,4 +54,4 @@ export function FinanceiroStats({ totalEntradas, totalSaidas, saldoTotal }: Fina
       </div>
     </div>
   )
-}
+})

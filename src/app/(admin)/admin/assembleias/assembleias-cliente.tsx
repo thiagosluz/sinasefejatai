@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { PlusCircle, Calendar, MapPin, Clock, Search, CheckCircle2, XCircle, Edit3, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { updateStatusAssembleia, deleteAssembleia } from './actions'
@@ -93,7 +93,7 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
   }, [assembleiasIniciais, abaAtiva, anoFiltro, mesFiltro, busca])
 
   // Ações de Mudança de Status
-  const handleAlterarStatus = async (id: string, novoStatus: string) => {
+  const handleAlterarStatus = useCallback(async (id: string, novoStatus: string) => {
     if (await confirm(`Deseja realmente marcar esta assembleia como ${novoStatus}?`)) {
       try {
         await updateStatusAssembleia(id, novoStatus)
@@ -101,9 +101,9 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
         console.error(err)
       }
     }
-  }
+  }, [confirm])
 
-  const handleDeletarSeguro = async (id: string) => {
+  const handleDeletarSeguro = useCallback(async (id: string) => {
     const word = await prompt('Para excluir definitivamente esta assembleia e todos os seus dados, digite a palavra DELETAR:', 'DELETAR')
     if (word === 'DELETAR') {
       try {
@@ -115,7 +115,7 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
     } else if (word !== null) {
       await alert('Palavra de segurança incorreta. A exclusão foi cancelada.')
     }
-  }
+  }, [prompt, alert])
 
   return (
     <AdminPageWrapper>
