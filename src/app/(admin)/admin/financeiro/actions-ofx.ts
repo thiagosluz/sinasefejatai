@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { ActionResponse, handleError } from '@/lib/action-utils'
 
 export interface SaveTransaction {
   data: string;
@@ -39,31 +40,31 @@ export async function checkExistingTransactions(fitids: string[]): Promise<strin
  */
 export async function importTransactions(
   transactions: SaveTransaction[]
-): Promise<{ success: boolean; message: string; count?: number }> {
-  if (!transactions || transactions.length === 0) {
-    return { success: false, message: 'Nenhum lançamento selecionado para importação.' };
-  }
+): Promise<ActionResponse<{ count: number }>> {
+  try {
+    if (!transactions || transactions.length === 0) {
+      return { success: false, error: 'Nenhum lançamento selecionado para importação.' };
+    }
 
-  const supabase = await createClient();
+    const supabase = await createClient();
 
-  const { error } = await supabase
-    .from('financeiro')
-    .insert(transactions);
+    const { error } = await supabase
+      .from('financeiro')
+      .insert(transactions);
 
-  if (error) {
-    console.error('Erro ao registrar transações em lote:', error);
+    if (error) {
+      return { success: false, error: 'Ocorreu um erro ao salvar os lançamentos no banco de dados. Verifique os dados.' };
+    }
+
+    revalidatePath('/financeiro');
+    revalidatePath('/financeiro/prestacao');
+
     return { 
-      success: false, 
-      message: 'Ocorreu um erro ao salvar os lançamentos no banco de dados. Verifique os dados.' 
+      success: true, 
+      message: `${transactions.length} lançamentos importados com sucesso!`, 
+      data: { count: transactions.length }
     };
+  } catch (err) {
+    return handleError(err, 'Ocorreu um erro inesperado ao importar lançamentos.');
   }
-
-  revalidatePath('/financeiro');
-  revalidatePath('/financeiro/prestacao');
-
-  return { 
-    success: true, 
-    message: `${transactions.length} lançamentos importados com sucesso!`, 
-    count: transactions.length 
-  };
 }

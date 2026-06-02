@@ -1,182 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { ArrowLeft, Check, FileSpreadsheet } from 'lucide-react'
 import Link from 'next/link'
-import { parseOFX } from '@/lib/ofx-parser'
-import { checkExistingTransactions, importTransactions, SaveTransaction } from '../actions-ofx'
-import { useModal } from '@/providers/modal-provider'
 import { ImportadorDropzone } from './components/importador-dropzone'
-import { ImportadorTable, ExtendedTransaction } from './components/importador-table'
-
-const CATEGORIAS_ENTRADA = [
-  'Contribuição de Filiados',
-  'Repasse Nacional',
-  'Rendimentos',
-  'Saldo de Abertura',
-  'Outros'
-]
-
-const CATEGORIAS_SAIDA = [
-  'Tarifas Bancárias',
-  'Despesas Administrativas',
-  'Material de Consumo',
-  'Eventos/Mobilizações',
-  'Serviços de Terceiros',
-  'Despesas com Viagens',
-  'Outros'
-]
+import { ImportadorTable } from './components/importador-table'
+import { useImportador, CATEGORIAS_ENTRADA, CATEGORIAS_SAIDA } from './hooks/use-importador'
 
 export default function ImportadorCliente() {
-  const router = useRouter()
-  const { alert, confirm } = useModal()
+  const { state, actions } = useImportador()
   
-  const [loading, setLoading] = useState(false)
-  const [transacoes, setTransacoes] = useState<ExtendedTransaction[]>([])
-  const [nomeArquivo, setNomeArquivo] = useState('')
-
-  // Mapeamento automático inteligente de categorias
-  const sugerirCategoria = (descricao: string, tipo: 'Entrada' | 'Saída'): string => {
-    const desc = descricao.toLowerCase();
-    
-    if (tipo === 'Entrada') {
-      if (/rendimento|rend|juros|aplic/i.test(desc)) return 'Rendimentos';
-      if (/repasse|nacional|sinasefe/i.test(desc)) return 'Repasse Nacional';
-      if (/saldo|abertura|inicial/i.test(desc)) return 'Saldo de Abertura';
-      return 'Contribuição de Filiados'; // Padrão mais comum
-    } else {
-      if (/tarifa|cobranca|manutencao|mensal|anuidade/i.test(desc)) return 'Tarifas Bancárias';
-      if (/viagem|hosped|transp|combust|aliment|diaria/i.test(desc)) return 'Despesas com Viagens';
-      if (/evento|mobiliz|reuniao|paraliz|panf|som/i.test(desc)) return 'Eventos/Mobilizações';
-      if (/servico|terc|honor|advoc|contab|advogado|contador/i.test(desc)) return 'Serviços de Terceiros';
-      if (/papel|copia|resma|escrit|consumo|pasta|caneta/i.test(desc)) return 'Material de Consumo';
-      if (/aluguel|luz|agua|tel|internet|adm|taxa|condominio/i.test(desc)) return 'Despesas Administrativas';
-      return 'Outros';
-    }
-  }
-
-  // Leitura e processamento do arquivo
-  const processarArquivo = async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.ofx')) {
-      await alert('Por favor, envie um arquivo com extensão .OFX')
-      return
-    }
-
-    setLoading(true)
-    setNomeArquivo(file.name)
-
-    try {
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        const text = e.target?.result as string
-        if (!text) {
-          setLoading(false)
-          await alert('Não foi possível ler o arquivo. Certifique-se de que ele não está vazio.')
-          return
-        }
-
-        const parsed = parseOFX(text)
-        if (parsed.length === 0) {
-          setLoading(false)
-          await alert('Nenhuma transação financeira válida foi encontrada dentro do arquivo OFX.')
-          return
-        }
-
-        // Consultar banco para verificar duplicidades (FITIDs que já existem)
-        const fitids = parsed.map(t => t.id)
-        const existentes = await checkExistingTransactions(fitids)
-
-        // Estruturar dados da tabela conciliadora
-        const extended: ExtendedTransaction[] = parsed.map(t => {
-          const alreadyExists = existentes.includes(t.id)
-          return {
-            ...t,
-            alreadyExists,
-            selected: !alreadyExists, // Marcado para importação por padrão se for inédito
-            categoria: sugerirCategoria(t.descricao, t.tipo)
-          }
-        })
-
-        setTransacoes(extended)
-        setLoading(false)
-      }
-
-      reader.onerror = () => {
-        setLoading(false)
-        alert('Erro ao carregar o arquivo.')
-      }
-
-      reader.readAsText(file)
-    } catch (err) {
-      console.error(err)
-      setLoading(false)
-      await alert('Ocorreu um erro inesperado ao analisar o extrato.')
-    }
-  }
-
-  const handleToggleSelect = (index: number) => {
-    const updated = [...transacoes]
-    if (updated[index].alreadyExists) return // Bloqueia mudança de já existentes
-    updated[index].selected = !updated[index].selected
-    setTransacoes(updated)
-  }
-
-  const handleToggleAll = (val: boolean) => {
-    const updated = transacoes.map(t => ({
-      ...t,
-      selected: t.alreadyExists ? false : val
-    }))
-    setTransacoes(updated)
-  }
-
-  const handleCategoryChange = (index: number, cat: string) => {
-    const updated = [...transacoes]
-    updated[index].categoria = cat
-    setTransacoes(updated)
-  }
-
-  const handleImportSubmit = async () => {
-    const selecionadas = transacoes.filter(t => t.selected)
-    
-    if (selecionadas.length === 0) {
-      await alert('Por favor, selecione ao menos 1 lançamento para importar.')
-      return
-    }
-
-    if (await confirm(`Deseja realmente confirmar a importação de ${selecionadas.length} lançamentos para o Livro Caixa?`)) {
-      setLoading(true)
-      
-      const payload: SaveTransaction[] = selecionadas.map(t => ({
-        data: t.data,
-        tipo: t.tipo,
-        descricao: t.descricao,
-        valor: t.valor,
-        categoria: t.categoria,
-        banco_id: t.id
-      }))
-
-      try {
-        const res = await importTransactions(payload)
-        setLoading(false)
-        if (res.success) {
-          router.push(`/financeiro?success=${encodeURIComponent(res.message)}`)
-        } else {
-          await alert(res.message)
-        }
-      } catch (err) {
-        console.error(err)
-        setLoading(false)
-        await alert('Ocorreu um erro no processamento da importação.')
-      }
-    }
-  }
-
-  // Estatísticas de importação
-  const totalSelecionadas = transacoes.filter(t => t.selected).length
-  const totalValorSelecionadas = transacoes
-    .filter(t => t.selected)
-    .reduce((sum, t) => sum + (t.tipo === 'Entrada' ? t.valor : -t.valor), 0)
+  const { loading, transacoes, nomeArquivo, totalSelecionadas, totalValorSelecionadas } = state
+  const { processarArquivo, handleToggleSelect, handleToggleAll, handleCategoryChange, handleImportSubmit, handleLimparExtrato } = actions
 
   return (
     <div className="space-y-6">
@@ -238,10 +72,7 @@ export default function ImportadorCliente() {
           {/* Botão e Ações de Finalização */}
           <div className="flex justify-between items-center bg-brand-card border border-brand-border p-4 shadow-md">
             <button
-              onClick={() => {
-                setTransacoes([])
-                setNomeArquivo('')
-              }}
+              onClick={handleLimparExtrato}
               className="border border-brand-tinto hover:bg-brand-cream text-brand-tinto py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer shadow-[1.5px_1.5px_0px_var(--brand-tinto)]"
             >
               Excluir Extrato Atual

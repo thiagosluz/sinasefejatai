@@ -42,7 +42,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
     await page.click('button:has-text("Confirmar")');
 
     // 5. Esperar a mensagem de sucesso e o fechamento do Drawer
-    await expect(page.getByText('Lançamento registrado com sucesso!')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Lançamento registrado!')).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('heading', { name: /Lançar Movimentação/i })).toBeHidden();
 
     // 6. Verificar se a Entrada aparece na tabela HTML
@@ -71,7 +71,7 @@ test.describe('Financeiro - Fluxo Crítico', () => {
     await page.click('button:has-text("Confirmar")');
 
     // 5. Esperar a mensagem de sucesso e o fechamento do Drawer
-    await expect(page.getByText('Lançamento registrado com sucesso!')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Lançamento registrado!')).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('heading', { name: /Lançar Movimentação/i })).toBeHidden();
 
     // 6. Verificar se a Saída aparece na tabela HTML

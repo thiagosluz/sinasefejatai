@@ -2,13 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { ActionResponse, handleError } from '@/lib/action-utils'
 
-export interface SaveConfigResult {
-  success: boolean
-  error?: string
-}
-
-export async function saveConfiguracoes(formData: FormData): Promise<SaveConfigResult> {
+export async function saveConfiguracoes(formData: FormData): Promise<ActionResponse> {
   try {
     const supabase = await createClient()
 
@@ -106,10 +102,8 @@ export async function saveConfiguracoes(formData: FormData): Promise<SaveConfigR
     revalidatePath('/assembleias')
     revalidatePath('/financeiro/prestacao')
 
-    return { success: true }
+    return { success: true, message: 'Configurações atualizadas com sucesso!' }
   } catch (err: unknown) {
-    console.error('Erro inesperado na action saveConfiguracoes:', err)
-    const errMsg = err instanceof Error ? err.message : 'Erro interno do servidor'
-    return { success: false, error: errMsg }
+    return handleError(err, 'Falha ao salvar configurações')
   }
 }

@@ -2,8 +2,7 @@ import Link from 'next/link'
 import FormCliente from './form-cliente'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function NovaAssembleiaPage(props: { searchParams: Promise<{ error?: string }> }) {
-  const searchParams = await props.searchParams;
+export default async function NovaAssembleiaPage() {
   const supabase = await createClient();
   
   const anoAtual = new Date().getFullYear().toString();
@@ -48,7 +47,6 @@ export default async function NovaAssembleiaPage(props: { searchParams: Promise<
         <div className="border border-dashed border-zinc-300">
           <FormCliente 
             numeroSugerido={numeroSugerido} 
-            error={searchParams.error} 
             locais={locais || []} 
           />
         </div>

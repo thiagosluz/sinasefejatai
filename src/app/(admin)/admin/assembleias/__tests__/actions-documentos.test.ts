@@ -49,10 +49,10 @@ describe('Assembleias Documentos Actions', () => {
   });
 
   describe('salvarDocumentoMetadata', () => {
-    it('deve inserir no banco de dados e revalidar a página', async () => {
+    it('deve inserir no banco de dados e retornar sucesso', async () => {
       mockInsert.mockResolvedValueOnce({ error: null });
 
-      await salvarDocumentoMetadata('123', 'ata', 'http://link.com', 'ata.pdf', 1024);
+      const result = await salvarDocumentoMetadata('123', 'ata', 'http://link.com', 'ata.pdf', 1024);
 
       expect(mockInsert).toHaveBeenCalledWith({
         assembleia_id: '123',
@@ -61,34 +61,36 @@ describe('Assembleias Documentos Actions', () => {
         nome_arquivo: 'ata.pdf',
         tamanho_bytes: 1024
       });
+      expect(result).toEqual({ success: true });
     });
 
     it('deve retornar erro se a inserção falhar', async () => {
       mockInsert.mockResolvedValueOnce({ error: { message: 'DB Error' } });
 
-      await expect(salvarDocumentoMetadata('123', 'edital', 'http://link.com', 'edital.pdf', 1024))
-        .rejects.toThrow('Erro ao registrar documento no banco de dados.');
+      const result = await salvarDocumentoMetadata('123', 'edital', 'http://link.com', 'edital.pdf', 1024);
+      expect(result).toEqual({ success: false, error: 'Erro ao registrar documento no banco de dados.' });
     });
   });
 
   describe('excluirDocumento', () => {
-    it('deve deletar o documento do storage e do banco e revalidar a página', async () => {
+    it('deve deletar o documento do storage e do banco e retornar sucesso', async () => {
       mockRemove.mockResolvedValueOnce({ error: null });
       mockEq.mockResolvedValueOnce({ error: null });
 
-      await excluirDocumento('doc-123', 'http://link.com/file.pdf', 'assembleia-123');
+      const result = await excluirDocumento('doc-123', 'http://link.com/file.pdf', 'assembleia-123');
 
       expect(mockRemove).toHaveBeenCalledWith(['file.pdf']);
       expect(mockDelete).toHaveBeenCalled();
       expect(mockEq).toHaveBeenCalledWith('id', 'doc-123');
+      expect(result).toEqual({ success: true });
     });
 
-    it('deve lançar erro se a exclusão no banco falhar', async () => {
+    it('deve retornar erro se a exclusão no banco falhar', async () => {
       mockRemove.mockResolvedValueOnce({ error: null });
       mockEq.mockResolvedValueOnce({ error: { message: 'Erro ao excluir' } });
 
-      await expect(excluirDocumento('doc-123', 'http://link.com/file.pdf', 'assembleia-123'))
-        .rejects.toThrow('Erro ao excluir documento do banco.');
+      const result = await excluirDocumento('doc-123', 'http://link.com/file.pdf', 'assembleia-123');
+      expect(result).toEqual({ success: false, error: 'Erro ao excluir documento do banco.' });
     });
   });
 

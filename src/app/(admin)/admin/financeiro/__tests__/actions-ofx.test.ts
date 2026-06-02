@@ -66,7 +66,7 @@ describe('Financeiro OFX Actions', () => {
       const result = await importTransactions([])
       expect(result).toEqual({
         success: false,
-        message: 'Nenhum lançamento selecionado para importação.',
+        error: 'Nenhum lançamento selecionado para importação.',
       })
       expect(mockInsert).not.toHaveBeenCalled()
     })
@@ -90,7 +90,7 @@ describe('Financeiro OFX Actions', () => {
       expect(result).toEqual({
         success: true,
         message: '1 lançamentos importados com sucesso!',
-        count: 1,
+        data: { count: 1 },
       })
     })
 
@@ -111,7 +111,7 @@ describe('Financeiro OFX Actions', () => {
       const result = await importTransactions(txs)
       expect(result).toEqual({
         success: false,
-        message: 'Ocorreu um erro ao salvar os lançamentos no banco de dados. Verifique os dados.',
+        error: 'Ocorreu um erro ao salvar os lançamentos no banco de dados. Verifique os dados.',
       })
     })
   })

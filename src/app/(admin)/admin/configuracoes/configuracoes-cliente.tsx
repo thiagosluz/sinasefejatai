@@ -1,10 +1,8 @@
 'use client'
 
-import React, { useState, useTransition, useRef } from 'react'
-import { Save, Image as ImageIcon, RotateCcw, AlertTriangle, Trash2, CheckCircle2 } from 'lucide-react'
+import { Save, Image as ImageIcon, RotateCcw, Trash2 } from 'lucide-react'
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
-import { saveConfiguracoes } from './actions'
-import { useModal } from '@/providers/modal-provider'
+import { useConfiguracoesForm } from './hooks/use-configuracoes-form'
 import AdminPageHeader from '@/components/admin-page-header'
 import AdminPageWrapper from '@/components/admin-page-wrapper'
 
@@ -13,118 +11,7 @@ interface ConfiguracoesClienteProps {
 }
 
 export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesClienteProps) {
-  const { confirm } = useModal()
-  const [isPending, startTransition] = useTransition()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Estados locais para inputs
-  const [titulo, setTitulo] = useState(initialConfig?.titulo || '')
-  const [secaoSindical, setSecaoSindical] = useState(initialConfig?.secao_sindical || '')
-  const [endereco, setEndereco] = useState(initialConfig?.endereco || '')
-  const [cep, setCep] = useState(initialConfig?.cep || '')
-  const [filiacao, setFiliacao] = useState(initialConfig?.filiacao || '')
-  const [fundacao, setFundacao] = useState(initialConfig?.fundacao || '')
-
-  // Estados para gerenciamento de logotipo
-  const [logoUrl, setLogoUrl] = useState<string | null>(initialConfig?.logo_url || null)
-  const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [removerLogo, setRemoverLogo] = useState(false)
-
-  // Feedback do Usuário
-  const [status, setStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
-    type: null,
-    message: ''
-  })
-
-  // Manipular alteração do logotipo
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setStatus({
-          type: 'error',
-          message: 'O logotipo deve ter no máximo 2MB.'
-        })
-        return
-      }
-
-      setLogoFile(file)
-      setRemoverLogo(false)
-      // Gerar preview local temporário
-      const localUrl = URL.createObjectURL(file)
-      setLogoUrl(localUrl)
-      setStatus({ type: null, message: '' })
-    }
-  }
-
-  // Remover Logotipo
-  const handleRemoveLogo = () => {
-    setLogoFile(null)
-    setLogoUrl(null)
-    setRemoverLogo(true)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }
-
-  // Restaurar padrões semente oficiais
-  const handleResetToDefault = async () => {
-    if (await confirm('Deseja restaurar todos os campos de texto para os valores oficiais padrões do SINASEFE Jataí? (O logotipo atual não será apagado)')) {
-      setTitulo('SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA')
-      setSecaoSindical('SINASEFE - SEÇÃO SINDICAL JATAÍ')
-      setEndereco('RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO')
-      setCep('CEP: 75804-020')
-      setFiliacao('FILIADO À CEA')
-      setFundacao('FUNDADO EM 16/05/2005')
-    }
-  }
-
-  // Salvar formulário via Server Action
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setStatus({ type: null, message: '' })
-
-    startTransition(async () => {
-      const formData = new FormData()
-      formData.append('titulo', titulo)
-      formData.append('secao_sindical', secaoSindical)
-      formData.append('endereco', endereco)
-      formData.append('cep', cep)
-      formData.append('filiacao', filiacao)
-      formData.append('fundacao', fundacao)
-      formData.append('remover_logo', removerLogo ? 'true' : 'false')
-
-      if (logoFile) {
-        formData.append('logo', logoFile)
-      }
-
-      const result = await saveConfiguracoes(formData)
-
-      if (result.success) {
-        setStatus({
-          type: 'success',
-          message: 'Configurações de cabeçalho salvas com sucesso em todo o sistema!'
-        })
-        setLogoFile(null)
-      } else {
-        setStatus({
-          type: 'error',
-          message: result.error || 'Erro inesperado ao salvar configurações.'
-        })
-      }
-    })
-  }
-
-  // Objeto de configuração computado em tempo real para a prévia
-  const previewConfig: DocumentHeaderConfig = {
-    titulo,
-    secao_sindical: secaoSindical,
-    endereco,
-    cep,
-    filiacao,
-    fundacao,
-    logo_url: logoUrl
-  }
+  const { isPending, fileInputRef, previewConfig, formData, actions } = useConfiguracoesForm(initialConfig)
 
   return (
     <AdminPageWrapper>
@@ -138,7 +25,7 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
             <h2 className="text-base font-serif font-bold text-brand-ink">Formulário Oficial</h2>
             <button
               type="button"
-              onClick={handleResetToDefault}
+              onClick={actions.handleResetToDefault}
               className="text-xs font-serif font-bold text-brand-tinto hover:text-brand-tinto-light flex items-center gap-1 cursor-pointer transition-colors"
               title="Restaurar padrões oficiais da Seção Jataí"
             >
@@ -147,22 +34,7 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
             </button>
           </div>
 
-          {/* Feedbacks de Status */}
-          {status.type === 'success' && (
-            <div className="bg-emerald-50 border border-emerald-300 p-4 text-xs text-emerald-800 flex items-start gap-2.5 font-medium leading-relaxed">
-              <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-              <p>{status.message}</p>
-            </div>
-          )}
-
-          {status.type === 'error' && (
-            <div className="bg-red-50 border border-red-300 p-4 text-xs text-red-800 flex items-start gap-2.5 font-medium leading-relaxed">
-              <AlertTriangle size={16} className="text-brand-tinto shrink-0 mt-0.5" />
-              <p>{status.message}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={actions.handleSubmit} className="space-y-4">
             {/* Título Institucional */}
             <div>
               <label htmlFor="titulo" className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
@@ -170,8 +42,8 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
               </label>
               <textarea
                 id="titulo"
-                value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
+                value={formData.titulo}
+                onChange={(e) => formData.setTitulo(e.target.value)}
                 required
                 rows={2}
                 className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto leading-normal font-sans"
@@ -187,8 +59,8 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
               <input
                 id="secao_sindical"
                 type="text"
-                value={secaoSindical}
-                onChange={(e) => setSecaoSindical(e.target.value)}
+                value={formData.secaoSindical}
+                onChange={(e) => formData.setSecaoSindical(e.target.value)}
                 required
                 className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
                 placeholder="Ex: SINASEFE - SEÇÃO SINDICAL JATAÍ"
@@ -203,8 +75,8 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
               <input
                 id="endereco"
                 type="text"
-                value={endereco}
-                onChange={(e) => setEndereco(e.target.value)}
+                value={formData.endereco}
+                onChange={(e) => formData.setEndereco(e.target.value)}
                 required
                 className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
                 placeholder="Ex: RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO"
@@ -219,8 +91,8 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
               <input
                 id="cep"
                 type="text"
-                value={cep}
-                onChange={(e) => setCep(e.target.value)}
+                value={formData.cep}
+                onChange={(e) => formData.setCep(e.target.value)}
                 required
                 className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
                 placeholder="Ex: CEP: 75804-020"
@@ -246,14 +118,14 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
                   id="logo"
                   type="file"
                   accept="image/*"
-                  onChange={handleLogoChange}
+                  onChange={actions.handleLogoChange}
                   className="hidden"
                 />
 
-                {logoUrl && (
+                {formData.logoUrl && (
                   <button
                     type="button"
-                    onClick={handleRemoveLogo}
+                    onClick={actions.handleRemoveLogo}
                     className="border border-red-800 text-brand-tinto hover:bg-red-50 px-3 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#991b1b] hover:shadow-none hover:translate-x-[0.5px] hover:translate-y-[0.5px] cursor-pointer"
                   >
                     <Trash2 size={12} />
@@ -274,8 +146,8 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
                 <input
                   id="filiacao"
                   type="text"
-                  value={filiacao}
-                  onChange={(e) => setFiliacao(e.target.value)}
+                  value={formData.filiacao}
+                  onChange={(e) => formData.setFiliacao(e.target.value)}
                   required
                   className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
                   placeholder="Ex: FILIADO À CEA"
@@ -290,8 +162,8 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
                 <input
                   id="fundacao"
                   type="text"
-                  value={fundacao}
-                  onChange={(e) => setFundacao(e.target.value)}
+                  value={formData.fundacao}
+                  onChange={(e) => formData.setFundacao(e.target.value)}
                   required
                   className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
                   placeholder="Ex: FUNDADO EM 16/05/2005"

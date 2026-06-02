@@ -5,6 +5,7 @@ import { PlusCircle, Search, Filter, Printer, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { deleteTransacao } from './actions'
+import { toast } from 'sonner'
 import { useModal } from '@/providers/modal-provider'
 import { FinanceiroStats } from './components/financeiro-stats'
 import { FinanceiroTable } from './components/financeiro-table'
@@ -26,7 +27,7 @@ interface FinanceiroClienteProps {
 }
 
 export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClienteProps) {
-  const { confirm, alert } = useModal()
+  const { confirm } = useModal()
   
   const router = useRouter()
   const pathname = usePathname()
@@ -88,14 +89,13 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
 
   const saldoTotal = totalEntradas - totalSaidas
 
-  // Função para deletar movimentação
   const handleDelete = async (id: string) => {
     if (await confirm('Deseja realmente excluir este lançamento permanentemente do livro caixa? Esta ação removerá também o comprovante físico se houver.')) {
-      try {
-        await deleteTransacao(id)
-      } catch (err) {
-        const error = err as Error
-        await alert(error.message || 'Erro ao deletar transação')
+      const result = await deleteTransacao(id)
+      if (!result.success) {
+        toast.error(result.error)
+      } else {
+        toast.success('Lançamento removido com sucesso!')
       }
     }
   }

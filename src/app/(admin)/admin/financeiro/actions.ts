@@ -2,41 +2,42 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
+import { ActionResponse, handleError } from '@/lib/action-utils'
 
-export async function addTransacao(formData: FormData) {
-  const supabase = await createClient()
+export async function addTransacao(formData: FormData): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
 
-  const tipo = formData.get('tipo') as 'Entrada' | 'Saída'
-  const data = formData.get('data') as string
-  const descricao = formData.get('descricao') as string
-  const valorRaw = formData.get('valor') as string
-  const categoria = formData.get('categoria') as string
-  const file = formData.get('comprovante') as File | null
+    const tipo = formData.get('tipo') as 'Entrada' | 'Saída'
+    const data = formData.get('data') as string
+    const descricao = formData.get('descricao') as string
+    const valorRaw = formData.get('valor') as string
+    const categoria = formData.get('categoria') as string
+    const file = formData.get('comprovante') as File | null
 
-  if (!tipo || !data || !descricao || !valorRaw || !categoria) {
-    redirect('/admin/financeiro?error=Preencha todos os campos obrigatórios')
-  }
+    if (!tipo || !data || !descricao || !valorRaw || !categoria) {
+      return { success: false, error: 'Preencha todos os campos obrigatórios' }
+    }
 
-  // Parse valor as numeric float
-  const valor = parseFloat(valorRaw.replace(',', '.'))
-  if (isNaN(valor) || valor <= 0) {
-    redirect('/admin/financeiro?error=O valor inserido deve ser maior que zero')
-  }
+    // Parse valor as numeric float
+    const valor = parseFloat(valorRaw.replace(',', '.'))
+    if (isNaN(valor) || valor <= 0) {
+      return { success: false, error: 'O valor inserido deve ser maior que zero' }
+    }
 
   let comprovante_url = null
 
-  // Handle Receipt Upload
-  if (file && file.size > 0 && file.name !== 'undefined') {
-    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
-    if (!allowedTypes.includes(file.type)) {
-      redirect('/admin/financeiro?error=Formato de comprovante não suportado. Use PDF, PNG ou JPEG.')
-    }
-    
-    // 5MB limit
-    if (file.size > 5 * 1024 * 1024) {
-      redirect('/admin/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.')
-    }
+    // Handle Receipt Upload
+    if (file && file.size > 0 && file.name !== 'undefined') {
+      const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
+      if (!allowedTypes.includes(file.type)) {
+        return { success: false, error: 'Formato de comprovante não suportado. Use PDF, PNG ou JPEG.' }
+      }
+      
+      // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
+        return { success: false, error: 'Comprovante muito grande. O limite de tamanho é 5MB.' }
+      }
 
     const fileExt = file.name.split('.').pop()
     const fileName = `${crypto.randomUUID()}.${fileExt}`
@@ -52,55 +53,56 @@ export async function addTransacao(formData: FormData) {
           upsert: false
         })
 
-      if (uploadError) {
-        console.error('Erro no upload do comprovante:', uploadError)
-        redirect('/admin/financeiro?error=Falha ao carregar o arquivo de comprovante')
+        if (uploadError) {
+          return { success: false, error: 'Falha ao carregar o arquivo de comprovante' }
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('comprovantes')
+          .getPublicUrl(fileName)
+
+        comprovante_url = publicUrl
+      } catch (err) {
+        return handleError(err, 'Erro ao salvar o comprovante')
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('comprovantes')
-        .getPublicUrl(fileName)
-
-      comprovante_url = publicUrl
-    } catch (err) {
-      console.error('Falha ao processar arquivo no servidor:', err)
-      redirect('/admin/financeiro?error=Erro ao salvar o comprovante')
     }
+
+    const { error } = await supabase.from('financeiro').insert({
+      tipo,
+      data,
+      descricao,
+      valor,
+      categoria,
+      comprovante_url
+    })
+
+    if (error) {
+      return { success: false, error: 'Erro ao salvar o lançamento no banco de dados' }
+    }
+
+    revalidatePath('/financeiro')
+    revalidatePath('/financeiro/prestacao')
+    
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Ocorreu um erro ao registrar a transação.')
   }
-
-  const { error } = await supabase.from('financeiro').insert({
-    tipo,
-    data,
-    descricao,
-    valor,
-    categoria,
-    comprovante_url
-  })
-
-  if (error) {
-    console.error('Erro ao registrar transação:', error)
-    redirect('/admin/financeiro?error=Erro ao salvar o lançamento no banco de dados')
-  }
-
-  revalidatePath('/financeiro')
-  revalidatePath('/financeiro/prestacao')
-  
-  redirect('/admin/financeiro?success=Lançamento registrado com sucesso!')
 }
 
-export async function deleteTransacao(id: string) {
-  const supabase = await createClient()
+export async function deleteTransacao(id: string): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
 
-  // Buscar lançamento para ver se existe comprovante
-  const { data: transacao, error: fetchError } = await supabase
-    .from('financeiro')
-    .select('comprovante_url')
-    .eq('id', id)
-    .single()
+    // Buscar lançamento para ver se existe comprovante
+    const { data: transacao, error: fetchError } = await supabase
+      .from('financeiro')
+      .select('comprovante_url')
+      .eq('id', id)
+      .single()
 
-  if (fetchError || !transacao) {
-    throw new Error('Lançamento não encontrado')
-  }
+    if (fetchError || !transacao) {
+      return { success: false, error: 'Lançamento não encontrado' }
+    }
 
   // Se houver comprovante, deletá-lo do Storage
   if (transacao.comprovante_url) {
@@ -116,52 +118,57 @@ export async function deleteTransacao(id: string) {
     }
   }
 
-  // Deletar o registro
-  const { error: deleteError } = await supabase
-    .from('financeiro')
-    .delete()
-    .eq('id', id)
+    // Deletar o registro
+    const { error: deleteError } = await supabase
+      .from('financeiro')
+      .delete()
+      .eq('id', id)
 
-  if (deleteError) {
-    console.error('Erro ao excluir transação:', deleteError)
-    throw new Error('Falha ao excluir o lançamento')
+    if (deleteError) {
+      return { success: false, error: 'Falha ao excluir o lançamento' }
+    }
+
+    revalidatePath('/financeiro')
+    revalidatePath('/financeiro/prestacao')
+    
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Ocorreu um erro ao excluir a transação.')
   }
-
-  revalidatePath('/financeiro')
-  revalidatePath('/financeiro/prestacao')
 }
 
-export async function updateTransacao(id: string, formData: FormData) {
-  const supabase = await createClient()
+export async function updateTransacao(id: string, formData: FormData): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
 
-  const tipo = formData.get('tipo') as 'Entrada' | 'Saída'
-  const data = formData.get('data') as string
-  const descricao = formData.get('descricao') as string
-  const valorRaw = formData.get('valor') as string
-  const categoria = formData.get('categoria') as string
-  const file = formData.get('comprovante') as File | null
-  const manterComprovante = formData.get('manterComprovante') === 'true'
+    const tipo = formData.get('tipo') as 'Entrada' | 'Saída'
+    const data = formData.get('data') as string
+    const descricao = formData.get('descricao') as string
+    const valorRaw = formData.get('valor') as string
+    const categoria = formData.get('categoria') as string
+    const file = formData.get('comprovante') as File | null
+    const manterComprovante = formData.get('manterComprovante') === 'true'
 
-  if (!tipo || !data || !descricao || !valorRaw || !categoria) {
-    redirect('/admin/financeiro?error=Preencha todos os campos obrigatórios')
-  }
+    if (!tipo || !data || !descricao || !valorRaw || !categoria) {
+      return { success: false, error: 'Preencha todos os campos obrigatórios' }
+    }
 
-  // Parse valor as numeric float
-  const valor = parseFloat(valorRaw.replace(',', '.'))
-  if (isNaN(valor) || valor <= 0) {
-    redirect('/admin/financeiro?error=O valor inserido deve ser maior que zero')
-  }
+    // Parse valor as numeric float
+    const valor = parseFloat(valorRaw.replace(',', '.'))
+    if (isNaN(valor) || valor <= 0) {
+      return { success: false, error: 'O valor inserido deve ser maior que zero' }
+    }
 
-  // 1. Obter o lançamento atual do banco para saber se já tem um comprovante
-  const { data: transacaoAtual, error: fetchError } = await supabase
-    .from('financeiro')
-    .select('comprovante_url')
-    .eq('id', id)
-    .single()
+    // 1. Obter o lançamento atual do banco para saber se já tem um comprovante
+    const { data: transacaoAtual, error: fetchError } = await supabase
+      .from('financeiro')
+      .select('comprovante_url')
+      .eq('id', id)
+      .single()
 
-  if (fetchError || !transacaoAtual) {
-    redirect('/admin/financeiro?error=Lançamento não encontrado para edição')
-  }
+    if (fetchError || !transacaoAtual) {
+      return { success: false, error: 'Lançamento não encontrado para edição' }
+    }
 
   let comprovante_url = transacaoAtual.comprovante_url
 
@@ -186,16 +193,16 @@ export async function updateTransacao(id: string, formData: FormData) {
   }
 
   // 2. Se enviou novo comprovante, fazer upload
-  if (enviouNovoArquivo) {
-    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
-    if (!allowedTypes.includes(file.type)) {
-      redirect('/admin/financeiro?error=Formato de comprovante não suportado. Use PDF, PNG ou JPEG.')
-    }
-    
-    // 5MB limit
-    if (file.size > 5 * 1024 * 1024) {
-      redirect('/admin/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.')
-    }
+    if (enviouNovoArquivo) {
+      const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
+      if (!allowedTypes.includes(file.type)) {
+        return { success: false, error: 'Formato de comprovante não suportado. Use PDF, PNG ou JPEG.' }
+      }
+      
+      // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
+        return { success: false, error: 'Comprovante muito grande. O limite de tamanho é 5MB.' }
+      }
 
     const fileExt = file.name.split('.').pop()
     const fileName = `${crypto.randomUUID()}.${fileExt}`
@@ -211,42 +218,42 @@ export async function updateTransacao(id: string, formData: FormData) {
           upsert: false
         })
 
-      if (uploadError) {
-        console.error('Erro no upload do novo comprovante:', uploadError)
-        redirect('/admin/financeiro?error=Falha ao carregar o arquivo de comprovante')
+        if (uploadError) {
+          return { success: false, error: 'Falha ao carregar o arquivo de comprovante' }
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('comprovantes')
+          .getPublicUrl(fileName)
+
+        comprovante_url = publicUrl
+      } catch (err) {
+        return handleError(err, 'Erro ao salvar o comprovante')
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('comprovantes')
-        .getPublicUrl(fileName)
-
-      comprovante_url = publicUrl
-    } catch (err) {
-      console.error('Falha ao processar novo comprovante no servidor:', err)
-      redirect('/admin/financeiro?error=Erro ao salvar o comprovante')
     }
+
+    // 3. Atualizar os dados no banco
+    const { error: updateError } = await supabase
+      .from('financeiro')
+      .update({
+        tipo,
+        data,
+        descricao,
+        valor,
+        categoria,
+        comprovante_url
+      })
+      .eq('id', id)
+
+    if (updateError) {
+      return { success: false, error: 'Erro ao atualizar o lançamento no banco de dados' }
+    }
+
+    revalidatePath('/financeiro')
+    revalidatePath('/financeiro/prestacao')
+    
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Ocorreu um erro ao atualizar a transação.')
   }
-
-  // 3. Atualizar os dados no banco
-  const { error: updateError } = await supabase
-    .from('financeiro')
-    .update({
-      tipo,
-      data,
-      descricao,
-      valor,
-      categoria,
-      comprovante_url
-    })
-    .eq('id', id)
-
-  if (updateError) {
-    console.error('Erro ao atualizar transação:', updateError)
-    redirect('/admin/financeiro?error=Erro ao atualizar o lançamento no banco de dados')
-  }
-
-  revalidatePath('/financeiro')
-  revalidatePath('/financeiro/prestacao')
-  
-  redirect('/admin/financeiro?success=Lançamento atualizado com sucesso!')
 }

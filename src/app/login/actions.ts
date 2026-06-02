@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { ActionResponse, handleError } from '@/lib/action-utils'
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient()
 
   const data = {
@@ -12,10 +13,14 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  try {
+    const { error } = await supabase.auth.signInWithPassword(data)
 
-  if (error) {
-    redirect('/login?message=Could not authenticate user')
+    if (error) {
+      return { success: false, error: 'Usuário ou senha incorretos' }
+    }
+  } catch (err) {
+    return handleError(err, 'Erro inesperado na autenticação')
   }
 
   revalidatePath('/', 'layout')

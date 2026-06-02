@@ -39,22 +39,24 @@ describe('Filiados Actions', () => {
   });
 
   describe('addFiliado', () => {
-    it('deve redirecionar com erro se o nome estiver ausente', async () => {
+    it('deve retornar erro se o nome estiver ausente', async () => {
       const formData = new FormData();
       formData.append('email', 'teste@teste.com');
 
-      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /admin/filiados/novo?error=O nome é obrigatório');
+      const result = await addFiliado(formData);
+      expect(result).toEqual({ success: false, error: 'O nome é obrigatório' });
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
-    it('deve inserir no banco, revalidar e redirecionar em caso de sucesso', async () => {
+    it('deve inserir no banco e retornar sucesso', async () => {
       const formData = new FormData();
       formData.append('nome', 'João Teste');
       formData.append('email', 'joao@teste.com');
 
       mockInsert.mockResolvedValueOnce({ error: null });
 
-      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /admin/filiados');
+      const result = await addFiliado(formData);
+      expect(result).toEqual({ success: true });
       
       expect(mockInsert).toHaveBeenCalledWith({
         nome: 'João Teste',
@@ -65,20 +67,22 @@ describe('Filiados Actions', () => {
       });
     });
 
-    it('deve redirecionar com erro se o supabase falhar ao cadastrar', async () => {
+    it('deve retornar erro se o supabase falhar ao cadastrar', async () => {
       const formData = new FormData();
       formData.append('nome', 'João');
 
       mockInsert.mockResolvedValueOnce({ error: { message: 'DB Error' } });
 
-      await expect(addFiliado(formData)).rejects.toThrow('Redirected to: /admin/filiados/novo?error=Falha ao cadastrar filiado');
+      const result = await addFiliado(formData);
+      expect(result).toEqual({ success: false, error: 'Falha ao cadastrar filiado no banco.' });
     });
   });
 
   describe('editFiliado', () => {
-    it('deve redirecionar com erro se o nome estiver ausente na edição', async () => {
+    it('deve retornar erro se o nome estiver ausente na edição', async () => {
       const formData = new FormData();
-      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /admin/filiados/123/editar?error=O nome é obrigatório');
+      const result = await editFiliado('123', formData);
+      expect(result).toEqual({ success: false, error: 'O nome é obrigatório' });
     });
 
     it('deve atualizar os dados corretamente no banco', async () => {
@@ -88,7 +92,8 @@ describe('Filiados Actions', () => {
 
       mockEq.mockResolvedValueOnce({ error: null });
 
-      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /admin/filiados');
+      const result = await editFiliado('123', formData);
+      expect(result).toEqual({ success: true });
       
       expect(mockUpdate).toHaveBeenCalledWith({
         nome: 'Maria Atualizada',
@@ -101,13 +106,14 @@ describe('Filiados Actions', () => {
       expect(mockEq).toHaveBeenCalledWith('id', '123');
     });
 
-    it('deve redirecionar com erro em caso de falha no banco', async () => {
+    it('deve retornar erro em caso de falha no banco', async () => {
       const formData = new FormData();
       formData.append('nome', 'Erro DB');
 
       mockEq.mockResolvedValueOnce({ error: { message: 'Erro DB' } });
 
-      await expect(editFiliado('123', formData)).rejects.toThrow('Redirected to: /admin/filiados/123/editar?error=Falha ao editar filiado');
+      const result = await editFiliado('123', formData);
+      expect(result).toEqual({ success: false, error: 'Falha ao editar filiado no banco.' });
     });
   });
 
@@ -116,16 +122,18 @@ describe('Filiados Actions', () => {
       mockEq.mockResolvedValueOnce({ error: null });
 
       // Passando true para simular a mudança para false (ativo: !currentStatus)
-      await toggleAtivo('456', true);
+      const result = await toggleAtivo('456', true);
       
       expect(mockUpdate).toHaveBeenCalledWith({ ativo: false });
       expect(mockEq).toHaveBeenCalledWith('id', '456');
+      expect(result).toEqual({ success: true });
     });
 
-    it('deve lançar erro em caso de falha ao alterar status', async () => {
+    it('deve retornar erro em caso de falha ao alterar status', async () => {
       mockEq.mockResolvedValueOnce({ error: { message: 'DB Error' } });
 
-      await expect(toggleAtivo('456', true)).rejects.toThrow('Falha ao alterar status');
+      const result = await toggleAtivo('456', true);
+      expect(result).toEqual({ success: false, error: 'Falha ao alterar status no banco.' });
     });
   });
 });

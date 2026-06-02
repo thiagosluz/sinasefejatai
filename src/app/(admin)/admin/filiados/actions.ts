@@ -1,10 +1,10 @@
 'use server'
 
-import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import { ActionResponse, handleError } from '@/lib/action-utils'
 
-import { executeServerAction } from '@/lib/server-utils'
-
-export async function addFiliado(formData: FormData) {
+export async function addFiliado(formData: FormData): Promise<ActionResponse> {
   const nome = formData.get('nome') as string
   const email = formData.get('email') as string
   const telefone = formData.get('telefone') as string
@@ -12,10 +12,11 @@ export async function addFiliado(formData: FormData) {
   const cargo = formData.get('cargo') as string
 
   if (!nome) {
-    redirect('/admin/filiados/novo?error=O nome é obrigatório')
+    return { success: false, error: 'O nome é obrigatório' }
   }
 
-  await executeServerAction(async (supabase) => {
+  try {
+    const supabase = await createClient()
     const { error } = await supabase.from('filiados').insert({
       nome,
       email: email || null,
@@ -23,16 +24,19 @@ export async function addFiliado(formData: FormData) {
       siape: siape || null,
       cargo: cargo || null,
     })
-    if (error) throw error
-  }, {
-    redirectErrorPath: '/admin/filiados/novo',
-    errorMessage: 'Falha ao cadastrar filiado',
-    revalidatePaths: ['/admin/filiados'],
-    redirectSuccessPath: '/admin/filiados'
-  })
+
+    if (error) {
+      return { success: false, error: 'Falha ao cadastrar filiado no banco.' }
+    }
+
+    revalidatePath('/admin/filiados')
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Ocorreu um erro inesperado ao cadastrar.')
+  }
 }
 
-export async function editFiliado(id: string, formData: FormData) {
+export async function editFiliado(id: string, formData: FormData): Promise<ActionResponse> {
   const nome = formData.get('nome') as string
   const email = formData.get('email') as string
   const telefone = formData.get('telefone') as string
@@ -41,10 +45,11 @@ export async function editFiliado(id: string, formData: FormData) {
   const ativo = formData.get('ativo') === 'on'
 
   if (!nome) {
-    redirect(`/admin/filiados/${id}/editar?error=O nome é obrigatório`)
+    return { success: false, error: 'O nome é obrigatório' }
   }
 
-  await executeServerAction(async (supabase) => {
+  try {
+    const supabase = await createClient()
     const { error } = await supabase
       .from('filiados')
       .update({
@@ -56,23 +61,33 @@ export async function editFiliado(id: string, formData: FormData) {
         ativo,
       })
       .eq('id', id)
-    if (error) throw error
-  }, {
-    redirectErrorPath: `/admin/filiados/${id}/editar`,
-    errorMessage: 'Falha ao editar filiado',
-    revalidatePaths: ['/admin/filiados'],
-    redirectSuccessPath: '/admin/filiados'
-  })
+
+    if (error) {
+      return { success: false, error: 'Falha ao editar filiado no banco.' }
+    }
+
+    revalidatePath('/admin/filiados')
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Ocorreu um erro inesperado ao editar.')
+  }
 }
 
-export async function toggleAtivo(id: string, currentStatus: boolean) {
-  await executeServerAction(async (supabase) => {
+export async function toggleAtivo(id: string, currentStatus: boolean): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
     const { error } = await supabase
       .from('filiados')
       .update({ ativo: !currentStatus })
       .eq('id', id)
-    if (error) throw new Error('Falha ao alterar status')
-  }, {
-    revalidatePaths: ['/admin/filiados']
-  })
+
+    if (error) {
+      return { success: false, error: 'Falha ao alterar status no banco.' }
+    }
+
+    revalidatePath('/admin/filiados')
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Falha ao alterar status')
+  }
 }

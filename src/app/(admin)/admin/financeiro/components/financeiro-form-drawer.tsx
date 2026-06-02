@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Check, Trash2 } from 'lucide-react'
 import { addTransacao, updateTransacao } from '../actions'
+import { toast } from 'sonner'
 
 const CATEGORIAS_ENTRADA = [
   'Repasse Nacional',
@@ -53,6 +54,21 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
     setFormCategoria(tipo === 'Entrada' ? CATEGORIAS_ENTRADA[0] : CATEGORIAS_SAIDA[0])
   }
 
+  const handleSubmit = async (formData: FormData) => {
+    setSalvando(true)
+    const result = transacaoEmEdicao 
+      ? await updateTransacao(transacaoEmEdicao.id, formData)
+      : await addTransacao(formData)
+    
+    setSalvando(false)
+    if (!result.success) {
+      toast.error(result.error)
+    } else {
+      toast.success(transacaoEmEdicao ? 'Lançamento atualizado!' : 'Lançamento registrado!')
+      onClose()
+    }
+  }
+
   if (!aberto) return null
 
   return (
@@ -74,8 +90,7 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
           </div>
 
           <form 
-            action={transacaoEmEdicao ? updateTransacao.bind(null, transacaoEmEdicao.id) : addTransacao} 
-            onSubmit={() => setSalvando(true)} 
+            action={handleSubmit} 
             className="space-y-4"
           >
             <div>

@@ -52,16 +52,17 @@ describe('Assembleias Actions', () => {
   });
 
   describe('addAssembleia', () => {
-    it('deve redirecionar com erro se campos obrigatórios faltarem', async () => {
+    it('deve retornar erro se campos obrigatórios faltarem', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Ordinária');
       // Faltam data, horario, local
 
-      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /admin/assembleias/nova?error=Preencha os campos obrigatórios');
+      const result = await addAssembleia(formData);
+      expect(result).toEqual({ success: false, error: 'Preencha os campos obrigatórios' });
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
-    it('deve inserir no banco, revalidar e redirecionar em caso de sucesso', async () => {
+    it('deve inserir no banco e retornar sucesso', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Ordinária');
       formData.append('data_realizacao', '2024-10-10');
@@ -73,7 +74,8 @@ describe('Assembleias Actions', () => {
       // Setup do mock para retornar sucesso
       mockInsert.mockResolvedValueOnce({ error: null });
 
-      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /admin/assembleias');
+      const result = await addAssembleia(formData);
+      expect(result).toEqual({ success: true });
       
       expect(mockInsert).toHaveBeenCalledWith({
         numero: null,
@@ -88,7 +90,7 @@ describe('Assembleias Actions', () => {
       });
     });
 
-    it('deve redirecionar com erro se o supabase falhar ao inserir', async () => {
+    it('deve retornar erro se o supabase falhar ao inserir', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Ordinária');
       formData.append('data_realizacao', '2024-10-10');
@@ -99,7 +101,8 @@ describe('Assembleias Actions', () => {
       // Supabase falhando
       mockInsert.mockResolvedValueOnce({ error: { message: 'DB Error' } });
 
-      await expect(addAssembleia(formData)).rejects.toThrow('Redirected to: /admin/assembleias/nova?error=Falha ao agendar assembleia');
+      const result = await addAssembleia(formData);
+      expect(result).toEqual({ success: false, error: 'Falha ao agendar assembleia no banco.' });
     });
   });
 
@@ -111,16 +114,18 @@ describe('Assembleias Actions', () => {
     it('deve atualizar o status e revalidar o path', async () => {
       mockEq.mockResolvedValueOnce({ error: null });
 
-      await updateStatusAssembleia('123', 'CONCLUIDA');
+      const result = await updateStatusAssembleia('123', 'CONCLUIDA');
       
       expect(mockUpdate).toHaveBeenCalledWith({ status: 'CONCLUIDA' });
       expect(mockEq).toHaveBeenCalledWith('id', '123');
+      expect(result).toEqual({ success: true });
     });
 
-    it('deve lançar erro em caso de falha no banco', async () => {
+    it('deve retornar erro em caso de falha no banco', async () => {
       mockEq.mockResolvedValueOnce({ error: { message: 'Erro no DB' } });
 
-      await expect(updateStatusAssembleia('123', 'CONCLUIDA')).rejects.toThrow('Falha ao atualizar status');
+      const result = await updateStatusAssembleia('123', 'CONCLUIDA');
+      expect(result).toEqual({ success: false, error: 'Falha ao atualizar status no banco.' });
     });
   });
 
@@ -133,18 +138,20 @@ describe('Assembleias Actions', () => {
       mockEq.mockResolvedValueOnce({ error: null }); // mockDelete atas
       mockEq.mockResolvedValueOnce({ error: null }); // mockDelete assembleia
 
-      await deleteAssembleia('123');
+      const result = await deleteAssembleia('123');
 
       expect(mockDelete).toHaveBeenCalledTimes(2);
       expect(mockEq).toHaveBeenCalledWith('assembleia_id', '123');
       expect(mockEq).toHaveBeenCalledWith('id', '123');
+      expect(result).toEqual({ success: true });
     });
 
-    it('deve lançar erro se falhar ao excluir a assembleia', async () => {
+    it('deve retornar erro se falhar ao excluir a assembleia', async () => {
       mockEq.mockResolvedValueOnce({ error: null }); // mockDelete atas
       mockEq.mockResolvedValueOnce({ error: { message: 'Erro DB' } }); // falha na assembleia
 
-      await expect(deleteAssembleia('123')).rejects.toThrow('Falha ao excluir assembleia: Erro DB');
+      const result = await deleteAssembleia('123');
+      expect(result).toEqual({ success: false, error: 'Falha ao excluir assembleia: Erro DB' });
     });
   });
 
@@ -155,13 +162,15 @@ describe('Assembleias Actions', () => {
       mockUpdate.mockReturnValue({ eq: mockEq });
     });
 
-    it('deve redirecionar com erro se faltarem campos', async () => {
+    it('deve retornar erro se faltarem campos', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Ordinária');
-      await expect(editAssembleia('123', formData)).rejects.toThrow('Redirected to: /assembleias/123/editar?error=Preencha os campos obrigatórios');
+      
+      const result = await editAssembleia('123', formData);
+      expect(result).toEqual({ success: false, error: 'Preencha os campos obrigatórios' });
     });
 
-    it('deve incrementar versão do edital se status continuar Agendada e houver motivo', async () => {
+    it('deve incrementar versão do edital se status continuar Agendada e houver motivo e retornar sucesso', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Ordinária');
       formData.append('data_realizacao', '2024-10-10');
@@ -178,7 +187,8 @@ describe('Assembleias Actions', () => {
 
       mockEq.mockResolvedValueOnce({ error: null });
 
-      await expect(editAssembleia('123', formData)).rejects.toThrow('Redirected to: /admin/assembleias');
+      const result = await editAssembleia('123', formData);
+      expect(result).toEqual({ success: true });
 
       expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
         versao_edital: 2,
@@ -193,12 +203,13 @@ describe('Assembleias Actions', () => {
   });
 
   describe('saveAta', () => {
-    it('deve redirecionar com erro se assembleiaId não for enviado', async () => {
+    it('deve retornar erro se assembleiaId não for enviado', async () => {
       const formData = new FormData();
-      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /admin/assembleias?error=Assembleia não especificada');
+      const result = await saveAta(formData);
+      expect(result).toEqual({ success: false, error: 'Assembleia não especificada' });
     });
 
-    it('deve upsert no banco e redirecionar com sucesso', async () => {
+    it('deve upsert no banco e retornar sucesso', async () => {
       const formData = new FormData();
       formData.append('assembleia_id', '123');
       formData.append('numero', '001');
@@ -207,7 +218,8 @@ describe('Assembleias Actions', () => {
 
       mockUpsert.mockResolvedValueOnce({ error: null });
 
-      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /admin/assembleias/123/ata?success=Ata salva com sucesso');
+      const result = await saveAta(formData);
+      expect(result).toEqual({ success: true });
 
       expect(mockUpsert).toHaveBeenCalledWith({
         assembleia_id: '123',
@@ -220,13 +232,14 @@ describe('Assembleias Actions', () => {
       });
     });
 
-    it('deve redirecionar para a própria página com erro caso o banco falhe', async () => {
+    it('deve retornar erro caso o banco falhe', async () => {
       const formData = new FormData();
       formData.append('assembleia_id', '123');
       
       mockUpsert.mockResolvedValueOnce({ error: { message: 'Erro' } });
 
-      await expect(saveAta(formData)).rejects.toThrow('Redirected to: /admin/assembleias/123/ata?error=Falha ao salvar a ata');
+      const result = await saveAta(formData);
+      expect(result).toEqual({ success: false, error: 'Falha ao salvar a ata no banco de dados.' });
     });
   });
 });

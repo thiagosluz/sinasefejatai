@@ -61,15 +61,16 @@ describe('Financeiro Actions', () => {
   });
 
   describe('addTransacao', () => {
-    it('deve redirecionar com erro se campos obrigatórios faltarem', async () => {
+    it('deve retornar erro se campos obrigatórios faltarem', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Entrada');
       
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=Preencha todos os campos obrigatórios');
+      const result = await addTransacao(formData);
+      expect(result).toEqual({ success: false, error: 'Preencha todos os campos obrigatórios' });
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
-    it('deve redirecionar com erro se valor for inválido (menor que zero)', async () => {
+    it('deve retornar erro se valor for inválido (menor que zero)', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Entrada');
       formData.append('data', '2026-10-10');
@@ -77,10 +78,11 @@ describe('Financeiro Actions', () => {
       formData.append('categoria', 'Repasse');
       formData.append('valor', '-100,00');
 
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=O valor inserido deve ser maior que zero');
+      const result = await addTransacao(formData);
+      expect(result).toEqual({ success: false, error: 'O valor inserido deve ser maior que zero' });
     });
 
-    it('deve inserir transação com valor corretamente formatado sem comprovante', async () => {
+    it('deve inserir transação com valor corretamente formatado sem comprovante e retornar success', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Saída');
       formData.append('data', '2026-10-10');
@@ -90,7 +92,8 @@ describe('Financeiro Actions', () => {
 
       mockInsert.mockResolvedValueOnce({ error: null });
 
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?success=Lançamento registrado com sucesso!');
+      const result = await addTransacao(formData);
+      expect(result).toEqual({ success: true });
       
       expect(mockInsert).toHaveBeenCalledWith({
         tipo: 'Saída',
@@ -114,7 +117,8 @@ describe('Financeiro Actions', () => {
       const mockFile = new File(['x'.repeat(6 * 1024 * 1024)], 'grande.pdf', { type: 'application/pdf' });
       formData.append('comprovante', mockFile);
 
-      await expect(addTransacao(formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=Comprovante muito grande. O limite de tamanho é 5MB.');
+      const result = await addTransacao(formData);
+      expect(result).toEqual({ success: false, error: 'Comprovante muito grande. O limite de tamanho é 5MB.' });
     });
   });
 
@@ -124,10 +128,11 @@ describe('Financeiro Actions', () => {
       mockSingle.mockResolvedValueOnce({ data: { comprovante_url: null }, error: null });
       mockEqDelete.mockResolvedValueOnce({ error: null }); // Mock delete success
 
-      await deleteTransacao('id-123');
+      const result = await deleteTransacao('id-123');
 
       expect(mockRemove).not.toHaveBeenCalled();
       expect(mockDelete).toHaveBeenCalled();
+      expect(result).toEqual({ success: true });
     });
 
     it('deve excluir o arquivo do storage e o registro do banco', async () => {
@@ -135,30 +140,33 @@ describe('Financeiro Actions', () => {
       mockSingle.mockResolvedValueOnce({ data: { comprovante_url: 'https://storage/comprovantes/meu-arquivo.pdf' }, error: null });
       mockEqDelete.mockResolvedValueOnce({ error: null });
 
-      await deleteTransacao('id-123');
+      const result = await deleteTransacao('id-123');
 
       expect(mockRemove).toHaveBeenCalledWith(['meu-arquivo.pdf']);
       expect(mockDelete).toHaveBeenCalled();
+      expect(result).toEqual({ success: true });
     });
 
-    it('deve lançar erro se falhar ao excluir do banco', async () => {
+    it('deve retornar erro se falhar ao excluir do banco', async () => {
       mockSingle.mockResolvedValueOnce({ data: { comprovante_url: null }, error: null });
       mockEqDelete.mockResolvedValueOnce({ error: { message: 'Erro Banco' } });
 
-      await expect(deleteTransacao('id-123')).rejects.toThrow('Falha ao excluir o lançamento');
+      const result = await deleteTransacao('id-123');
+      expect(result).toEqual({ success: false, error: 'Falha ao excluir o lançamento' });
     });
   });
 
   describe('updateTransacao', () => {
-    it('deve redirecionar com erro se campos obrigatórios faltarem', async () => {
+    it('deve retornar erro se campos obrigatórios faltarem', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Entrada');
       
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=Preencha todos os campos obrigatórios');
+      const result = await updateTransacao('id-123', formData);
+      expect(result).toEqual({ success: false, error: 'Preencha todos os campos obrigatórios' });
       expect(mockUpdate).not.toHaveBeenCalled();
     });
 
-    it('deve redirecionar com erro se o valor for inválido', async () => {
+    it('deve retornar erro se o valor for inválido', async () => {
       const formData = new FormData();
       formData.append('tipo', 'Entrada');
       formData.append('data', '2026-10-10');
@@ -166,7 +174,8 @@ describe('Financeiro Actions', () => {
       formData.append('categoria', 'Material');
       formData.append('valor', '-10.00');
 
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?error=O valor inserido deve ser maior que zero');
+      const result = await updateTransacao('id-123', formData);
+      expect(result).toEqual({ success: false, error: 'O valor inserido deve ser maior que zero' });
     });
 
     it('deve atualizar transação com sucesso e manter comprovante se solicitado', async () => {
@@ -183,7 +192,8 @@ describe('Financeiro Actions', () => {
       // Mock update banco
       mockEqUpdate.mockResolvedValueOnce({ error: null });
 
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?success=Lançamento atualizado com sucesso!');
+      const result = await updateTransacao('id-123', formData);
+      expect(result).toEqual({ success: true });
       
       expect(mockRemove).not.toHaveBeenCalled();
       expect(mockUpdate).toHaveBeenCalledWith({
@@ -208,7 +218,8 @@ describe('Financeiro Actions', () => {
       mockSingle.mockResolvedValueOnce({ data: { comprovante_url: 'https://storage/comprovantes/atual.pdf' }, error: null });
       mockEqUpdate.mockResolvedValueOnce({ error: null });
 
-      await expect(updateTransacao('id-123', formData)).rejects.toThrow('Redirected to: /admin/financeiro?success=Lançamento atualizado com sucesso!');
+      const result = await updateTransacao('id-123', formData);
+      expect(result).toEqual({ success: true });
       
       expect(mockRemove).toHaveBeenCalledWith(['atual.pdf']);
       expect(mockUpdate).toHaveBeenCalledWith({

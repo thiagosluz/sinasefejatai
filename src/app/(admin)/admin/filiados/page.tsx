@@ -79,7 +79,10 @@ export default async function FiliadosPage() {
                           <Edit2 size={15} />
                         </Link>
                         
-                        <form action={toggleAtivo.bind(null, filiado.id, filiado.ativo)}>
+                        <form action={async () => {
+                          'use server'
+                          await toggleAtivo(filiado.id, filiado.ativo)
+                        }}>
                           <button 
                             type="submit"
                             className={`p-1 hover:bg-brand-ink/10 transition-colors cursor-pointer ${

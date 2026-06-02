@@ -12,6 +12,7 @@ import {
   Sparkles,
   Check
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { saveAta } from '../../actions-ata'
 import { DocumentHeaderConfig } from '@/components/document-header'
 import { useModal } from '@/providers/modal-provider'
@@ -166,7 +167,25 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
           <span>Configuração da Ata</span>
         </h2>
 
-        <form ref={formRef} action={saveAta} onSubmit={() => { dispatch({ type: 'SET_SALVANDO', payload: true }); dispatch({ type: 'SET_ATA_SALVA', payload: true }) }} className="space-y-4 flex flex-col min-h-[calc(100%-60px)]">
+        <form 
+          ref={formRef} 
+          onSubmit={async (e) => { 
+            e.preventDefault()
+            const formData = new FormData(e.currentTarget)
+            dispatch({ type: 'SET_SALVANDO', payload: true })
+            
+            const result = await saveAta(formData)
+            
+            if (result.success) {
+              dispatch({ type: 'SET_ATA_SALVA', payload: true })
+              toast.success('Ata salva com sucesso')
+            } else {
+              toast.error(result.error || 'Ocorreu um erro')
+            }
+            dispatch({ type: 'SET_SALVANDO', payload: false })
+          }} 
+          className="space-y-4 flex flex-col min-h-[calc(100%-60px)]"
+        >
           <div className="flex-1 space-y-4">
             <input type="hidden" name="assembleia_id" value={assembleia.id} />
             <input type="hidden" name="conteudo_rich" value={conteudoRich} />

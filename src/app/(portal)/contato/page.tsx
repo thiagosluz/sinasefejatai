@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { MapPin, Mail, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
-import { enviarMensagem } from './actions'
+import { MapPin, Mail, Clock, CheckCircle2 } from 'lucide-react'
+import { ContatoForm } from './contato-form'
 
 async function getConfiguracoes() {
   const supabase = await createClient()
@@ -19,7 +19,6 @@ interface Props {
 export default async function ContatoPage({ searchParams }: Props) {
   const [params, config] = await Promise.all([searchParams, getConfiguracoes()])
   const sucesso = params.sucesso === '1'
-  const erro = params.error
 
   return (
     <>
@@ -108,85 +107,7 @@ export default async function ContatoPage({ searchParams }: Props) {
                   </a>
                 </div>
               ) : (
-                <>
-                  <h2 className="text-xl font-bold text-brand-ink font-serif mb-1">Envie uma mensagem</h2>
-                  <p className="text-zinc-500 text-sm mb-6">
-                    Campos com <span className="text-brand-tinto">*</span> são obrigatórios.
-                  </p>
-
-                  {erro && (
-                    <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-                      <AlertCircle size={18} className="text-brand-tinto flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-red-700">{erro}</p>
-                    </div>
-                  )}
-
-                  <form action={enviarMensagem} className="space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="nome" className="block text-sm font-medium text-brand-ink mb-1.5">
-                          Nome <span className="text-brand-tinto">*</span>
-                        </label>
-                        <input
-                          id="nome"
-                          name="nome"
-                          type="text"
-                          required
-                          placeholder="Seu nome"
-                          className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-brand-ink mb-1.5">
-                          E-mail <span className="text-brand-tinto">*</span>
-                        </label>
-                        <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          required
-                          placeholder="seu@email.com"
-                          className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="assunto" className="block text-sm font-medium text-brand-ink mb-1.5">
-                        Assunto
-                      </label>
-                      <input
-                        id="assunto"
-                        name="assunto"
-                        type="text"
-                        placeholder="Qual é o assunto?"
-                        className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="mensagem" className="block text-sm font-medium text-brand-ink mb-1.5">
-                        Mensagem <span className="text-brand-tinto">*</span>
-                      </label>
-                      <textarea
-                        id="mensagem"
-                        name="mensagem"
-                        required
-                        rows={5}
-                        placeholder="Descreva sua dúvida ou demanda..."
-                        className="w-full px-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-tinto/30 focus:border-brand-tinto transition-all bg-brand-cream resize-none"
-                      />
-                    </div>
-
-                    <button
-                      id="submit-contato"
-                      type="submit"
-                      className="w-full bg-brand-tinto text-white font-bold py-3.5 rounded-xl hover:bg-brand-tinto-light transition-all shadow-md hover:shadow-lg active:scale-[0.99] text-sm"
-                    >
-                      Enviar Mensagem
-                    </button>
-                  </form>
-                </>
+                  <ContatoForm />
               )}
             </div>
           </div>

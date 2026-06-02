@@ -3,6 +3,7 @@ import { Lora, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModalProvider } from "@/providers/modal-provider";
+import { Toaster } from "sonner";
 
 const lora = Lora({
   variable: "--font-lora",
@@ -41,6 +42,15 @@ export default function RootLayout({
         >
           <ModalProvider>
             {children}
+            <Toaster 
+              richColors 
+              closeButton
+              position="top-right" 
+              theme="system"
+              toastOptions={{
+                className: "font-sans",
+              }}
+            />
           </ModalProvider>
         </ThemeProvider>
       </body>
