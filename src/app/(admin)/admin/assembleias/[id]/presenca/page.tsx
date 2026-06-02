@@ -1,5 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+
+import { createClient } from '@/lib/supabase/server'
+
 import PresencaCliente from './presenca-cliente'
 
 export default async function ListaPresencaPage(props: { params: Promise<{ id: string }> }) {

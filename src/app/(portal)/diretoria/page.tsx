@@ -1,7 +1,8 @@
-import { getGestaoAtualPublica } from '@/app/(admin)/admin/diretoria/actions'
-import { UsersRound, History, UserCircle2 } from 'lucide-react'
+import { History, UserCircle2,UsersRound } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+
+import { getGestaoAtualPublica } from '@/app/(admin)/admin/diretoria/actions'
 
 export const metadata = {
   title: 'Atual Direção | SINASEFE Jataí',

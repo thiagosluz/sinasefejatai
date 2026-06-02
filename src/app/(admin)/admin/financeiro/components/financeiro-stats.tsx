@@ -1,5 +1,5 @@
-import { ArrowUpRight, ArrowDownRight, DollarSign } from 'lucide-react'
 import { memo } from 'react'
+import { ArrowDownRight, ArrowUpRight, DollarSign } from 'lucide-react'
 
 interface FinanceiroStatsProps {
   totalEntradas: number

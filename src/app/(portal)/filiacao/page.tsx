@@ -1,5 +1,6 @@
+import { Check,CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
-import { CheckCircle2, Check } from 'lucide-react'
+
 import { FiliacaoForm } from './filiacao-form'
 
 const beneficios = [

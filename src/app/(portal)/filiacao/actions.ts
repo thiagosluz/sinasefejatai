@@ -1,9 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { notificarPedidoFiliacao } from '@/lib/email'
 import { redirect } from 'next/navigation'
+
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { notificarPedidoFiliacao } from '@/lib/email'
+import { createClient } from '@/lib/supabase/server'
 
 export async function solicitarFiliacao(formData: FormData): Promise<ActionResponse> {
   try {

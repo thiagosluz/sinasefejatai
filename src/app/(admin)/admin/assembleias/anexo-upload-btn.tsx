@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, Trash2, Eye, Download, Sparkles } from 'lucide-react'
+import { Download, Eye, Sparkles,Trash2, Upload } from 'lucide-react'
+
 import { createClient } from '@/lib/supabase/client'
 import { useModal } from '@/providers/modal-provider'
-import { salvarDocumentoMetadata, excluirDocumento } from './actions-documentos'
+
+import { excluirDocumento,salvarDocumentoMetadata } from './actions-documentos'
 
 interface AnexoUploadBtnProps {
   assembleiaId: string

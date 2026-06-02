@@ -1,7 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { SupabaseClient } from '@supabase/supabase-js'
+
+import { createClient } from '@/lib/supabase/server'
 
 type ServerActionCallback<T> = (supabase: SupabaseClient) => Promise<T>
 

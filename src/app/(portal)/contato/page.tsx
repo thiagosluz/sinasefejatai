@@ -1,5 +1,7 @@
+import { CheckCircle2,Clock, Mail, MapPin } from 'lucide-react'
+
 import { createClient } from '@/lib/supabase/server'
-import { MapPin, Mail, Clock, CheckCircle2 } from 'lucide-react'
+
 import { ContatoForm } from './contato-form'
 
 async function getConfiguracoes() {

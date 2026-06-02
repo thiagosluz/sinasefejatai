@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect,test } from '@playwright/test';
 
 test.describe('Portal Público', () => {
   test('Deve carregar a Home Page com Navbar e Footer Públicos', async ({ page }) => {

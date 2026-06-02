@@ -1,10 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { logout } from '@/app/login/actions'
-import { Users, CalendarRange, Landmark, LogOut, Sliders, MapPin, UsersRound } from 'lucide-react'
+import { CalendarRange, Landmark, LogOut, MapPin, Sliders, Users, UsersRound } from 'lucide-react'
 import Link from 'next/link'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
+import { redirect } from 'next/navigation'
+
+import { logout } from '@/app/login/actions'
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
   const supabase = await createClient()

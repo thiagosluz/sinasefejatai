@@ -1,5 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+
+import { createClient } from '@/lib/supabase/server'
+
 import LocaisCliente from './locais-cliente'
 
 export const dynamic = 'force-dynamic'

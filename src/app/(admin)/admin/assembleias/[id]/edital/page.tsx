@@ -1,11 +1,14 @@
-import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
+import { ArrowLeft,Printer } from 'lucide-react'
 import Link from 'next/link'
-import { Printer, ArrowLeft } from 'lucide-react'
+import { notFound } from 'next/navigation'
+
 import DocumentHeader from '@/components/document-header'
-import EditalRetificarBtn from './edital-retificar-btn'
 import { formatarDataComDiaParenteses, formatarHora } from '@/lib/date-utils'
+import { createClient } from '@/lib/supabase/server'
+
 import AnexoUploadBtn from '../../anexo-upload-btn'
+
+import EditalRetificarBtn from './edital-retificar-btn'
 export default async function EditalPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createClient()

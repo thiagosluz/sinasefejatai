@@ -1,4 +1,5 @@
 import { FileCheck, FileX } from 'lucide-react'
+
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 
 interface Transacao {

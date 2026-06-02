@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { Lora, Inter } from "next/font/google";
-import "./globals.css";
+import { Inter,Lora } from "next/font/google";
+import { Toaster } from "sonner";
+
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModalProvider } from "@/providers/modal-provider";
-import { Toaster } from "sonner";
+
+import "./globals.css";
 
 const lora = Lora({
   variable: "--font-lora",

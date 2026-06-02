@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Save, UserCircle2, Camera } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { salvarCadeira, excluirCargoExtra } from '../actions'
-import { useModal } from '@/providers/modal-provider'
+import { Camera,Save, Trash2, UserCircle2 } from 'lucide-react'
 import Image from 'next/image'
+
+import { createClient } from '@/lib/supabase/client'
+import { useModal } from '@/providers/modal-provider'
+
+import { excluirCargoExtra,salvarCadeira } from '../actions'
 
 type Membro = {
   id: string

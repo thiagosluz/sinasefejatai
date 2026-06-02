@@ -1,7 +1,8 @@
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+
 import { getGestoes } from './actions'
 import DiretoriaCliente from './diretoria-cliente'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 export const metadata = {
   title: 'Gestão da Diretoria | SINASEFE Jataí',

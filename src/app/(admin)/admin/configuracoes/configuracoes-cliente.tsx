@@ -1,10 +1,12 @@
 'use client'
 
-import { Save, Image as ImageIcon, RotateCcw, Trash2 } from 'lucide-react'
+import { Image as ImageIcon, RotateCcw, Save, Trash2 } from 'lucide-react'
+
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+
 import { useConfiguracoesForm } from './hooks/use-configuracoes-form'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 interface ConfiguracoesClienteProps {
   initialConfig: DocumentHeaderConfig | null

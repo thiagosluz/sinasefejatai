@@ -1,8 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
-import { PlusCircle, Edit2, UserX, UserCheck } from 'lucide-react'
+import { Edit2, PlusCircle, UserCheck,UserX } from 'lucide-react'
 import Link from 'next/link'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
+
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+import { createClient } from '@/lib/supabase/server'
+
 import { toggleAtivo } from './actions'
 
 export default async function FiliadosPage() {

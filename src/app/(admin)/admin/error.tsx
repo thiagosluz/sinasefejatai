@@ -2,8 +2,9 @@
 
 import { useEffect } from 'react'
 import { AlertTriangle, RefreshCcw } from 'lucide-react'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
+
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
 
 export default function AdminError({
   error,

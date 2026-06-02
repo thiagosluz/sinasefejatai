@@ -1,16 +1,7 @@
-import { FileText, Edit, Trash2 } from 'lucide-react'
 import { memo } from 'react'
+import { Edit, FileText, Trash2 } from 'lucide-react'
 
-interface Transacao {
-  id: string
-  tipo: 'Entrada' | 'Saída'
-  data: string
-  descricao: string
-  valor: number
-  categoria: string
-  comprovante_url: string | null
-  created_at: string
-}
+import { Transacao } from '../types'
 
 interface FinanceiroTableProps {
   transacoes: Transacao[]

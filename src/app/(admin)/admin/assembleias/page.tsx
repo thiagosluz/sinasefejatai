@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 
-
 import AssembleiasCliente from './assembleias-cliente'
 
 export default async function AssembleiasPage() {

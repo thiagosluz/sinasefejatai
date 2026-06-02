@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { login } from './actions'
 import { toast } from 'sonner'
+
+import { login } from './actions'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)

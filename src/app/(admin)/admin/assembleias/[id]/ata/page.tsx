@@ -1,8 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import AtaEditorCliente from './editor-cliente'
+import { redirect } from 'next/navigation'
+
 import { formatarDataPtBR } from '@/lib/date-utils'
+import { createClient } from '@/lib/supabase/server'
+
+import AtaEditorCliente from './editor-cliente'
 
 interface AtaPageProps {
   params: Promise<{

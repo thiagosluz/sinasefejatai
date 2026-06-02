@@ -1,4 +1,5 @@
 import { Calendar, Check, CheckCircle, HelpCircle } from 'lucide-react'
+
 import { OFXTransaction } from '@/lib/ofx-parser'
 
 export interface ExtendedTransaction extends OFXTransaction {

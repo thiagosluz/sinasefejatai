@@ -1,5 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
+
 import supabaseLoader from '@/lib/supabase-image-loader'
 
 export interface DocumentHeaderConfig {

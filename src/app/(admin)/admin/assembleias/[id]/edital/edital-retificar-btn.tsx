@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { Edit3 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function EditalRetificarBtn({ id, versaoAtual, status }: { id: string, versaoAtual: number, status: string }) {
   if (status !== 'Agendada') return null

@@ -1,7 +1,8 @@
-import { getGestoesHistorico } from '@/app/(admin)/admin/diretoria/actions'
-import { History, ArrowLeft, UserCircle2 } from 'lucide-react'
-import Link from 'next/link'
+import { ArrowLeft, History, UserCircle2 } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
+
+import { getGestoesHistorico } from '@/app/(admin)/admin/diretoria/actions'
 
 export const metadata = {
   title: 'Histórico de Diretorias | SINASEFE Jataí',

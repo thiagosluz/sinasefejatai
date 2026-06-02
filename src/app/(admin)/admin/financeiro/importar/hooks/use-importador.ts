@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { parseOFX } from '@/lib/ofx-parser'
-import { checkExistingTransactions, importTransactions, SaveTransaction } from '../../actions-ofx'
-import { useModal } from '@/providers/modal-provider'
-import { ExtendedTransaction } from '../components/importador-table'
 import { toast } from 'sonner'
+
+import { parseOFX } from '@/lib/ofx-parser'
+import { useModal } from '@/providers/modal-provider'
+
+import { checkExistingTransactions, importTransactions, SaveTransaction } from '../../actions-ofx'
+import { ExtendedTransaction } from '../components/importador-table'
 
 export const CATEGORIAS_ENTRADA = [
   'Contribuição de Filiados',

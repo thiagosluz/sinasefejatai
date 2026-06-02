@@ -1,5 +1,5 @@
-import { PublicNavbar } from '@/components/portal/public-navbar'
 import { PublicFooter } from '@/components/portal/public-footer'
+import { PublicNavbar } from '@/components/portal/public-navbar'
 
 export default function PortalLayout({
   children,

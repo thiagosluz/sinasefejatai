@@ -1,7 +1,7 @@
 'use client';
 
-import { AlertTriangle, Info, X, Edit3 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { AlertTriangle, Edit3,Info, X } from 'lucide-react';
 
 export type ModalType = 'confirm' | 'alert' | 'prompt';
 

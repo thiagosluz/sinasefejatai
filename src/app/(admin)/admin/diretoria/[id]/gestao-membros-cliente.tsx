@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import MembroCard from './membro-card'
-import { adicionarCargoExtra } from '../actions'
+
 import { useModal } from '@/providers/modal-provider'
+
+import { adicionarCargoExtra } from '../actions'
+
+import MembroCard from './membro-card'
 
 type Membro = {
   id: string

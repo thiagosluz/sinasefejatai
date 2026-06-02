@@ -1,19 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useCallback,useState } from 'react'
+import { Check,Plus, Star, Trash2, Users } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { Plus, Users, Star, Trash2, Check } from 'lucide-react'
 import { useModal } from '@/providers/modal-provider'
-import Link from 'next/link'
-import { criarGestao, deletarGestao, definirGestaoAtual } from './actions'
 
-type Gestao = {
-  id: string
-  nome: string
-  is_atual: boolean
-  criado_em: string
-}
+import { criarGestao, definirGestaoAtual,deletarGestao } from './actions'
+import { Gestao } from './types'
 
 export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais: Gestao[] }) {
   const router = useRouter()

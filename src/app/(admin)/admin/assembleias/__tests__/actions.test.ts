@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addAssembleia, updateStatusAssembleia, deleteAssembleia, editAssembleia } from '../actions';
+import { beforeEach,describe, expect, it, vi } from 'vitest';
+
+import { addAssembleia, deleteAssembleia, editAssembleia,updateStatusAssembleia } from '../actions';
 import { saveAta } from '../actions-ata';
 
 // 1. Mock Next.js Navigation

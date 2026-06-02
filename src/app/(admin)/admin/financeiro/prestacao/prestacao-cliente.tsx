@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Printer, Calendar } from 'lucide-react'
+import { Calendar,Printer } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+
 import { DocumentHeaderConfig } from '@/components/document-header'
-import { usePrestacaoMath } from './hooks/use-prestacao-math'
+
 import { PrestacaoPrintLayout } from './components/prestacao-print-layout'
+import { usePrestacaoMath } from './hooks/use-prestacao-math'
 
 interface Transacao {
   id: string

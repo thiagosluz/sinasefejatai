@@ -1,6 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
 import { CalendarDays, MapPin, Users } from 'lucide-react'
+
 import { formatarDataPtBR, formatarHora } from '@/lib/date-utils'
+import { createClient } from '@/lib/supabase/server'
 
 async function getAssembleias() {
   const supabase = await createClient()

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { ArrowLeft,Printer } from 'lucide-react'
 import Link from 'next/link'
-import { Printer, ArrowLeft } from 'lucide-react'
-import { formatarHora } from '@/lib/date-utils'
+
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
+import { formatarHora } from '@/lib/date-utils'
+
 import AnexoUploadBtn from '../../anexo-upload-btn'
 
 type Filiado = {

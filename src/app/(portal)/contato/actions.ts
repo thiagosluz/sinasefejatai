@@ -1,9 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { notificarNovoContato } from '@/lib/email'
 import { redirect } from 'next/navigation'
+
 import { ActionResponse, handleError } from '@/lib/action-utils'
+import { notificarNovoContato } from '@/lib/email'
+import { createClient } from '@/lib/supabase/server'
 
 export async function enviarMensagem(formData: FormData): Promise<ActionResponse> {
   try {

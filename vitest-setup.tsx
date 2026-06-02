@@ -1,6 +1,7 @@
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
 import React from 'react';
+import { vi } from 'vitest';
+
+import '@testing-library/jest-dom';
 
 // Mock Next.js Image component
 vi.mock('next/image', () => ({

@@ -1,7 +1,8 @@
+import { ArrowRight, CalendarDays, ChevronRight,FileText, MapPin, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { CalendarDays, MapPin, ArrowRight, Users, Shield, FileText, ChevronRight } from 'lucide-react'
+
 import { formatarDataPtBR } from '@/lib/date-utils'
+import { createClient } from '@/lib/supabase/server'
 
 async function getAssembleiasRecentes() {
   const supabase = await createClient()

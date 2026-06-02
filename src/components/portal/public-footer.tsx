@@ -1,6 +1,7 @@
+import { Calendar,Mail, MapPin } from 'lucide-react'
 import Link from 'next/link'
+
 import { createClient } from '@/lib/supabase/server'
-import { MapPin, Mail, Calendar } from 'lucide-react'
 
 async function getConfiguracoes() {
   const supabase = await createClient()

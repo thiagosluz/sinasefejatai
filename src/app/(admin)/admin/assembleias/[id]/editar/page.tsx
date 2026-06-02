@@ -1,6 +1,8 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+
+import { createClient } from '@/lib/supabase/server'
+
 import { EditarForm } from './editar-form'
 
 export default async function EditarAssembleiaPage(props: { params: Promise<{ id: string }> }) {

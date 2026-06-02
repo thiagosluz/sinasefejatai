@@ -37,6 +37,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^10.4.0",
     "eslint-config-next": "16.2.6",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",

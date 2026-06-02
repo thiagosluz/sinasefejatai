@@ -1,6 +1,8 @@
 import Link from 'next/link'
-import FormCliente from './form-cliente'
+
 import { createClient } from '@/lib/supabase/server'
+
+import FormCliente from './form-cliente'
 
 export default async function NovaAssembleiaPage() {
   const supabase = await createClient();

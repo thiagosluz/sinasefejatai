@@ -1,8 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+import { createClient } from '@/lib/supabase/server'
+
 import FinanceiroCliente from './financeiro-cliente'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
 
 interface FinanceiroPageProps {
   searchParams: Promise<{

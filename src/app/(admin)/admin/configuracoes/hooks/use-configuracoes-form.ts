@@ -1,7 +1,9 @@
-import React, { useState, useTransition, useRef } from 'react'
+import React, { useRef,useState, useTransition } from 'react'
+import { toast } from 'sonner'
+
 import { DocumentHeaderConfig } from '@/components/document-header'
 import { useModal } from '@/providers/modal-provider'
-import { toast } from 'sonner'
+
 import { saveConfiguracoes } from '../actions'
 
 export function useConfiguracoesForm(initialConfig: DocumentHeaderConfig | null) {

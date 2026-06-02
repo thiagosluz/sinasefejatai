@@ -1,4 +1,4 @@
-import { TopMenu } from "@/components/top-menu";
+import { TopMenu } from "@/components/layout/top-menu";
 
 export default function AdminLayout({
   children,

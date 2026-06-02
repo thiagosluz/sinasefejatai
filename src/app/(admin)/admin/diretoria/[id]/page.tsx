@@ -1,10 +1,13 @@
-import { getGestaoById } from '../actions'
-import GestaoMembrosCliente from './gestao-membros-cliente'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
+
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+
+import { getGestaoById } from '../actions'
+
+import GestaoMembrosCliente from './gestao-membros-cliente'
 
 export const metadata = {
   title: 'Membros da Gestão | SINASEFE Jataí',

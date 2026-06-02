@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { X, Check, Trash2 } from 'lucide-react'
-import { addTransacao, updateTransacao } from '../actions'
+import { Check, Trash2,X } from 'lucide-react'
 import { toast } from 'sonner'
+
+import { addTransacao, updateTransacao } from '../actions'
 
 const CATEGORIAS_ENTRADA = [
   'Repasse Nacional',

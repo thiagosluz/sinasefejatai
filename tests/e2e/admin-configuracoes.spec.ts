@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect,test } from '@playwright/test';
 
 // Credenciais de teste (Devem estar no .env.local)
 const testEmail = process.env.TEST_EMAIL;

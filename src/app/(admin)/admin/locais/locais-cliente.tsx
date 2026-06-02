@@ -1,18 +1,14 @@
 'use client'
 
-import React, { useState, useTransition, useCallback } from 'react'
-import { Edit2, Trash2, Save, X } from 'lucide-react'
-import { useModal } from '@/providers/modal-provider'
-import { addLocal, updateLocal, deleteLocal } from './actions'
-import AdminPageHeader from '@/components/admin-page-header'
-import AdminPageWrapper from '@/components/admin-page-wrapper'
+import React, { useCallback,useState, useTransition } from 'react'
+import { Edit2, Save, Trash2, X } from 'lucide-react'
 
-interface Local {
-  id: string
-  nome_curto: string
-  texto_completo: string
-  created_at: string
-}
+import AdminPageHeader from '@/components/layout/admin-page-header'
+import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+import { useModal } from '@/providers/modal-provider'
+
+import { addLocal, deleteLocal,updateLocal } from './actions'
+import { Local } from './types'
 
 export default function LocaisCliente({ locais }: { locais: Local[] }) {
   const { confirm } = useModal()

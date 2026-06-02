@@ -1,24 +1,26 @@
 'use client'
 
-import { useRef, useEffect, useReducer } from 'react'
-import { ataEditorReducer, AtaEditorState, Voto, PautaExtra } from './hooks/use-ata-editor-reducer'
+import { useEffect, useReducer,useRef } from 'react'
 import {
   Bold,
-  Italic,
-  Trash2,
+  Check,
   Copy,
-  Save,
+  Italic,
   Printer,
+  Save,
   Sparkles,
-  Check
-} from 'lucide-react'
+  Trash2} from 'lucide-react'
 import { toast } from 'sonner'
-import { saveAta } from '../../actions-ata'
+
 import { DocumentHeaderConfig } from '@/components/document-header'
 import { useModal } from '@/providers/modal-provider'
+
+import { saveAta } from '../../actions-ata'
 import AnexoUploadBtn from '../../anexo-upload-btn'
-import { useAtaBuilder } from './hooks/use-ata-builder'
+
 import { AtaPrintLayout } from './components/ata-print-layout'
+import { useAtaBuilder } from './hooks/use-ata-builder'
+import { ataEditorReducer, AtaEditorState, PautaExtra,Voto } from './hooks/use-ata-editor-reducer'
 
 interface Assembleia {
   id: string

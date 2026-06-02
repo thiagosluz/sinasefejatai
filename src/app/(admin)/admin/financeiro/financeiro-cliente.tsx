@@ -1,26 +1,18 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
-import { PlusCircle, Search, Filter, Printer, Upload } from 'lucide-react'
+import { useCallback,useMemo, useState } from 'react'
+import { Filter, PlusCircle, Printer, Search, Upload } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { deleteTransacao } from './actions'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
+
 import { useModal } from '@/providers/modal-provider'
+
+import { FinanceiroFormDrawer } from './components/financeiro-form-drawer'
 import { FinanceiroStats } from './components/financeiro-stats'
 import { FinanceiroTable } from './components/financeiro-table'
-import { FinanceiroFormDrawer } from './components/financeiro-form-drawer'
-
-interface Transacao {
-  id: string
-  tipo: 'Entrada' | 'Saída'
-  data: string
-  descricao: string
-  valor: number
-  categoria: string
-  comprovante_url: string | null
-  created_at: string
-}
+import { deleteTransacao } from './actions'
+import { Transacao } from './types'
 
 interface FinanceiroClienteProps {
   transacoesIniciais: Transacao[]
