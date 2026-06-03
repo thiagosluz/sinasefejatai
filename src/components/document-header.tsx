@@ -8,6 +8,7 @@ export interface DocumentHeaderConfig {
   secao_sindical: string
   endereco: string
   cep: string
+  cnpj?: string | null
   filiacao: string
   fundacao: string
   logo_url: string | null
@@ -24,6 +25,7 @@ export default function DocumentHeader({ config }: DocumentHeaderProps) {
     secao_sindical: 'SINASEFE - SEÇÃO SINDICAL JATAÍ',
     endereco: 'RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO',
     cep: 'CEP: 75804-020',
+    cnpj: 'CNPJ: 07.341.258/0001-90',
     filiacao: 'FILIADO À CEA',
     fundacao: 'FUNDADO EM 16/05/2005',
     logo_url: null,
@@ -66,6 +68,12 @@ export default function DocumentHeader({ config }: DocumentHeaderProps) {
             <span>{c.endereco}</span>
             <span className="hidden md:inline text-zinc-300">•</span>
             <span>{c.cep}</span>
+            {c.cnpj && (
+              <>
+                <span className="hidden md:inline text-zinc-300">•</span>
+                <span>{c.cnpj}</span>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useRef,useState, useTransition } from 'react'
+import React, { useRef, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 
 import { DocumentHeaderConfig } from '@/components/document-header'
@@ -16,6 +16,7 @@ export function useConfiguracoesForm(initialConfig: DocumentHeaderConfig | null)
   const [secaoSindical, setSecaoSindical] = useState(initialConfig?.secao_sindical || '')
   const [endereco, setEndereco] = useState(initialConfig?.endereco || '')
   const [cep, setCep] = useState(initialConfig?.cep || '')
+  const [cnpj, setCnpj] = useState(initialConfig?.cnpj || '')
   const [filiacao, setFiliacao] = useState(initialConfig?.filiacao || '')
   const [fundacao, setFundacao] = useState(initialConfig?.fundacao || '')
 
@@ -54,6 +55,7 @@ export function useConfiguracoesForm(initialConfig: DocumentHeaderConfig | null)
       setSecaoSindical('SINASEFE - SEÇÃO SINDICAL JATAÍ')
       setEndereco('RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO')
       setCep('CEP: 75804-020')
+      setCnpj('CNPJ: 07.341.258/0001-90')
       setFiliacao('FILIADO À CEA')
       setFundacao('FUNDADO EM 16/05/2005')
     }
@@ -68,6 +70,7 @@ export function useConfiguracoesForm(initialConfig: DocumentHeaderConfig | null)
       formData.append('secao_sindical', secaoSindical)
       formData.append('endereco', endereco)
       formData.append('cep', cep)
+      formData.append('cnpj', cnpj)
       formData.append('filiacao', filiacao)
       formData.append('fundacao', fundacao)
       formData.append('remover_logo', removerLogo ? 'true' : 'false')
@@ -92,6 +95,7 @@ export function useConfiguracoesForm(initialConfig: DocumentHeaderConfig | null)
     secao_sindical: secaoSindical,
     endereco,
     cep,
+    cnpj,
     filiacao,
     fundacao,
     logo_url: logoUrl
@@ -106,6 +110,7 @@ export function useConfiguracoesForm(initialConfig: DocumentHeaderConfig | null)
       secaoSindical, setSecaoSindical,
       endereco, setEndereco,
       cep, setCep,
+      cnpj, setCnpj,
       filiacao, setFiliacao,
       fundacao, setFundacao,
       logoUrl

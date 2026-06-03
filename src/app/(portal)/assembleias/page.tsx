@@ -1,4 +1,5 @@
-import { CalendarDays, MapPin, Users } from 'lucide-react'
+import { ArrowRight, CalendarDays, MapPin, Users } from 'lucide-react'
+import Link from 'next/link'
 
 import { formatarDataPtBR, formatarHora } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
@@ -141,15 +142,22 @@ export default async function AssembleiasPublicasPage() {
                               )}
                             </div>
 
-                            {/* Público-alvo */}
-                            {a.publico_alvo && (
-                              <div className="sm:ml-6 flex-shrink-0">
+                            {/* Público-alvo e Botão */}
+                            <div className="sm:ml-6 flex-shrink-0 flex flex-col items-end gap-3">
+                              {a.publico_alvo && (
                                 <div className="flex items-center gap-1.5 text-xs text-zinc-400 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2">
                                   <Users size={13} />
                                   <span className="capitalize">{a.publico_alvo}</span>
                                 </div>
-                              </div>
-                            )}
+                              )}
+                              <Link 
+                                href={`/assembleias/${a.id}`}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-tinto text-white text-xs font-semibold rounded-full hover:bg-brand-tinto-light transition-all hover:shadow-md mt-auto"
+                              >
+                                Ver Detalhes
+                                <ArrowRight size={14} />
+                              </Link>
+                            </div>
                           </div>
                         </article>
                       )

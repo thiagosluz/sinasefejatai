@@ -27,83 +27,95 @@ export default async function HistoricoDiretoriaPage() {
   const gestoesHistorico = await getGestoesHistorico()
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-12">
-      
-      {/* Header */}
-      <div className="flex flex-col items-center text-center space-y-6">
-        <Link 
-          href="/diretoria"
-          className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-ink hover:text-brand-tinto transition-colors mb-2"
-        >
-          <ArrowLeft size={14} /> Voltar para Atual Direção
-        </Link>
-        <div className="inline-flex items-center justify-center p-3 bg-brand-cream border border-brand-olive/20 mb-2">
-          <History size={40} className="text-brand-olive" />
+    <>
+      {/* Hero */}
+      <section
+        className="py-16 sm:py-20"
+        style={{ background: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%)' }}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link
+            href="/diretoria"
+            className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-xs font-semibold uppercase tracking-wider mb-6"
+          >
+            <ArrowLeft size={14} />
+            Voltar para Atual Direção
+          </Link>
+          <p className="text-red-300 font-semibold text-sm uppercase tracking-widest mb-3">Acervo</p>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white font-serif mb-4">Histórico de Diretorias</h1>
+          <p className="text-white/75 text-lg max-w-2xl">
+            Membros e gestões que construíram o legado do SINASEFE Jataí.
+          </p>
         </div>
-        <h1 className="text-3xl md:text-5xl font-serif font-black text-brand-ink uppercase tracking-tight">
-          Acervo Histórico
-        </h1>
-        <p className="text-lg text-zinc-600 font-serif">
-          Membros e gestões que construíram o legado do SINASEFE Jataí.
-        </p>
-      </div>
+      </section>
 
-      {gestoesHistorico.length === 0 ? (
-        <div className="text-center py-20 bg-zinc-50 border border-zinc-200">
-          <p className="text-zinc-500 font-medium">Nenhuma gestão anterior cadastrada no acervo.</p>
-        </div>
-      ) : (
-        <div className="space-y-12">
-          {gestoesHistorico.map((gestao: Gestao) => (
-            <div key={gestao.id} className="bg-white border border-brand-border shadow-[6px_6px_0px_var(--brand-ink)]">
-              {/* Cabeçalho da Gestão */}
-              <div className="bg-brand-ink text-white p-6 md:p-8 flex items-center justify-between">
-                <h2 className="text-2xl font-serif font-bold uppercase tracking-wider">
-                  {gestao.nome}
-                </h2>
-              </div>
-              
-              {/* Lista de Membros da Gestão */}
-              <div className="p-6 md:p-8">
-                {gestao.membros.length === 0 ? (
-                  <p className="text-zinc-500 italic">Membros não registrados para esta gestão.</p>
-                ) : (
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {gestao.membros.map((membro: Membro) => (
-                       <li key={membro.id} className="flex items-center gap-4">
-                         <div className="w-12 h-12 rounded-full overflow-hidden border border-zinc-200 relative shrink-0">
-                            {membro.foto_url ? (
-                              <Image 
-                                src={membro.foto_url} 
-                                alt={membro.nome || membro.cargo_nome} 
-                                fill 
-                                className="object-cover"
-                                sizes="48px"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-300">
-                                <UserCircle2 size={24} strokeWidth={1} />
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-bold text-brand-ink font-serif leading-tight text-lg">
-                              {membro.nome || 'Vago'}
-                            </p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mt-0.5">
-                              {membro.cargo_nome} {membro.is_cargo_fixo ? '' : '(Extra)'}
-                            </p>
-                          </div>
-                       </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+      {/* Conteúdo */}
+      <section className="bg-brand-cream flex-1 py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {gestoesHistorico.length === 0 ? (
+            <div className="text-center py-24">
+              <div className="text-5xl mb-4">📋</div>
+              <h2 className="text-xl font-bold text-brand-ink font-serif mb-2">Nenhuma gestão anterior cadastrada</h2>
+              <p className="text-zinc-500">O acervo histórico será preenchido em breve.</p>
             </div>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="space-y-8">
+              {gestoesHistorico.map((gestao: Gestao) => (
+                <div key={gestao.id} className="bg-white rounded-2xl border border-brand-border-muted overflow-hidden hover:shadow-md transition-all">
+                  {/* Cabeçalho da Gestão */}
+                  <div className="bg-brand-cream border-b border-brand-border-muted px-6 py-5 sm:px-8 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+                      <History size={20} className="text-brand-tinto" />
+                    </div>
+                    <h2 className="text-xl font-bold font-serif text-brand-ink">
+                      {gestao.nome}
+                    </h2>
+                  </div>
 
-    </div>
+                  {/* Lista de Membros */}
+                  <div className="p-6 sm:p-8">
+                    {gestao.membros.length === 0 ? (
+                      <p className="text-zinc-500 italic">Membros não registrados para esta gestão.</p>
+                    ) : (
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {gestao.membros.map((membro: Membro) => (
+                          <li key={membro.id} className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full overflow-hidden border border-brand-border-muted relative shrink-0">
+                              {membro.foto_url ? (
+                                <Image
+                                  src={membro.foto_url}
+                                  alt={membro.nome || membro.cargo_nome}
+                                  fill
+                                  className="object-cover"
+                                  sizes="48px"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-300">
+                                  <UserCircle2 size={24} strokeWidth={1} />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-brand-ink font-serif leading-tight text-lg">
+                                {membro.nome || 'Vago'}
+                              </p>
+                              <p className="text-xs font-semibold uppercase tracking-wider text-brand-tinto mt-0.5">
+                                {membro.cargo_nome} {membro.is_cargo_fixo ? '' : '(Extra)'}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+        </div>
+      </section>
+    </>
   )
 }

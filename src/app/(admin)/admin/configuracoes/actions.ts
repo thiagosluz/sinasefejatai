@@ -23,6 +23,7 @@ export async function saveConfiguracoes(formData: FormData): Promise<ActionRespo
     const cep = formData.get('cep') as string
     const filiacao = formData.get('filiacao') as string
     const fundacao = formData.get('fundacao') as string
+    const cnpj = formData.get('cnpj') as string
     const removerLogo = formData.get('remover_logo') === 'true'
 
     if (!titulo || !secao_sindical || !endereco || !cep || !filiacao || !fundacao) {
@@ -71,6 +72,7 @@ export async function saveConfiguracoes(formData: FormData): Promise<ActionRespo
       secao_sindical: string
       endereco: string
       cep: string
+      cnpj?: string | null
       filiacao: string
       fundacao: string
       logo_url?: string | null
@@ -81,6 +83,7 @@ export async function saveConfiguracoes(formData: FormData): Promise<ActionRespo
       secao_sindical,
       endereco,
       cep,
+      cnpj: cnpj || null,
       filiacao,
       fundacao,
       updated_at: new Date().toISOString()

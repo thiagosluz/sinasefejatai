@@ -115,6 +115,12 @@ export function AssembleiaCard({ assembleia, onAlterarStatus, onDeletarSeguro }:
               >
                 Ata
               </Link>
+              <Link 
+                href={`/admin/assembleias/${assembleia.id}/anexos`}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border-transparent text-white transition-colors text-[10px] font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"
+              >
+                Anexos
+              </Link>
             </>
           )}
         </div>

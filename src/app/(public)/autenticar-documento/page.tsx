@@ -17,6 +17,7 @@ export default async function AutenticarDocumentoPage({
 
   const hasParams = cv && ca
   let isValid = false
+  let isCancelado = false
   let verificacao: DocumentoVerificacao | null = null
   let assinaturas: Assinatura[] = []
 
@@ -34,6 +35,19 @@ export default async function AutenticarDocumentoPage({
     if (verif) {
       isValid = true
       verificacao = verif
+
+      // Checa se o documento foi cancelado (por enquanto, implementado para recibos)
+      if (verif.tipo_documento === 'recibo') {
+        const { data: doc } = await supabase
+          .from('documentos_administrativos')
+          .select('status')
+          .eq('id', verif.documento_id)
+          .single()
+        
+        if (doc && doc.status === 'cancelado') {
+          isCancelado = true
+        }
+      }
 
       // Busca as assinaturas correspondentes
       const { data: ass } = await supabase
@@ -117,17 +131,29 @@ export default async function AutenticarDocumentoPage({
             <div className="border-t-2 border-dashed border-zinc-300 pt-8 mt-8">
               {isValid && verificacao ? (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex flex-col items-center text-center mb-8">
-                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-                      <ShieldCheck size={32} />
+                  {isCancelado ? (
+                    <div className="flex flex-col items-center text-center mb-8 bg-red-50 p-6 border-2 border-red-200 rounded">
+                      <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                        <ShieldAlert size={32} />
+                      </div>
+                      <h2 className="text-xl font-bold text-red-700 uppercase tracking-wider">Documento Cancelado / Sem Validade</h2>
+                      <p className="text-sm text-red-700 mt-2 max-w-md font-medium">
+                        Este documento foi emitido e assinado eletronicamente pelo sindicato no passado, mas foi posteriormente CANCELADO no sistema. Ele não possui mais validade.
+                      </p>
                     </div>
-                    <h2 className="text-xl font-bold text-green-700 uppercase tracking-wider">Documento Autêntico</h2>
-                    <p className="text-sm text-zinc-600 mt-2 max-w-md">
-                      Os códigos informados conferem com um documento original registrado na base de dados do SINASEFE JATAÍ.
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col items-center text-center mb-8">
+                      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                        <ShieldCheck size={32} />
+                      </div>
+                      <h2 className="text-xl font-bold text-green-700 uppercase tracking-wider">Documento Autêntico</h2>
+                      <p className="text-sm text-zinc-600 mt-2 max-w-md">
+                        Os códigos informados conferem com um documento original registrado na base de dados do SINASEFE JATAÍ.
+                      </p>
+                    </div>
+                  )}
 
-                  <div className="bg-brand-cream/30 border border-zinc-200 rounded p-6 space-y-4">
+                  <div className={`bg-brand-cream/30 border border-zinc-200 rounded p-6 space-y-4 ${isCancelado ? 'opacity-75 grayscale' : ''}`}>
                     <div className="flex items-start gap-3">
                       <FileText className="text-brand-tinto shrink-0 mt-0.5" size={20} />
                       <div>

@@ -210,7 +210,7 @@ export default async function PortalHomePage() {
                   </div>
 
                   {a.pautas && a.pautas.length > 0 && (
-                    <ul className="mt-auto space-y-1">
+                    <ul className="space-y-1">
                       {a.pautas.slice(0, 2).map((pauta: string, i: number) => (
                         <li key={i} className="text-xs text-zinc-500 flex items-start gap-1.5">
                           <span className="mt-1 w-1 h-1 rounded-full bg-brand-tinto flex-shrink-0" />
@@ -224,6 +224,16 @@ export default async function PortalHomePage() {
                       )}
                     </ul>
                   )}
+
+                  <div className="mt-auto pt-6 flex justify-end">
+                    <Link
+                      href={`/assembleias/${a.id}`}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-tinto text-white text-xs font-semibold rounded-full hover:bg-brand-tinto-light transition-all hover:shadow-md"
+                    >
+                      Ver Detalhes
+                      <ArrowRight size={14} />
+                    </Link>
+                  </div>
                 </article>
               ))}
             </div>

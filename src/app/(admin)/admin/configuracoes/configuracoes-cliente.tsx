@@ -85,20 +85,36 @@ export default function ConfiguracoesCliente({ initialConfig }: ConfiguracoesCli
               />
             </div>
 
-            {/* CEP */}
-            <div>
-              <label htmlFor="cep" className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
-                CEP Oficial
-              </label>
-              <input
-                id="cep"
-                type="text"
-                value={formData.cep}
-                onChange={(e) => formData.setCep(e.target.value)}
-                required
-                className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
-                placeholder="Ex: CEP: 75804-020"
-              />
+            {/* CEP e CNPJ */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="cep" className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
+                  CEP Oficial
+                </label>
+                <input
+                  id="cep"
+                  type="text"
+                  value={formData.cep}
+                  onChange={(e) => formData.setCep(e.target.value)}
+                  required
+                  className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
+                  placeholder="Ex: CEP: 75804-020"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="cnpj" className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
+                  CNPJ (Opcional)
+                </label>
+                <input
+                  id="cnpj"
+                  type="text"
+                  value={formData.cnpj || ''}
+                  onChange={(e) => formData.setCnpj(e.target.value)}
+                  className="w-full bg-brand-cream border border-zinc-350 rounded-none px-4 py-2.5 text-xs text-brand-ink focus:outline-none focus:border-brand-tinto font-sans"
+                  placeholder="Ex: CNPJ: 07.341.258/0001-90"
+                />
+              </div>
             </div>
 
             {/* Upload de Logotipo */}

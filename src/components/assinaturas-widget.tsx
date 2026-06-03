@@ -9,7 +9,7 @@ import { assinarDocumento, DocumentoVerificacao,removerAssinatura } from '@/lib/
 import { useModal } from '@/providers/modal-provider'
 
 interface AssinaturasWidgetProps {
-  tipoDocumento: 'ata' | 'edital' | 'presenca'
+  tipoDocumento: 'ata' | 'edital' | 'presenca' | 'recibo'
   documentoId: string
   verificacaoInicial?: DocumentoVerificacao | null
   currentUserId?: string
