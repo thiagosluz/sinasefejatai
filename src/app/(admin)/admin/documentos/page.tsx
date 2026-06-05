@@ -1,4 +1,4 @@
-import { FileText, PlusCircle, Search } from 'lucide-react'
+import { FileText, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 
 import AdminPageHeader from '@/components/layout/admin-page-header'
@@ -7,15 +7,54 @@ import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
 import { DeleteDocButton } from './components/delete-doc-button'
+import { DocumentosFiltros } from './components/documentos-filtros'
+import { Paginacao } from './components/paginacao'
 
-export default async function DocumentosPage() {
+export default async function DocumentosPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ q?: string; mes?: string; ano?: string; page?: string }>
+}) {
   const supabase = await createClient()
 
-  // Buscar documentos
-  const { data: documentos } = await supabase
+  const resolvedSearchParams = await searchParams
+  const q = resolvedSearchParams?.q || ''
+  const mes = resolvedSearchParams?.mes || ''
+  const ano = resolvedSearchParams?.ano || ''
+  const currentPage = Number(resolvedSearchParams?.page) || 1
+  const ITEMS_PER_PAGE = 10
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE
+
+  let query = supabase
     .from('documentos_administrativos')
-    .select('id, tipo, titulo, numero, data_emissao, status, created_at')
+    .select('id, tipo, titulo, numero, data_emissao, status, created_at', { count: 'exact' })
+
+  if (q) {
+    query = query.or(`titulo.ilike.%${q}%,numero.ilike.%${q}%`)
+  }
+
+  if (ano) {
+    const anoNum = parseInt(ano)
+    if (!isNaN(anoNum)) {
+      let startDate, endDate
+      if (mes) {
+        const mesNum = parseInt(mes)
+        startDate = new Date(anoNum, mesNum - 1, 1).toISOString()
+        endDate = new Date(anoNum, mesNum, 0, 23, 59, 59).toISOString()
+      } else {
+        startDate = new Date(anoNum, 0, 1).toISOString()
+        endDate = new Date(anoNum, 11, 31, 23, 59, 59).toISOString()
+      }
+      query = query.gte('data_emissao', startDate).lte('data_emissao', endDate)
+    }
+  }
+
+  query = query
     .order('created_at', { ascending: false })
+    .range(offset, offset + ITEMS_PER_PAGE - 1)
+
+  const { data: documentos, count } = await query
+  const totalPages = count ? Math.ceil(count / ITEMS_PER_PAGE) : 0
 
   return (
     <AdminPageWrapper>
@@ -33,17 +72,7 @@ export default async function DocumentosPage() {
       </AdminPageHeader>
 
       <div className="bg-white border border-brand-border p-6 shadow-[4px_4px_0px_var(--brand-ink)]">
-        {/* Barra de Pesquisa Simulada */}
-        <div className="mb-6 flex gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Buscar documento por título ou número..." 
-              className="w-full bg-zinc-50 border border-zinc-200 px-10 py-2.5 text-sm outline-none focus:border-brand-ink focus:ring-1 focus:ring-brand-ink transition-all"
-            />
-          </div>
-        </div>
+        <DocumentosFiltros />
 
         {/* Tabela */}
         <div className="overflow-x-auto">
@@ -105,6 +134,8 @@ export default async function DocumentosPage() {
             </tbody>
           </table>
         </div>
+
+        <Paginacao totalPages={totalPages} />
       </div>
     </AdminPageWrapper>
   )

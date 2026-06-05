@@ -101,6 +101,7 @@ export default async function VisualizarReciboPage(props: { params: Promise<{ id
         <div id="recibo-print-area" className="w-full max-w-[21cm]">
           <ReciboLayout 
             dados={doc.dados} 
+            numero={doc.numero}
             config={config} 
             verificacao={verificacao} 
             status={doc.status || 'ativo'} 

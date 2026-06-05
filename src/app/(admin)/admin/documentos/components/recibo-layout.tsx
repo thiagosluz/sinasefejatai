@@ -15,12 +15,13 @@ interface ReciboData {
 
 interface ReciboLayoutProps {
   dados: ReciboData
+  numero?: string
   config?: DocumentHeaderConfig | null
   verificacao?: DocumentoVerificacao | null
   status?: string // 'ativo' | 'cancelado'
 }
 
-export function ReciboLayout({ dados, config, verificacao, status = 'ativo' }: ReciboLayoutProps) {
+export function ReciboLayout({ dados, numero, config, verificacao, status = 'ativo' }: ReciboLayoutProps) {
   const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(dados.valor || 0)
   const extenso = numeroPorExtenso(dados.valor || 0)
 
@@ -46,8 +47,8 @@ export function ReciboLayout({ dados, config, verificacao, status = 'ativo' }: R
   }
 
   return (
-    <div className={`relative bg-white text-black p-8 sm:p-12 min-h-[29.7cm] w-full max-w-[21cm] mx-auto shadow-2xl print:shadow-none print:m-0 print:p-0 print:w-auto print:max-w-none print:min-h-0 font-serif flex flex-col overflow-hidden ${status === 'cancelado' ? 'grayscale opacity-75' : ''}`}>
-      
+    <div id="recibo-print-area" className={`relative bg-white text-black p-8 sm:p-12 min-h-[29.7cm] w-full max-w-[21cm] mx-auto shadow-2xl print:shadow-none print:m-0 print:p-0 print:w-auto print:max-w-none print:min-h-0 font-serif flex flex-col overflow-hidden ${status === 'cancelado' ? 'grayscale opacity-75' : ''}`}>
+
       {/* Marca d'água de Cancelado */}
       {status === 'cancelado' && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
@@ -67,12 +68,19 @@ export function ReciboLayout({ dados, config, verificacao, status = 'ativo' }: R
           Recibo de pagamento em dinheiro
         </h1> */}
 
-        <h2 className="text-xl font-bold text-center tracking-[0.5em] mb-12 uppercase">
-          Recibo
-        </h2>
+        <div className="flex flex-col items-center mb-12">
+          <h2 className="text-xl font-bold tracking-[0.2em] uppercase mb-2">
+            Recibo
+          </h2>
+          {numero && (
+            <p className="text-sm font-semibold text-zinc-600">
+              Nº {numero}
+            </p>
+          )}
+        </div>
 
         <div className="text-right text-lg mb-12">
-          Valor: {valorFormatado}
+          Valor: <span className="font-bold">{valorFormatado}</span>
         </div>
 
         {/* Corpo do Texto */}
@@ -80,7 +88,7 @@ export function ReciboLayout({ dados, config, verificacao, status = 'ativo' }: R
           Recebi do <strong>{c.titulo}</strong> (<strong>{c.secao_sindical}</strong>),
           {c.cnpj ? ` ${c.cnpj},` : ''} localizado na {c.endereco}, {c.cep},
           o valor de {valorFormatado} (<strong>{extenso}</strong>),
-          referente a <u>{dados.referente_a || '_____________________________________'}</u>.
+          referente a: <u>{dados.referente_a || '_____________________________________'}</u>.
         </div>
 
         {/* Data */}

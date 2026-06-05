@@ -169,7 +169,7 @@ export default function FormCliente({ config }: FormClienteProps) {
         <div className="bg-zinc-100 border border-zinc-200 p-4 lg:p-8 overflow-x-auto flex justify-center">
           {/* A div #recibo-print-area só é usada se precisarmos forçar impressão daqui, mas o fluxo é salvar antes */}
           <div className="transform scale-[0.6] sm:scale-75 lg:scale-[0.8] origin-top">
-            <ReciboLayout dados={dados} config={config} />
+            <ReciboLayout dados={dados} config={config} numero="Gerado ao salvar" />
           </div>
         </div>
 

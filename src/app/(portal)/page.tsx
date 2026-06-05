@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarDays, ChevronRight,FileText, MapPin, Shield, Users } from 'lucide-react'
+import { ArrowRight, CalendarDays, ChevronRight, FileText, MapPin, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 
 import { formatarDataPtBR } from '@/lib/date-utils'
@@ -72,10 +72,10 @@ export default async function PortalHomePage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white font-serif leading-tight mb-6">
-              SINASEFE <span className="text-red-300">Jataí</span>
+              SINASEFE <span className="text-red-300">Seção Sindical Jataí</span>
             </h1>
             <p className="text-lg sm:text-xl text-white/80 leading-relaxed mb-10 max-w-2xl">
-              Representando e defendendo os servidores federais da educação básica, profissional e tecnológica do IFG — Campus Jataí.
+              Representando e defendendo os servidores federais da educação básica, profissional e tecnológica do IFG — Câmpus Jataí.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -100,9 +100,9 @@ export default async function PortalHomePage() {
           {/* Stats glassmorphism */}
           <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
             {[
-              { icon: <Users size={20} />, label: 'Filiados Representados', value: 'IFG Jataí' },
+              { icon: <Users size={20} />, label: 'Filiados Representados', value: 'IFG Câmpus Jataí' },
               { icon: <Shield size={20} />, label: 'Anos de Luta Sindical', value: '20+ anos' },
-              { icon: <FileText size={20} />, label: 'Filiado à', value: 'CEA / CNTES' },
+              { icon: <FileText size={20} />, label: 'Filiado à', value: 'CEA' },
             ].map((stat) => (
               <div
                 key={stat.label}
