@@ -141,6 +141,8 @@ describe('Documentos Administrativos Actions', () => {
     })
 
     it('deve lançar erro se o update falhar', async () => {
+      // Primeiro eq é do select (retorna builder), segundo eq é do update (retorna o erro mockado)
+      mockSupabaseBuilder.eq.mockReturnValueOnce(mockSupabaseBuilder)
       mockSupabaseBuilder.eq.mockResolvedValueOnce({
         error: { message: 'Erro ao cancelar' },
       } as never)

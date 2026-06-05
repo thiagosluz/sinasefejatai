@@ -25,7 +25,7 @@ test.describe('Documentos - Fluxo Crítico (Recibos)', () => {
     // 2. Ir para criação de Novo Recibo
     await page.getByRole('link', { name: /Emitir Documento/i }).click();
     await expect(page.getByRole('heading', { name: /Emitir Novo Documento/i })).toBeVisible();
-    await page.getByRole('link', { name: /Recibo de Pagamento/i }).click();
+    await page.locator('a[href="/admin/documentos/recibos/novo"]').click();
     await expect(page.getByRole('heading', { name: /Novo Recibo/i })).toBeVisible();
 
     // 3. Preencher formulário

@@ -4,6 +4,8 @@ import { useEffect,useState, useTransition } from 'react'
 import { Search } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { TIPOS_DOCUMENTO } from '../lib/tipos-documento'
+
 export function DocumentosFiltros() {
   const router = useRouter()
   const pathname = usePathname()
@@ -13,21 +15,21 @@ export function DocumentosFiltros() {
   const currentQ = searchParams.get('q') || ''
   const currentMes = searchParams.get('mes') || ''
   const currentAno = searchParams.get('ano') || ''
+  const currentTipo = searchParams.get('tipo') || ''
 
   const [searchTerm, setSearchTerm] = useState(currentQ)
 
-  const handleSearch = (term: string) => {
+  const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams)
     params.set('page', '1')
-    if (term) {
-      params.set('q', term)
-    } else {
-      params.delete('q')
-    }
+    if (value) params.set(key, value)
+    else params.delete(key)
     startTransition(() => {
       router.replace(`${pathname}?${params.toString()}`)
     })
   }
+
+  const handleSearch = (term: string) => updateParam('q', term)
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -39,26 +41,6 @@ export function DocumentosFiltros() {
     return () => clearTimeout(delayDebounceFn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, currentQ])
-
-  const handleMonthChange = (month: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', '1')
-    if (month) params.set('mes', month)
-    else params.delete('mes')
-    startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`)
-    })
-  }
-
-  const handleYearChange = (year: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', '1')
-    if (year) params.set('ano', year)
-    else params.delete('ano')
-    startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`)
-    })
-  }
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
 
@@ -76,9 +58,20 @@ export function DocumentosFiltros() {
         {isPending && <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-brand-tinto border-t-transparent rounded-full animate-spin"></span>}
       </div>
 
+      <select
+        value={currentTipo}
+        onChange={(e) => updateParam('tipo', e.target.value)}
+        className="bg-zinc-50 border border-brand-border px-4 py-2.5 text-sm outline-none focus:border-brand-ink focus:ring-1 focus:ring-brand-ink transition-all cursor-pointer"
+      >
+        <option value="">Todos os tipos</option>
+        {Object.entries(TIPOS_DOCUMENTO).map(([key, config]) => (
+          <option key={key} value={key}>{config.label}</option>
+        ))}
+      </select>
+
       <select 
         value={currentMes}
-        onChange={(e) => handleMonthChange(e.target.value)}
+        onChange={(e) => updateParam('mes', e.target.value)}
         className="bg-zinc-50 border border-brand-border px-4 py-2.5 text-sm outline-none focus:border-brand-ink focus:ring-1 focus:ring-brand-ink transition-all cursor-pointer"
       >
         <option value="">Todos os meses</option>
@@ -98,7 +91,7 @@ export function DocumentosFiltros() {
 
       <select 
         value={currentAno}
-        onChange={(e) => handleYearChange(e.target.value)}
+        onChange={(e) => updateParam('ano', e.target.value)}
         className="bg-zinc-50 border border-brand-border px-4 py-2.5 text-sm outline-none focus:border-brand-ink focus:ring-1 focus:ring-brand-ink transition-all cursor-pointer"
       >
         <option value="">Todos os anos</option>
