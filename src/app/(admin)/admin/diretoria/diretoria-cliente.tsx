@@ -1,38 +1,17 @@
 'use client'
 
-import { useCallback,useState } from 'react'
-import { Check,Plus, Star, Trash2, Users } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Check, Star, Trash2, Users } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 import { useModal } from '@/providers/modal-provider'
 
-import { criarGestao, definirGestaoAtual,deletarGestao } from './actions'
+import { definirGestaoAtual, deletarGestao } from './actions'
 import { Gestao } from './types'
 
 export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais: Gestao[] }) {
-  const router = useRouter()
-  const { alert, confirm, prompt } = useModal()
+  const { alert, confirm } = useModal()
   const [loading, setLoading] = useState(false)
-
-  const handleNovaGestao = useCallback(async () => {
-    const nome = await prompt(
-      'Nova Gestão', 
-      'Digite o nome da gestão (ex: Biênio 2024-2026):'
-    )
-    if (!nome) return
-
-    try {
-      setLoading(true)
-      const newId = await criarGestao(nome)
-      router.push(`/admin/diretoria/${newId}`)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao criar gestão.'
-      await alert(msg)
-    } finally {
-      setLoading(false)
-    }
-  }, [prompt, router, alert])
 
   const handleExcluir = useCallback(async (id: string, is_atual: boolean) => {
     if (is_atual) {
@@ -78,14 +57,6 @@ export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais:
             Apenas uma gestão pode estar ativa no portal público.
           </p>
         </div>
-        <button
-          onClick={handleNovaGestao}
-          disabled={loading}
-          className="bg-brand-olive text-white px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-brand-olive-light transition-colors shadow-[2px_2px_0px_var(--brand-ink)] disabled:opacity-50"
-        >
-          <Plus size={16} />
-          <span>Iniciar Nova Gestão</span>
-        </button>
       </div>
 
       {gestoesIniciais.length === 0 ? (

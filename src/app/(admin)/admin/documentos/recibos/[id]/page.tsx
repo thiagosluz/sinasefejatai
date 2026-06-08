@@ -69,7 +69,7 @@ export default async function VisualizarReciboPage(props: { params: Promise<{ id
 
         <div className="flex items-center gap-2">
           {/* Ações de Cancelamento / Retificação */}
-          <ReciboActions id={params.id} status={doc.status || 'ativo'} dadosOriginais={doc.dados} />
+          <ReciboActions id={params.id} status={doc.status || 'ativo'} dadosOriginais={doc.dados} possuiAssinatura={!!verificacao} />
 
           {/* Assinatura Eletrônica (Sempre desabilitada se o recibo estiver cancelado) */}
           <div className="flex border border-zinc-200 ml-2 divide-x divide-zinc-200 h-9">

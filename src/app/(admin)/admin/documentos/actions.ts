@@ -125,3 +125,102 @@ export async function cancelarDocumentoAdministrativo(id: string) {
     revalidatePath(`/admin/documentos/${slug}/${id}`)
   }
 }
+
+export async function getDocumentoParaEdicao(id: string) {
+  const supabase = await createClient()
+  await requireAdmin()
+
+  const { data: doc, error } = await supabase
+    .from('documentos_administrativos')
+    .select('id, tipo, titulo, numero, dados, status')
+    .eq('id', id)
+    .single()
+
+  if (error || !doc) {
+    throw new Error('Documento não encontrado.')
+  }
+
+  if (doc.status === 'cancelado') {
+    throw new Error('Documentos cancelados não podem ser editados.')
+  }
+
+  // Verificar se possui assinatura eletrônica
+  const { data: verificacao } = await supabase
+    .from('documento_verificacoes')
+    .select('id')
+    .eq('documento_id', id)
+    .single()
+
+  if (verificacao) {
+    throw new Error('Documentos assinados eletronicamente não podem ser editados. Remova a assinatura primeiro.')
+  }
+
+  return doc
+}
+
+interface AtualizarDocumentoInput {
+  titulo: string
+  dados: Record<string, unknown>
+}
+
+export async function atualizarDocumentoAdministrativo(id: string, input: AtualizarDocumentoInput) {
+  const supabase = await createClient()
+  const user = await requireAdmin()
+
+  // 1. Buscar o documento atual para snapshot
+  const { data: docAtual, error: fetchError } = await supabase
+    .from('documentos_administrativos')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !docAtual) {
+    throw new Error('Documento não encontrado.')
+  }
+
+  if (docAtual.status === 'cancelado') {
+    throw new Error('Documentos cancelados não podem ser editados.')
+  }
+
+  // 2. Verificar assinatura
+  const { data: verificacao } = await supabase
+    .from('documento_verificacoes')
+    .select('id')
+    .eq('documento_id', id)
+    .single()
+
+  if (verificacao) {
+    throw new Error('Documentos assinados eletronicamente não podem ser editados.')
+  }
+
+  // 3. Salvar snapshot na auditoria
+  await supabase.from('audit_logs').insert([{
+    tabela: 'documentos_administrativos',
+    registro_id: id,
+    acao: 'documento.editado',
+    dados_anteriores: docAtual.dados,
+    dados_novos: input.dados,
+    usuario_id: user.id,
+  }])
+
+  // 4. Atualizar o documento
+  const { error: updateError } = await supabase
+    .from('documentos_administrativos')
+    .update({
+      titulo: input.titulo,
+      dados: input.dados,
+    })
+    .eq('id', id)
+
+  if (updateError) {
+    console.error('Erro ao atualizar documento:', updateError)
+    throw new Error('Falha ao atualizar o documento.')
+  }
+
+  const slug = getSlugByTipo(docAtual.tipo)
+  revalidatePath('/admin/documentos')
+  revalidatePath(`/admin/documentos/${slug}/${id}`)
+
+  return { id }
+}
+

@@ -2,6 +2,7 @@ import { revalidatePath } from 'next/cache'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { cancelarDocumentoAdministrativo,excluirDocumentoAdministrativo, salvarDocumentoAdministrativo } from '../actions'
+import * as TiposDocumento from '../lib/tipos-documento'
 
 // Mocks
 vi.mock('next/cache', () => ({
@@ -11,6 +12,8 @@ vi.mock('next/cache', () => ({
 vi.mock('@/lib/dal', () => ({
   requireAdmin: vi.fn().mockResolvedValue({ id: 'user-id-123' }),
 }))
+
+vi.spyOn(TiposDocumento, 'getSlugByTipo').mockReturnValue('slug-mock')
 
 // Cria um mock do supabase builder para conseguirmos encadear chamadas (select, insert, etc)
 const { mockSupabaseBuilder, mockFrom } = vi.hoisted(() => {

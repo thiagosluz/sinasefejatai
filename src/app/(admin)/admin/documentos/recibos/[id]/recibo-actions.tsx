@@ -1,6 +1,6 @@
 'use client'
 
-import { Ban, Copy } from 'lucide-react'
+import { Ban, Copy, Pencil } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -12,9 +12,10 @@ interface ReciboActionsProps {
   id: string
   status: string
   dadosOriginais: Record<string, unknown>
+  possuiAssinatura: boolean
 }
 
-export function ReciboActions({ id, status, dadosOriginais }: ReciboActionsProps) {
+export function ReciboActions({ id, status, dadosOriginais, possuiAssinatura }: ReciboActionsProps) {
   const router = useRouter()
   const { confirm } = useModal()
 
@@ -32,8 +33,11 @@ export function ReciboActions({ id, status, dadosOriginais }: ReciboActionsProps
     }
   }
 
+  const handleEditar = () => {
+    router.push(`/admin/documentos/recibos/novo?editar=${id}`)
+  }
+
   const handleGerarNovo = () => {
-    // Vamos codificar os dados originais na URL para pré-preencher o form
     const searchParams = new URLSearchParams()
     if (dadosOriginais) {
       searchParams.set('duplicar', JSON.stringify(dadosOriginais))
@@ -43,6 +47,18 @@ export function ReciboActions({ id, status, dadosOriginais }: ReciboActionsProps
 
   return (
     <div className="flex items-center gap-1">
+      {status !== 'cancelado' && !possuiAssinatura && (
+        <button
+          type="button"
+          onClick={handleEditar}
+          className="p-2 hover:bg-amber-50 text-amber-700 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase"
+          title="Editar Recibo"
+        >
+          <Pencil size={14} />
+          <span className="hidden lg:inline">Editar</span>
+        </button>
+      )}
+
       {status !== 'cancelado' && (
         <button
           type="button"
@@ -69,3 +85,4 @@ export function ReciboActions({ id, status, dadosOriginais }: ReciboActionsProps
     </div>
   )
 }
+

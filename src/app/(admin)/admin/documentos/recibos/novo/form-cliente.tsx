@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -10,7 +10,7 @@ import AdminPageHeader from '@/components/layout/admin-page-header'
 import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
 import { useModal } from '@/providers/modal-provider'
 
-import { salvarDocumentoAdministrativo } from '../../actions'
+import { atualizarDocumentoAdministrativo, getDocumentoParaEdicao, salvarDocumentoAdministrativo } from '../../actions'
 import { ReciboLayout } from '../../components/recibo-layout'
 
 interface FormClienteProps {
@@ -22,7 +22,11 @@ export default function FormCliente({ config }: FormClienteProps) {
   const searchParams = useSearchParams()
   const { alert } = useModal()
 
+  const editarId = searchParams.get('editar')
+  const isEditMode = !!editarId
+
   const [salvando, setSalvando] = useState(false)
+  const [carregando, setCarregando] = useState(isEditMode)
   const [dados, setDados] = useState(() => {
     const duplicar = searchParams.get('duplicar')
     if (duplicar) {
@@ -30,7 +34,7 @@ export default function FormCliente({ config }: FormClienteProps) {
         const parsed = JSON.parse(duplicar)
         return {
           ...parsed,
-          data_emissao: new Date().toISOString().split('T')[0] // Sempre a data atual para o novo recibo
+          data_emissao: new Date().toISOString().split('T')[0]
         }
       } catch {}
     }
@@ -43,6 +47,20 @@ export default function FormCliente({ config }: FormClienteProps) {
     }
   })
 
+  useEffect(() => {
+    if (editarId) {
+      getDocumentoParaEdicao(editarId)
+        .then((doc) => {
+          setDados(doc.dados)
+        })
+        .catch(async (err) => {
+          await alert(err instanceof Error ? err.message : 'Erro ao carregar documento.')
+          router.push('/admin/documentos')
+        })
+        .finally(() => setCarregando(false))
+    }
+  }, [editarId, alert, router])
+
   const handleSalvar = async () => {
     if (!dados.valor || !dados.recebedor_nome || !dados.referente_a) {
       await alert('Preencha o valor, o nome do recebedor e a referência do recibo.')
@@ -51,13 +69,21 @@ export default function FormCliente({ config }: FormClienteProps) {
 
     try {
       setSalvando(true)
-      const novoDoc = await salvarDocumentoAdministrativo({
-        tipo: 'recibo_pagamento',
-        titulo: `Recibo: ${dados.recebedor_nome}`,
-        dados: dados
-      })
 
-      router.push(`/admin/documentos/recibos/${novoDoc.id}`)
+      if (isEditMode && editarId) {
+        await atualizarDocumentoAdministrativo(editarId, {
+          titulo: `Recibo: ${dados.recebedor_nome}`,
+          dados,
+        })
+        router.push(`/admin/documentos/recibos/${editarId}`)
+      } else {
+        const novoDoc = await salvarDocumentoAdministrativo({
+          tipo: 'recibo_pagamento',
+          titulo: `Recibo: ${dados.recebedor_nome}`,
+          dados: dados
+        })
+        router.push(`/admin/documentos/recibos/${novoDoc.id}`)
+      }
     } catch (err: unknown) {
       console.error(err)
       await alert(err instanceof Error ? err.message : 'Erro ao salvar o documento.')
@@ -66,14 +92,24 @@ export default function FormCliente({ config }: FormClienteProps) {
     }
   }
 
+  if (carregando) {
+    return (
+      <AdminPageWrapper>
+        <div className="flex items-center justify-center py-20 text-brand-ink/60 font-serif italic">
+          Carregando documento...
+        </div>
+      </AdminPageWrapper>
+    )
+  }
+
   return (
     <AdminPageWrapper>
       <AdminPageHeader
-        titulo="Novo Recibo"
+        titulo={isEditMode ? 'Editar Recibo' : 'Novo Recibo'}
         subtitulo="Preencha os dados à esquerda e confira a visualização à direita."
       >
         <Link
-          href="/admin/documentos/novo"
+          href={isEditMode ? `/admin/documentos/recibos/${editarId}` : '/admin/documentos/novo'}
           className="bg-brand-cream hover:bg-brand-card text-brand-ink text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] border border-brand-ink flex items-center gap-2"
         >
           <ArrowLeft size={15} />
@@ -160,7 +196,7 @@ export default function FormCliente({ config }: FormClienteProps) {
               className="mt-6 w-full bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-3 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Save size={16} />
-              {salvando ? 'Salvando...' : 'Salvar e Gerar Recibo'}
+              {salvando ? 'Salvando...' : isEditMode ? 'Salvar Alterações' : 'Salvar e Gerar Recibo'}
             </button>
           </div>
         </div>

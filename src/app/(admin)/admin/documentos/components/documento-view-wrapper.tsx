@@ -73,6 +73,7 @@ export async function DocumentoViewWrapper({ id, tipoDocumento, children }: Docu
             tipoSlug={tipoSlug}
             tipoLabel={tipoLabel}
             dadosOriginais={doc.dados}
+            possuiAssinatura={!!verificacao}
           />
 
           <div className="flex border border-zinc-200 ml-2 divide-x divide-zinc-200 h-9">

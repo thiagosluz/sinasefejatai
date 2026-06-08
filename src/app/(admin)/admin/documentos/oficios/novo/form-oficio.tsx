@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -10,7 +10,7 @@ import AdminPageHeader from '@/components/layout/admin-page-header'
 import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
 import { useModal } from '@/providers/modal-provider'
 
-import { salvarDocumentoAdministrativo } from '../../actions'
+import { atualizarDocumentoAdministrativo, getDocumentoParaEdicao, salvarDocumentoAdministrativo } from '../../actions'
 import { OficioLayout } from '../../components/oficio-layout'
 
 interface FormOficioProps {
@@ -22,7 +22,11 @@ export default function FormOficio({ config }: FormOficioProps) {
   const searchParams = useSearchParams()
   const { alert } = useModal()
 
+  const editarId = searchParams.get('editar')
+  const isEditMode = !!editarId
+
   const [salvando, setSalvando] = useState(false)
+  const [carregando, setCarregando] = useState(isEditMode)
   const [dados, setDados] = useState(() => {
     const duplicar = searchParams.get('duplicar')
     if (duplicar) {
@@ -43,6 +47,18 @@ export default function FormOficio({ config }: FormOficioProps) {
     }
   })
 
+  useEffect(() => {
+    if (editarId) {
+      getDocumentoParaEdicao(editarId)
+        .then((doc) => setDados(doc.dados))
+        .catch(async (err) => {
+          await alert(err instanceof Error ? err.message : 'Erro ao carregar documento.')
+          router.push('/admin/documentos')
+        })
+        .finally(() => setCarregando(false))
+    }
+  }, [editarId, alert, router])
+
   const handleSalvar = async () => {
     if (!dados.destinatario_nome || !dados.assunto || !dados.corpo) {
       await alert('Preencha o destinatário, o assunto e o corpo do ofício.')
@@ -51,12 +67,21 @@ export default function FormOficio({ config }: FormOficioProps) {
 
     try {
       setSalvando(true)
-      const novoDoc = await salvarDocumentoAdministrativo({
-        tipo: 'oficio',
-        titulo: `Ofício: ${dados.assunto}`,
-        dados,
-      })
-      router.push(`/admin/documentos/oficios/${novoDoc.id}`)
+
+      if (isEditMode && editarId) {
+        await atualizarDocumentoAdministrativo(editarId, {
+          titulo: `Ofício: ${dados.assunto}`,
+          dados,
+        })
+        router.push(`/admin/documentos/oficios/${editarId}`)
+      } else {
+        const novoDoc = await salvarDocumentoAdministrativo({
+          tipo: 'oficio',
+          titulo: `Ofício: ${dados.assunto}`,
+          dados,
+        })
+        router.push(`/admin/documentos/oficios/${novoDoc.id}`)
+      }
     } catch (err: unknown) {
       console.error(err)
       await alert(err instanceof Error ? err.message : 'Erro ao salvar o documento.')
@@ -65,14 +90,24 @@ export default function FormOficio({ config }: FormOficioProps) {
     }
   }
 
+  if (carregando) {
+    return (
+      <AdminPageWrapper>
+        <div className="flex items-center justify-center py-20 text-brand-ink/60 font-serif italic">
+          Carregando documento...
+        </div>
+      </AdminPageWrapper>
+    )
+  }
+
   return (
     <AdminPageWrapper>
       <AdminPageHeader
-        titulo="Novo Ofício"
+        titulo={isEditMode ? 'Editar Ofício' : 'Novo Ofício'}
         subtitulo="Preencha os dados à esquerda e confira a visualização à direita."
       >
         <Link
-          href="/admin/documentos/novo"
+          href={isEditMode ? `/admin/documentos/oficios/${editarId}` : '/admin/documentos/novo'}
           className="bg-brand-cream hover:bg-brand-card text-brand-ink text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] border border-brand-ink flex items-center gap-2"
         >
           <ArrowLeft size={15} />
@@ -147,7 +182,7 @@ export default function FormOficio({ config }: FormOficioProps) {
             <button onClick={handleSalvar} disabled={salvando}
               className="mt-6 w-full bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-3 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center justify-center gap-2 disabled:opacity-50">
               <Save size={16} />
-              {salvando ? 'Salvando...' : 'Salvar e Gerar Ofício'}
+              {salvando ? 'Salvando...' : isEditMode ? 'Salvar Alterações' : 'Salvar e Gerar Ofício'}
             </button>
           </div>
         </div>

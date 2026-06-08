@@ -125,6 +125,14 @@ export default async function DocumentosPage({
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
+                          {doc.status !== 'cancelado' && (
+                            <Link
+                              href={`/admin/documentos/${slug}/novo?editar=${doc.id}`}
+                              className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-600 text-amber-700 transition-colors text-[10px] font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_#d97706] hover:translate-x-[1px] hover:translate-y-[1px]"
+                            >
+                              Editar
+                            </Link>
+                          )}
                           <Link
                             href={`/admin/documentos/${slug}/${doc.id}`}
                             className="px-3 py-1.5 bg-brand-cream hover:bg-brand-card border border-brand-ink text-brand-ink transition-colors text-[10px] font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px]"

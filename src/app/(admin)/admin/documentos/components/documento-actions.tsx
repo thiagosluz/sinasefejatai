@@ -1,6 +1,6 @@
 'use client'
 
-import { Ban, Copy } from 'lucide-react'
+import { Ban, Copy, Pencil } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -14,9 +14,10 @@ interface DocumentoActionsProps {
   tipoSlug: string
   tipoLabel: string
   dadosOriginais: Record<string, unknown>
+  possuiAssinatura: boolean
 }
 
-export function DocumentoActions({ id, status, tipoSlug, tipoLabel, dadosOriginais }: DocumentoActionsProps) {
+export function DocumentoActions({ id, status, tipoSlug, tipoLabel, dadosOriginais, possuiAssinatura }: DocumentoActionsProps) {
   const router = useRouter()
   const { confirm } = useModal()
 
@@ -34,6 +35,10 @@ export function DocumentoActions({ id, status, tipoSlug, tipoLabel, dadosOrigina
     }
   }
 
+  const handleEditar = () => {
+    router.push(`/admin/documentos/${tipoSlug}/novo?editar=${id}`)
+  }
+
   const handleGerarNovo = () => {
     const searchParams = new URLSearchParams()
     if (dadosOriginais) {
@@ -44,6 +49,18 @@ export function DocumentoActions({ id, status, tipoSlug, tipoLabel, dadosOrigina
 
   return (
     <div className="flex items-center gap-1">
+      {status !== 'cancelado' && !possuiAssinatura && (
+        <button
+          type="button"
+          onClick={handleEditar}
+          className="p-2 hover:bg-amber-50 text-amber-700 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase"
+          title={`Editar ${tipoLabel}`}
+        >
+          <Pencil size={14} />
+          <span className="hidden lg:inline">Editar</span>
+        </button>
+      )}
+
       {status !== 'cancelado' && (
         <button
           type="button"
@@ -70,3 +87,4 @@ export function DocumentoActions({ id, status, tipoSlug, tipoLabel, dadosOrigina
     </div>
   )
 }
+
