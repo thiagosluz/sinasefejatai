@@ -5,18 +5,30 @@ import { Trash2 } from 'lucide-react'
 
 import { useModal } from '@/providers/modal-provider'
 
-import { excluirDocumentoAdministrativo } from '../actions'
+import { checkDocumentoAssinado, excluirDocumentoAdministrativo } from '../actions'
 
 export function DeleteDocButton({ id }: { id: string }) {
-  const { confirm, alert } = useModal()
+  const { confirm, alert, prompt } = useModal()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
-    const isConfirmed = await confirm('Tem certeza que deseja excluir este documento permanentemente?')
-    if (!isConfirmed) return
-
     try {
       setIsDeleting(true)
+      const assinado = await checkDocumentoAssinado(id)
+
+      if (assinado) {
+        const word = await prompt(
+          'Este documento já possui assinaturas eletrônicas. Legalmente, o ideal seria usar a opção de "Cancelar" ou "Revogar" para manter o histórico de auditoria. Tem certeza absoluta que deseja EXCLUIR DEFINITIVAMENTE este documento e suas assinaturas da base de dados? Digite "EXCLUIR" para confirmar.',
+          'Digite EXCLUIR'
+        )
+        if (word !== 'EXCLUIR') {
+          return // User cancelled or typed incorrectly
+        }
+      } else {
+        const isConfirmed = await confirm('Tem certeza que deseja excluir este documento permanentemente?')
+        if (!isConfirmed) return
+      }
+
       await excluirDocumentoAdministrativo(id)
     } catch (err) {
       console.error(err)

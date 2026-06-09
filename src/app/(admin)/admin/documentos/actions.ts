@@ -79,13 +79,78 @@ export async function salvarDocumentoAdministrativo(input: DocumentoAdministrati
     throw new Error('Falha ao registrar o documento no sistema.')
   }
 
+  // Lógica de cascata para revogação (se for uma resolução normativa que substitui outra)
+  if (input.tipo === 'resolucao_normativa' && input.dados?.resolucao_substituida_id) {
+    const resolucaoAntigaId = input.dados.resolucao_substituida_id as string
+    
+    // Buscar a antiga para snapshot no log de auditoria
+    const { data: docAtual } = await supabase
+      .from('documentos_administrativos')
+      .select('*')
+      .eq('id', resolucaoAntigaId)
+      .single()
+
+    if (docAtual) {
+      // Registrar no audit log a alteração para 'revogado'
+      await supabase.from('audit_logs').insert([{
+        tabela: 'documentos_administrativos',
+        registro_id: resolucaoAntigaId,
+        acao: 'documento.revogado',
+        dados_anteriores: docAtual.dados,
+        dados_novos: { ...docAtual.dados, revogado_por: data.id, revogada_em: new Date().toISOString() },
+        usuario_id: user.id,
+      }])
+
+      // Atualiza o documento antigo para status 'revogado'
+      await supabase
+        .from('documentos_administrativos')
+        .update({ 
+          status: 'revogado',
+          dados: { ...docAtual.dados, revogado_por: data.id, revogado_por_titulo: 'Resolução Nº ' + finalNumero }
+        })
+        .eq('id', resolucaoAntigaId)
+        
+      revalidatePath(`/admin/documentos/resolucoes/${resolucaoAntigaId}`)
+    }
+  }
+
   revalidatePath('/admin/documentos')
 
   return data
 }
 
+export async function checkDocumentoAssinado(id: string): Promise<boolean> {
+  const supabase = await createClient()
+  const { data: verif } = await supabase
+    .from('documento_verificacoes')
+    .select('id')
+    .eq('documento_id', id)
+    .single()
+
+  if (!verif) return false
+
+  const { count } = await supabase
+    .from('documento_assinaturas')
+    .select('*', { count: 'exact', head: true })
+    .eq('verificacao_id', verif.id)
+
+  return (count || 0) > 0
+}
+
 export async function excluirDocumentoAdministrativo(id: string) {
   const supabase = await createClient()
+
+  // Cascata manual: buscar verificação associada e excluir assinaturas e a própria verificação
+  const { data: verif } = await supabase
+    .from('documento_verificacoes')
+    .select('id')
+    .eq('documento_id', id)
+    .single()
+
+  if (verif) {
+    await supabase.from('documento_assinaturas').delete().eq('verificacao_id', verif.id)
+    await supabase.from('documento_verificacoes').delete().eq('id', verif.id)
+  }
 
   const { error } = await supabase
     .from('documentos_administrativos')

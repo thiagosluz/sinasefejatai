@@ -126,6 +126,13 @@ describe('Documentos Administrativos Actions', () => {
     })
 
     it('deve lançar erro se o delete falhar', async () => {
+      // Ignora a exclusão em cascata retornando null no single
+      mockSupabaseBuilder.single.mockResolvedValueOnce({ data: null, error: null })
+      
+      // O primeiro eq() (do select de verificações) deve continuar o chain
+      mockSupabaseBuilder.eq.mockImplementationOnce(() => mockSupabaseBuilder)
+      
+      // O segundo eq() (do delete do documento principal) deve retornar o erro
       mockSupabaseBuilder.eq.mockResolvedValueOnce({
         error: { message: 'Erro ao deletar' },
       } as never)

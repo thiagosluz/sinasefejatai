@@ -1,6 +1,7 @@
 import {
   Award,
   Banknote,
+  BookMarked,
   FileSignature,
   Gavel,
   type LucideIcon,
@@ -58,6 +59,13 @@ export const TIPOS_DOCUMENTO: Record<string, TipoDocumentoConfig> = {
     icon: Gavel,
     descricao: 'Portarias para designações, nomeações e delegações internas.',
     prefixoNumero: 'Portaria',
+  },
+  resolucao_normativa: {
+    label: 'Resolução',
+    slug: 'resolucoes',
+    icon: BookMarked,
+    descricao: 'Resoluções Normativas para regulamentar processos, regras e diretrizes com poder de substituição e revogação.',
+    prefixoNumero: 'Resolução Normativa',
   },
 }
 

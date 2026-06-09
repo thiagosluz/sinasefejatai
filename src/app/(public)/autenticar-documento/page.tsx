@@ -20,6 +20,8 @@ export default async function AutenticarDocumentoPage({
   let isCancelado = false
   let verificacao: DocumentoVerificacao | null = null
   let assinaturas: Assinatura[] = []
+  let isRevogado = false
+  let revogadoPorTitulo = ''
 
   if (hasParams) {
     const supabase = await createClient()
@@ -36,16 +38,25 @@ export default async function AutenticarDocumentoPage({
       isValid = true
       verificacao = verif
 
-      // Checa se o documento foi cancelado (por enquanto, implementado para recibos)
-      if (verif.tipo_documento === 'recibo') {
+      // Checa se o documento foi cancelado ou revogado
+      if (verif.documento_id) {
         const { data: doc } = await supabase
           .from('documentos_administrativos')
-          .select('status')
+          .select('status, dados')
           .eq('id', verif.documento_id)
           .single()
         
-        if (doc && doc.status === 'cancelado') {
-          isCancelado = true
+        if (doc) {
+          if (doc.status === 'cancelado') {
+            isCancelado = true
+          } else if (doc.status === 'revogado') {
+            isRevogado = true
+            revogadoPorTitulo = doc.dados?.revogado_por_titulo || ''
+          }
+        } else {
+          // Documento pai foi excluído (orfão)
+          isValid = false
+          verificacao = null
         }
       }
 
@@ -149,11 +160,21 @@ export default async function AutenticarDocumentoPage({
                       <h2 className="text-xl font-bold text-green-700 uppercase tracking-wider">Documento Autêntico</h2>
                       <p className="text-sm text-zinc-600 mt-2 max-w-md">
                         Os códigos informados conferem com um documento original registrado na base de dados do SINASEFE JATAÍ.
+                        {isRevogado && " No entanto, observe o status de vigência abaixo."}
                       </p>
                     </div>
                   )}
 
-                  <div className={`bg-brand-cream/30 border border-zinc-200 rounded p-6 space-y-4 ${isCancelado ? 'opacity-75 grayscale' : ''}`}>
+                  <div className={`bg-brand-cream/30 border border-zinc-200 rounded p-6 space-y-4 ${(isCancelado || isRevogado) ? 'opacity-80 grayscale' : ''}`}>
+                    {isRevogado && (
+                      <div className="bg-orange-100 border-l-4 border-orange-500 text-orange-900 p-4 mb-4 rounded-r shadow-sm">
+                        <strong className="block text-sm uppercase tracking-wider font-bold mb-1">Atenção: Documento Revogado</strong>
+                        <span className="text-sm">
+                          Este documento é autêntico, mas <strong>não possui mais efeitos legais vigentes</strong>.
+                          {revogadoPorTitulo && ` Ele foi substituído / revogado pela ${revogadoPorTitulo}.`}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-start gap-3">
                       <FileText className="text-brand-tinto shrink-0 mt-0.5" size={20} />
                       <div>
