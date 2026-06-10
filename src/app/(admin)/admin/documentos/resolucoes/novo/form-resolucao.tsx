@@ -35,8 +35,8 @@ export default function FormResolucao({ config }: FormResolucaoProps) {
       try { 
         const p = JSON.parse(duplicar)
         // Ao duplicar, não copiamos a informação de quem ela substitui para evitar conflitos automáticos
-        const { resolucao_substituida_id, ...resto } = p
-        return { ...resto, data_emissao: new Date().toISOString().split('T')[0] } 
+        delete p.resolucao_substituida_id
+        return { ...p, data_emissao: new Date().toISOString().split('T')[0] } 
       } catch { /* empty */ } 
     }
     return { ementa: '', considerandos: '', artigos: '', data_emissao: new Date().toISOString().split('T')[0], resolucao_substituida_id: '' }

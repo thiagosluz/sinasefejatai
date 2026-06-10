@@ -32,10 +32,10 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${lora.variable} ${inter.variable} h-full antialiased`}
+      className={`${lora.variable} ${inter.variable} h-full print:h-auto antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col print:block print:min-h-0 print:h-auto print:bg-white">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

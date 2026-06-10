@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+// @ts-expect-error type inference from react-qr-code exports fails in this environment
 import QRCode from 'react-qr-code'
 
 import { DocumentoVerificacao } from '@/lib/actions-assinaturas'

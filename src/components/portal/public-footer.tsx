@@ -45,6 +45,7 @@ export async function PublicFooter() {
                 { href: '/', label: 'Início' },
                 { href: '/diretoria', label: 'Diretoria' },
                 { href: '/assembleias', label: 'Assembleias' },
+                { href: '/documentos', label: 'Documentos' },
                 { href: '/filiacao', label: 'Filiação' },
                 { href: '/contato', label: 'Fale Conosco' },
               ].map((link) => (

@@ -5,6 +5,7 @@ import {
   ChevronLeft, 
   ChevronRight, 
   FileText, 
+  Globe,
   Home, 
   Landmark, 
   MapPin, 
@@ -49,6 +50,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }: Side
       items: [
         { href: '/admin/assembleias', label: 'Assembleias', icon: CalendarRange },
         { href: '/admin/documentos', label: 'Documentos', icon: FileText },
+        { href: '/admin/publicacoes', label: 'Portal Público', icon: Globe },
         { href: '/admin/configuracoes', label: 'Identidade Visual', icon: Sliders },
       ]
     },

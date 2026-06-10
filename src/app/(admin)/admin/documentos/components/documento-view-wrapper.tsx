@@ -39,7 +39,7 @@ export async function DocumentoViewWrapper({ id, tipoDocumento, children }: Docu
   const tipoSlug = getSlugByTipo(doc.tipo)
 
   return (
-    <div className="min-h-screen bg-zinc-100 flex flex-col">
+    <div className="min-h-screen bg-zinc-100 flex flex-col print:block print:bg-white print:min-h-0 print:h-auto">
       {/* Barra superior (não aparece na impressão) */}
       <div className="print:hidden bg-white border-b border-zinc-200 p-4 sticky top-0 z-50 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -101,7 +101,7 @@ export async function DocumentoViewWrapper({ id, tipoDocumento, children }: Docu
       )}
 
       {/* Container de visualização */}
-      <div className="flex-1 overflow-auto p-4 sm:p-8 flex justify-center print:p-0 print:overflow-visible">
+      <div className="flex-1 overflow-auto p-4 sm:p-8 flex justify-center print:block print:p-0 print:overflow-visible print:h-auto">
         <div id="documento-print-area" className="w-full max-w-[21cm]">
           {children}
         </div>

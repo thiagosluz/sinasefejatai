@@ -81,29 +81,22 @@ export function PortariaLayout({ dados, numero, config, verificacao, status = 'a
         <div className="text-right text-base mb-24">{dataStr}</div>
 
         {/* Assinatura */}
-        <div className="flex flex-col items-center justify-center max-w-sm mx-auto mb-16">
+        <div className="flex flex-col items-center justify-center max-w-sm mx-auto mb-16 print:mb-0">
           <div className="w-full border-t border-black mb-1"></div>
           <p className="text-base text-center font-bold">Coordenação Geral</p>
           <p className="text-sm text-center">SINASEFE - Seção Sindical Jataí</p>
         </div>
 
-        <div className="flex-1"></div>
+        <div className="flex-1 print:hidden"></div>
 
         {verificacao && verificacao.assinaturas.length > 0 && (
-          <div className="mt-8 print:mt-auto">
+          <div className="mt-8">
             <DocumentSignatureFooter verificacao={verificacao} />
           </div>
         )}
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media print {
-          body * { visibility: hidden; }
-          #documento-print-area, #documento-print-area * { visibility: visible; }
-          #documento-print-area { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 2cm; }
-          @page { size: A4; margin: 0; }
-        }
-      `}} />
+      
     </div>
   )
 }

@@ -22,7 +22,7 @@ export function AdminLayoutClient({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-brand-cream">
+    <div className="flex h-screen overflow-hidden bg-brand-cream print:h-auto print:block print:overflow-visible">
       <Sidebar 
         isOpen={sidebarOpen} 
         setIsOpen={setSidebarOpen} 
@@ -30,7 +30,7 @@ export function AdminLayoutClient({
         setIsCollapsed={setIsCollapsed}
       />
       
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+      <div className="flex-1 flex flex-col overflow-hidden relative print:block print:h-auto print:overflow-visible">
         {/* Topbar */}
         <header className="h-14 bg-brand-cream border-b-2 border-brand-ink flex items-center justify-between px-4 lg:px-8 flex-shrink-0 z-30 print:hidden">
           <div className="flex items-center gap-4">
@@ -50,7 +50,7 @@ export function AdminLayoutClient({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto no-scrollbar relative">
+        <main className="flex-1 overflow-y-auto no-scrollbar relative print:block print:h-auto print:overflow-visible print:overflow-y-visible">
           {children}
         </main>
       </div>

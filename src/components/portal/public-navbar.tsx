@@ -9,6 +9,7 @@ const links = [
   { href: '/', label: 'Início' },
   { href: '/diretoria', label: 'Diretoria' },
   { href: '/assembleias', label: 'Assembleias' },
+  { href: '/documentos', label: 'Documentos' },
   { href: '/filiacao', label: 'Filiação' },
   { href: '/contato', label: 'Contato' },
 ]

@@ -289,3 +289,19 @@ export async function atualizarDocumentoAdministrativo(id: string, input: Atuali
   return { id }
 }
 
+export async function toggleDocumentoPublico(id: string, isPublico: boolean) {
+  const supabase = await createClient()
+  await requireAdmin()
+
+  const { error } = await supabase
+    .from('documentos_administrativos')
+    .update({ is_publico: isPublico })
+    .eq('id', id)
+
+  if (error) {
+    throw new Error('Erro ao alterar a visibilidade pública do documento.')
+  }
+
+  revalidatePath('/admin/documentos')
+  revalidatePath('/documentos')
+}

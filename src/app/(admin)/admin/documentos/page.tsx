@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 import { DeleteDocButton } from './components/delete-doc-button'
 import { DocumentosFiltros } from './components/documentos-filtros'
 import { Paginacao } from './components/paginacao'
+import { TogglePublicoButton } from './components/toggle-publico-button'
 import { formatarTipo, getSlugByTipo } from './lib/tipos-documento'
 
 export default async function DocumentosPage({
@@ -29,7 +30,7 @@ export default async function DocumentosPage({
 
   let query = supabase
     .from('documentos_administrativos')
-    .select('id, tipo, titulo, numero, data_emissao, status, created_at', { count: 'exact' })
+    .select('id, tipo, titulo, numero, data_emissao, status, created_at, is_publico', { count: 'exact' })
 
   if (q) {
     query = query.or(`titulo.ilike.%${q}%,numero.ilike.%${q}%`)
@@ -161,6 +162,9 @@ export default async function DocumentosPage({
                             }
                           })()
                         )}
+                        {doc.tipo === 'resolucao_normativa' && doc.is_publico && (
+                          <span className="ml-2 text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full uppercase tracking-wider no-underline inline-block">Público</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-xs text-zinc-600">
                         {formatarDataPtBR(doc.data_emissao)}
@@ -191,6 +195,9 @@ export default async function DocumentosPage({
                           >
                             Visualizar
                           </Link>
+                          {doc.status !== 'cancelado' && doc.status !== 'revogado' && doc.tipo === 'resolucao_normativa' && (
+                            <TogglePublicoButton id={doc.id} isPublico={!!doc.is_publico} />
+                          )}
                           <DeleteDocButton id={doc.id} />
                         </div>
                       </td>
