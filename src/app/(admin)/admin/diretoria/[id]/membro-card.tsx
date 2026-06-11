@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Camera,Save, Trash2, UserCircle2 } from 'lucide-react'
 import Image from 'next/image'
 
+import { ComboboxFiliados } from '@/components/ui/combobox-filiados'
 import { createClient } from '@/lib/supabase/client'
 import { useModal } from '@/providers/modal-provider'
 
@@ -15,20 +16,28 @@ type Membro = {
   nome: string | null
   foto_url: string | null
   is_cargo_fixo: boolean
+  filiado_id?: string | null
 }
 
-export default function MembroCard({ membro }: { membro: Membro }) {
+export default function MembroCard({ membro, filiados }: { membro: Membro, filiados: {id: string, nome: string, perfis?: {id: string}[]}[] }) {
   const { alert, confirm } = useModal()
   
   const [cargo, setCargo] = useState(membro.cargo_nome)
   const [nome, setNome] = useState(membro.nome || '')
   const [foto, setFoto] = useState<string | null>(membro.foto_url)
+  const [filiadoId, setFiliadoId] = useState<string>(membro.filiado_id || '')
+  
+  const [criarAcesso, setCriarAcesso] = useState(false)
+  const [emailConvite, setEmailConvite] = useState('')
   
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
 
+  const selectedFiliadoInfo = filiados.find(f => f.id === filiadoId)
+  const hasSystemAccess = selectedFiliadoInfo?.perfis && selectedFiliadoInfo.perfis.length > 0
+
   // Verifica se teve alterações
-  const isDirty = cargo !== membro.cargo_nome || nome !== (membro.nome || '') || foto !== membro.foto_url
+  const isDirty = cargo !== membro.cargo_nome || nome !== (membro.nome || '') || foto !== membro.foto_url || filiadoId !== (membro.filiado_id || '') || (criarAcesso && !hasSystemAccess)
 
   const handleSave = async () => {
     if (!cargo.trim()) {
@@ -36,11 +45,25 @@ export default function MembroCard({ membro }: { membro: Membro }) {
       return
     }
     
+    if (criarAcesso && !emailConvite.trim()) {
+      await alert('Para criar um acesso, você precisa informar o e-mail do diretor.')
+      return
+    }
+    
     try {
       setLoading(true)
-      await salvarCadeira(membro.id, { cargo_nome: cargo, nome, foto_url: foto })
-      // Alert de sucesso opcional, mas UI já reflete o estado salvo (isDirty volta a false se recarregar, 
-      // ou apenas mostramos feedback visual de que salvou)
+      await salvarCadeira(membro.id, { 
+        cargo_nome: cargo, 
+        nome, 
+        foto_url: foto, 
+        filiado_id: filiadoId || null,
+        email_convite: criarAcesso ? emailConvite : undefined
+      })
+      
+      if (criarAcesso) {
+        setCriarAcesso(false)
+        setEmailConvite('')
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao salvar os dados.'
       await alert(msg)
@@ -84,7 +107,6 @@ export default function MembroCard({ membro }: { membro: Membro }) {
         .upload(fileName, file, { upsert: true })
 
       if (error) {
-        // Fallback: se o bucket 'imagens' não existir, tenta o 'documentos' ou lança erro
         throw error
       }
 
@@ -94,8 +116,7 @@ export default function MembroCard({ membro }: { membro: Membro }) {
 
       setFoto(publicUrlData.publicUrl)
       
-      // Auto-salvar quando subir foto
-      await salvarCadeira(membro.id, { cargo_nome: cargo, nome, foto_url: publicUrlData.publicUrl })
+      await salvarCadeira(membro.id, { cargo_nome: cargo, nome, foto_url: publicUrlData.publicUrl, filiado_id: filiadoId || null })
 
     } catch (err: unknown) {
       console.error(err)
@@ -107,7 +128,7 @@ export default function MembroCard({ membro }: { membro: Membro }) {
 
   const handleRemoverFoto = async () => {
     setFoto(null)
-    await salvarCadeira(membro.id, { cargo_nome: cargo, nome, foto_url: null })
+    await salvarCadeira(membro.id, { cargo_nome: cargo, nome, foto_url: null, filiado_id: filiadoId || null })
   }
 
   return (
@@ -181,7 +202,7 @@ export default function MembroCard({ membro }: { membro: Membro }) {
 
             <div className="flex-1 space-y-1">
               <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
-                Pessoa Eleita / Ocupante
+                Pessoa Eleita (Nome Visível)
               </label>
               <input
                 type="text"
@@ -191,7 +212,63 @@ export default function MembroCard({ membro }: { membro: Membro }) {
                 placeholder="Nome completo (deixe vazio se vago)"
               />
             </div>
+            
+            <div className="flex-1 space-y-1">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                Vínculo c/ Filiado
+              </label>
+              <ComboboxFiliados 
+                filiados={filiados}
+                value={filiadoId}
+                onChange={setFiliadoId}
+              />
+            </div>
           </div>
+
+          {filiadoId && (
+            <div className={`bg-brand-cream/30 border border-brand-tinto/20 p-3 mt-2 ${hasSystemAccess ? 'flex items-center gap-2' : 'space-y-3'}`}>
+              {hasSystemAccess ? (
+                <>
+                  <div className="w-2 h-2 rounded-full bg-brand-olive animate-pulse" />
+                  <span className="text-sm font-semibold text-brand-olive">
+                    Este filiado já possui acesso ao painel.
+                  </span>
+                </>
+              ) : (
+                <>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={criarAcesso}
+                      onChange={(e) => setCriarAcesso(e.target.checked)}
+                      className="accent-brand-tinto w-4 h-4"
+                    />
+                    <span className="text-sm font-semibold text-brand-ink">
+                      Criar acesso de sistema para este diretor?
+                    </span>
+                  </label>
+                  
+                  {criarAcesso && (
+                    <div className="pl-6 space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                        E-mail para enviar o convite
+                      </label>
+                      <input
+                        type="email"
+                        value={emailConvite}
+                        onChange={(e) => setEmailConvite(e.target.value)}
+                        className="w-full border border-brand-border bg-white p-2.5 text-sm text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-tinto/20 focus:border-brand-tinto transition-colors"
+                        placeholder="email@instituicao.edu.br"
+                      />
+                      <p className="text-xs text-zinc-500 mt-1">
+                        O sistema criará o usuário como membro da diretoria e enviará um link para ele definir a senha.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mt-4 pt-4 border-t border-zinc-100 flex justify-between items-center">

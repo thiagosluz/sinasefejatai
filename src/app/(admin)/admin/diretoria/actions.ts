@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
 import { requireAdmin } from '@/lib/dal'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 /**
@@ -207,17 +208,43 @@ export async function definirGestaoAtual(id: string): Promise<ActionResponse> {
  */
 export async function salvarCadeira(
   membroId: string, 
-  dados: { cargo_nome: string; nome: string; foto_url: string | null }
+  dados: { cargo_nome: string; nome: string; foto_url: string | null; filiado_id?: string | null; email_convite?: string }
 ): Promise<ActionResponse> {
   try {
     const supabase = await createClient()
+    
+    // Se marcou para convidar, nós criamos o usuário e o perfil ANTES de atualizar a cadeira
+    if (dados.email_convite && dados.filiado_id) {
+      const adminClient = createAdminClient()
+      
+      const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(dados.email_convite)
+      if (inviteError) {
+        throw new Error(`Falha ao convidar o usuário: ${inviteError.message}`)
+      }
+      
+      const newUserId = inviteData.user.id
+      
+      const { error: profileError } = await adminClient
+        .from('perfis')
+        .insert([{
+          id: newUserId,
+          role: 'diretoria',
+          filiado_id: dados.filiado_id
+        }])
+        
+      if (profileError) {
+        await adminClient.auth.admin.deleteUser(newUserId)
+        throw new Error(`Falha ao criar o perfil do usuário: ${profileError.message}`)
+      }
+    }
     
     const { error } = await supabase
       .from('gestao_membros')
       .update({
         cargo_nome: dados.cargo_nome,
         nome: dados.nome,
-        foto_url: dados.foto_url
+        foto_url: dados.foto_url,
+        filiado_id: dados.filiado_id
       })
       .eq('id', membroId)
 

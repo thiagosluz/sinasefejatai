@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 
 import AdminPageHeader from '@/components/layout/admin-page-header'
 import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
+import { createClient } from '@/lib/supabase/server'
 
 import { getGestaoById } from '../actions'
 
@@ -22,6 +23,12 @@ export default async function GestaoMembrosPage({ params }: { params: Promise<{ 
     notFound()
   }
 
+  const supabase = await createClient()
+  const { data: filiados } = await supabase
+    .from('filiados')
+    .select('id, nome, perfis(id)')
+    .order('nome', { ascending: true })
+
   return (
     <AdminPageWrapper>
       <div className="mb-2">
@@ -31,7 +38,7 @@ export default async function GestaoMembrosPage({ params }: { params: Promise<{ 
       </div>
       <AdminPageHeader titulo={`Gestão: ${gestao.nome}`} subtitulo="Gerencie as cadeiras fixas (estatutárias) e adicione cargos extras" />
       
-      <GestaoMembrosCliente gestao={gestao} />
+      <GestaoMembrosCliente gestao={gestao} filiados={filiados || []} />
     </AdminPageWrapper>
   )
 }

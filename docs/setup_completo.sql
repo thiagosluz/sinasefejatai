@@ -298,3 +298,81 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 SELECT cron.schedule('cleanup_old_audit_logs', '0 0 * * 0', $$
     DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '1 year';
 $$);
+  
+-- ==========================================  
+-- 9. ATUALIZA��ES RECENTES  
+-- ========================================== 
+
+-- 9.1 Tabela Documentos Administrativos (Recibos, Portarias, Ofícios, etc)
+CREATE TABLE IF NOT EXISTS public.documentos_administrativos (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tipo TEXT NOT NULL,
+    titulo TEXT NOT NULL,
+    numero TEXT,
+    dados JSONB NOT NULL DEFAULT '{}'::jsonb,
+    autor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    status TEXT DEFAULT 'ativo' CHECK (status IN ('ativo', 'cancelado', 'revogado')),
+    is_publico BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 9.2 Tabela Publicações (Arquivos Externos)
+CREATE TABLE IF NOT EXISTS public.publicacoes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  titulo TEXT NOT NULL,
+  categoria TEXT NOT NULL,
+  arquivo_url TEXT NOT NULL,
+  data_publicacao DATE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9.3 RLS e Policies para Documentos Administrativos
+ALTER TABLE public.documentos_administrativos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir leitura anonima documentos_administrativos publicos" ON public.documentos_administrativos FOR SELECT TO anon USING (is_publico = true);
+CREATE POLICY "Permitir tudo para autenticados em documentos_administrativos" ON public.documentos_administrativos FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- 9.4 RLS e Policies para Publicações
+ALTER TABLE public.publicacoes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Leitura publica de publicacoes" ON public.publicacoes FOR SELECT TO public USING (true);
+CREATE POLICY "Admin pode gerenciar publicacoes" ON public.publicacoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- 9.5 Storage Bucket para Documentos Públicos
+INSERT INTO storage.buckets (id, name, public) VALUES ('documentos_publicos', 'documentos_publicos', true) ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Leitura publica no storage de publicacoes" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documentos_publicos');
+CREATE POLICY "Admin gerencia storage de publicacoes" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'documentos_publicos') WITH CHECK (bucket_id = 'documentos_publicos');
+
+-- FIM DA ATUALIZAÇÃO
+
+-- ==========================================
+-- 10. GESTÃO DE ACESSOS E PERFIS
+-- ==========================================
+
+-- 10.1 Tabela de Perfis
+CREATE TABLE IF NOT EXISTS public.perfis (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('superadmin', 'diretoria', 'filiado')),
+    filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 10.2 Vínculo em Gestão Membros
+ALTER TABLE public.gestao_membros ADD COLUMN IF NOT EXISTS filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL;
+
+-- 10.3 RLS para Perfis
+ALTER TABLE public.perfis ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permitir leitura de perfis para autenticados" 
+  ON public.perfis FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Superadmin pode gerenciar perfis" 
+  ON public.perfis FOR ALL TO authenticated 
+  USING (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'));
+
+-- Trigger Update
+CREATE TRIGGER set_perfis_updated_at BEFORE UPDATE ON public.perfis FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+-- Auditoria
+CREATE TRIGGER audit_perfis_trigger AFTER INSERT OR UPDATE OR DELETE ON public.perfis FOR EACH ROW EXECUTE FUNCTION process_audit_log();

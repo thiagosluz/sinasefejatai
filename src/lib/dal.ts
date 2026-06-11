@@ -29,5 +29,24 @@ export async function requireAdmin() {
     throw new Error('Acesso negado: Você não tem permissão ou sua sessão expirou.')
   }
 
-  return user
+  const supabase = await createClient()
+
+  // Buscar perfil do usuário para verificar permissão
+  const { data: perfil, error } = await supabase
+    .from('perfis')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  if (error || !perfil) {
+    console.error('Perfil não encontrado para o usuário:', user.id, 'Supabase error:', error)
+    throw new Error('Acesso negado: Seu usuário não possui um perfil ativo.')
+  }
+
+  if (perfil.role !== 'superadmin' && perfil.role !== 'diretoria') {
+    throw new Error('Acesso negado: Acesso restrito a administradores e membros da diretoria.')
+  }
+
+  // Anexa o perfil ao objeto user retornado para conveniência nas actions
+  return { ...user, role: perfil.role }
 }

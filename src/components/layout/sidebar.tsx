@@ -42,6 +42,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }: Side
       items: [
         { href: '/admin/filiados', label: 'Filiados', icon: Users },
         { href: '/admin/diretoria', label: 'Diretoria', icon: UsersRound },
+        { href: '/admin/usuarios', label: 'Usuários/Acessos', icon: ShieldCheck },
         { href: '/admin/locais', label: 'Locais de Reunião', icon: MapPin },
       ]
     },

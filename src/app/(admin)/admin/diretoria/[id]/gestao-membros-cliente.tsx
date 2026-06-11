@@ -24,7 +24,7 @@ type Gestao = {
   membros: Membro[]
 }
 
-export default function GestaoMembrosCliente({ gestao }: { gestao: Gestao }) {
+export default function GestaoMembrosCliente({ gestao, filiados }: { gestao: Gestao, filiados: {id: string, nome: string}[] }) {
   const { alert } = useModal()
   const [loading, setLoading] = useState(false)
 
@@ -59,7 +59,7 @@ export default function GestaoMembrosCliente({ gestao }: { gestao: Gestao }) {
         
         <div className="grid gap-4">
           {cadeirasFixas.map(membro => (
-            <MembroCard key={membro.id} membro={membro} />
+            <MembroCard key={membro.id} membro={membro} filiados={filiados} />
           ))}
         </div>
       </section>
@@ -93,7 +93,7 @@ export default function GestaoMembrosCliente({ gestao }: { gestao: Gestao }) {
         ) : (
           <div className="grid gap-4">
             {cargosExtras.map(membro => (
-              <MembroCard key={membro.id} membro={membro} />
+              <MembroCard key={membro.id} membro={membro} filiados={filiados} />
             ))}
           </div>
         )}

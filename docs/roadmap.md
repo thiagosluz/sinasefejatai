@@ -40,5 +40,33 @@ Lidar com o cenário (comum no Banco do Brasil) onde o saldo global em extrato P
 * **Opção C: Módulo de Importação Múltipla**
   O tesoureiro exportaria arquivos de dados separados (Conta vs Investimentos) do Gerenciador Financeiro. O sistema processaria ambos. Benefício: automação total e acompanhamento de rentabilidade. Desvantagem: alto custo e complexidade de implementação no momento atual.
 
+## Módulo: Portal do Filiado (Intranet / Autoatendimento)
+
+A atual arquitetura foca na dicotomia "Público (Visitante)" e "Admin (Diretoria)". A ideia central é plugar uma autenticação para os membros do sindicato acessarem recursos exclusivos.
+
+### 1. Carteirinha Digital de Filiado
+* **Mecânica:** O servidor loga no portal com CPF e senha e acessa sua "Carteirinha Sindical" com QR Code e foto (puxada do storage).
+* **Benefícios:** Fim do custo de emissão de carteirinhas de plástico (PVC), fácil identificação nos comércios parceiros e modernização visual do sindicato. O próprio servidor pode subir sua foto de perfil.
+
+### 2. Atualização Cadastral Autônoma
+* **Mecânica:** Formulário onde o filiado atualiza dados básicos (endereço, telefone, e-mail) diretamente, salvando no banco após uma verificação OTP (código por e-mail/SMS).
+* **Benefícios:** Desafoga a secretaria sindical da imensa carga de "ligar pedindo atualização", garantindo que a base de dados de contatos para deliberações esteja sempre fresca.
+
+## Módulo: Atendimento, Jurídico e Ouvidoria (Protocolos)
+
+Atualmente, existe apenas um "Fale Conosco" rudimentar. A meta é criar um workflow profissional de amparo ao trabalhador.
+
+### 1. Abertura de Protocolos e Tickets Jurídicos
+* **Mecânica:** O servidor (logado ou público) abre um ticket relatando assédio, demanda trabalhista ou dúvida. O sistema gera um `#Protocolo`. A diretoria move o card em um Kanban (Ex: "Nova Demanda" -> "Em Análise Jurídica" -> "Concluído").
+* **Benefícios:** Institucionaliza o atendimento. Impede que conversas vitais e evidências se percam em conversas informais de WhatsApp de um diretor específico, criando um histórico perene do trabalho da gestão em prol do filiado.
+
+## Módulo: Vitrine de Convênios e Benefícios
+
+Marketing direto das vantagens econômicas de ser sindicalizado.
+
+### 1. Catálogo Público de Parceiros
+* **Mecânica:** A diretoria cadastra Parceiros (nome, logo, regras de desconto, validade do convênio) pelo painel de admin. Isso alimenta uma aba belíssima de "Convênios" no Portal Público.
+* **Benefícios:** Funciona como o maior argumento de atração para filiação de novos servidores, que batem o olho nos benefícios (planos de saúde, escolas, postos de combustível) e enxergam retorno financeiro na taxa sindical.
+
 ---
 *Documento vivo. Adicione novas ideias e módulos conforme surgirem discussões e feedbacks da diretoria.*
