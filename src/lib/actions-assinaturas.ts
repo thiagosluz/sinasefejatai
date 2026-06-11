@@ -50,20 +50,88 @@ export async function getDocumentoVerificacao(tipo_documento: string, documento_
   }
 }
 
+// Busca os dados do usuário para a assinatura baseando-se no vínculo de perfil e gestão atual
+export async function getAssinanteInfo(): Promise<ActionResponse<{ nome: string, cargo: string }>> {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Usuário não autenticado.' }
+
+  // Busca o perfil
+  const { data: perfil } = await supabase
+    .from('perfis')
+    .select('filiado_id')
+    .eq('id', user.id)
+    .single()
+    
+  if (!perfil?.filiado_id) return { success: false, error: 'Seu usuário não possui um perfil de filiado vinculado.' }
+
+  // Busca o nome do filiado
+  const { data: filiado } = await supabase
+    .from('filiados')
+    .select('nome')
+    .eq('id', perfil.filiado_id)
+    .single()
+    
+  if (!filiado?.nome) return { success: false, error: 'Nome do filiado não encontrado.' }
+
+  // Busca o cargo atual (apenas em gestões ativas)
+  // Como `gestoes` tem is_atual, fazemos um join. 
+  // No Supabase, gestao_membros tem gestao_id.
+  const { data: cargo, error: cargoError } = await supabase
+    .from('gestao_membros')
+    .select('cargo_nome, gestoes!inner(is_atual)')
+    .eq('filiado_id', perfil.filiado_id)
+    .eq('gestoes.is_atual', true)
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (cargoError) {
+    console.error('Erro ao buscar cargo do assinante:', cargoError)
+  }
+
+  if (!cargo || !cargo.cargo_nome) {
+    return { success: false, error: 'Você não possui um cargo ativo na diretoria atual para assinar este documento.' }
+  }
+
+  return { success: true, data: { nome: filiado.nome, cargo: cargo.cargo_nome } }
+}
+
 // Função para o botão de "Assinar"
 export async function assinarDocumento(
   tipo_documento: string, 
   documento_id: string, 
-  nome_assinante: string, 
-  cargo_assinante: string
+  senha_usuario: string
 ): Promise<ActionResponse> {
   const supabase = await createClient()
   
-  // 1. Pega usuário atual
+  // 1. Pega usuário atual e verifica a senha
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  if (!user || !user.email) {
     return { success: false, error: 'Você precisa estar logado para assinar.' }
   }
+
+  const { error: authError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: senha_usuario
+  })
+
+  if (authError) {
+    return { success: false, error: 'Senha incorreta. Não foi possível validar a assinatura.' }
+  }
+
+  // Busca nome e cargo garantidos do banco
+  const infoResponse = await getAssinanteInfo()
+  if (!infoResponse.success) {
+    return { success: false, error: infoResponse.error || 'Não foi possível confirmar seu cargo.' }
+  }
+  if (!infoResponse.data) {
+    return { success: false, error: 'Dados do assinante não encontrados.' }
+  }
+  
+  const nome_assinante = infoResponse.data.nome
+  const cargo_assinante = infoResponse.data.cargo
 
   // 2. Verifica se o documento já tem um "Lacre" (documento_verificacoes). Se não, cria um.
   let verificacaoId: string

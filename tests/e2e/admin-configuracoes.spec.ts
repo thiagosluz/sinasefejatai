@@ -35,11 +35,13 @@ test.describe('Admin - Configurações do Cabeçalho', () => {
     
     // Preencher o Título
     const inputTitulo = page.getByLabel(/Título Geral da Entidade/i);
+    await inputTitulo.clear();
     await inputTitulo.fill('TITULO TESTE PLAYWRIGHT');
     await expect(inputTitulo).toHaveValue('TITULO TESTE PLAYWRIGHT');
 
     // Preencher a Seção Sindical
     const inputSecao = page.getByLabel(/Nome da Seção Sindical/i);
+    await inputSecao.clear();
     await inputSecao.fill('SECAO TESTE PLAYWRIGHT');
     await expect(inputSecao).toHaveValue('SECAO TESTE PLAYWRIGHT');
     

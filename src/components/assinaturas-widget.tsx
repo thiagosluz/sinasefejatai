@@ -5,7 +5,7 @@ import { CheckCircle, PenTool, Trash2, Users, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
-import { assinarDocumento, DocumentoVerificacao,removerAssinatura } from '@/lib/actions-assinaturas'
+import { assinarDocumento, DocumentoVerificacao, getAssinanteInfo, removerAssinatura } from '@/lib/actions-assinaturas'
 import { useModal } from '@/providers/modal-provider'
 
 interface AssinaturasWidgetProps {
@@ -25,9 +25,13 @@ export function AssinaturasWidget({
   variant,
   disabled = false
 }: AssinaturasWidgetProps) {
-  const { confirm, prompt } = useModal()
+  const { confirm } = useModal()
   const router = useRouter()
   const [modalAberto, setModalAberto] = useState(false)
+  const [assinarDialogOpen, setAssinarDialogOpen] = useState(false)
+  const [assinanteData, setAssinanteData] = useState<{ nome: string, cargo: string } | null>(null)
+  const [senha, setSenha] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const assinaturas = verificacaoInicial?.assinaturas || []
   const jaAssinou = assinaturas.some(a => a.usuario_id === currentUserId)
@@ -38,19 +42,41 @@ export function AssinaturasWidget({
       return
     }
 
-    const nome = await prompt('Confirme seu NOME COMPLETO para a assinatura digital:', 'Ex: João da Silva')
-    if (!nome) return
+    const loadingToast = toast.loading('Buscando informações da sua assinatura...')
+    const infoResponse = await getAssinanteInfo()
+    toast.dismiss(loadingToast)
 
-    const cargo = await prompt('Confirme seu CARGO:', 'Ex: Coordenador Geral')
-    if (!cargo) return
+    if (!infoResponse.success) {
+      toast.error(infoResponse.error || 'Não foi possível confirmar seu cargo para assinar.')
+      return
+    }
+    
+    if (!infoResponse.data) {
+      toast.error('Dados do assinante não encontrados.')
+      return
+    }
 
+    setAssinanteData(infoResponse.data)
+    setSenha('')
+    setAssinarDialogOpen(true)
+  }
+
+  const handleConfirmarAssinatura = async () => {
+    if (!senha) {
+      toast.error('A senha é obrigatória para assinar o documento.')
+      return
+    }
+
+    setIsSubmitting(true)
     const loadingToast = toast.loading('Registrando assinatura eletrônica...')
-    const result = await assinarDocumento(tipoDocumento, documentoId, nome, cargo)
+    const result = await assinarDocumento(tipoDocumento, documentoId, senha)
+    setIsSubmitting(false)
     
     if (!result.success) {
       toast.error(result.error || 'Erro desconhecido', { id: loadingToast })
     } else {
       toast.success('Documento assinado com sucesso!', { id: loadingToast })
+      setAssinarDialogOpen(false)
       router.refresh()
     }
   }
@@ -166,6 +192,69 @@ export function AssinaturasWidget({
             </div>
           )}
         </>
+      )}
+
+      {/* Modal de Assinatura Eletrônica (Senha) */}
+      {assinarDialogOpen && assinanteData && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-brand-ink/40 backdrop-blur-sm transition-opacity" onClick={() => !isSubmitting && setAssinarDialogOpen(false)} />
+          <div className="relative w-full max-w-md bg-brand-cream border-2 border-brand-border shadow-[4px_4px_0px_var(--brand-ink)] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between p-6 border-b border-brand-border/30 bg-brand-border/10">
+              <div className="flex items-center gap-3 text-brand-ink">
+                <PenTool className="w-6 h-6 text-brand-tinto" />
+                <h2 className="text-lg font-serif font-bold uppercase tracking-wider">
+                  Assinatura Eletrônica
+                </h2>
+              </div>
+              <button onClick={() => !isSubmitting && setAssinarDialogOpen(false)} className="text-brand-ink/50 hover:text-brand-tinto transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 text-brand-ink/80 text-sm leading-relaxed font-medium">
+              <p className="mb-4">
+                Você está assinando este documento como:
+              </p>
+              <div className="bg-white border border-brand-border p-3 mb-4 flex flex-col gap-1">
+                <span className="font-bold text-brand-ink">{assinanteData.nome}</span>
+                <span className="text-xs uppercase text-zinc-500">{assinanteData.cargo}</span>
+              </div>
+              <p className="mb-2 font-bold text-brand-tinto text-xs uppercase">
+                Confirme sua senha do sistema para assinar:
+              </p>
+              <input 
+                type="password" 
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                placeholder="Sua senha..."
+                className="w-full bg-brand-cream border-2 border-brand-border px-4 py-2 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleConfirmarAssinatura()
+                  }
+                }}
+              />
+            </div>
+
+            <div className="p-6 pt-0 flex gap-3 justify-end">
+              <button
+                onClick={() => setAssinarDialogOpen(false)}
+                disabled={isSubmitting}
+                className="px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-brand-ink border border-brand-border hover:bg-brand-border/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmarAssinatura}
+                disabled={isSubmitting || !senha}
+                className="px-6 py-2.5 text-xs font-serif font-bold uppercase tracking-wider text-white shadow-[2px_2px_0px_var(--brand-ink)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_var(--brand-ink)] bg-brand-tinto hover:bg-brand-tinto-light border-brand-tinto disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Assinando...' : 'Assinar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

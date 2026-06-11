@@ -43,8 +43,8 @@ test.describe('Documentos - Fluxo Crítico (Recibos)', () => {
     // 5. Salvar e Gerar Recibo
     await page.getByRole('button', { name: /Salvar e Gerar Recibo/i }).click();
 
-    // 6. Esperar redirecionamento para a página do documento salvo
-    await page.waitForURL('**/admin/documentos/recibos/**');
+    // 6. Esperar redirecionamento para a página do documento salvo (UUID)
+    await page.waitForURL(/.*\/admin\/documentos\/recibos\/[0-9a-fA-F-]{36}/);
     
     // 7. Validar a presença do número definitivo gerado no banco de dados (regex básico 00X/202X)
     const numeroDefinitivoLocator = page.locator('#recibo-print-area').getByText(/Nº \d{3}\/\d{4}/);
