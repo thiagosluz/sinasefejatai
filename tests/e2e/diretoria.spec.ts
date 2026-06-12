@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 const testEmail = process.env.TEST_EMAIL;
 const testPassword = process.env.TEST_PASSWORD;
 
-test.describe('Filiados - Fluxo Crítico', () => {
+test.describe('Diretoria - Fluxo Crítico', () => {
   test.skip(!testEmail || !testPassword, 'Credenciais de teste não configuradas no .env.local');
 
   test.beforeEach(async ({ page }) => {
@@ -14,13 +14,13 @@ test.describe('Filiados - Fluxo Crítico', () => {
     await page.waitForURL('**/admin/dashboard');
   });
 
-  test('Deve visualizar a listagem de filiados', async ({ page }) => {
-    await page.goto('/admin/filiados');
+  test('Deve visualizar o histórico e gestão atual', async ({ page }) => {
+    await page.goto('/admin/diretoria');
     
-    // Verifica cabeçalho principal
-    await expect(page.getByRole('heading', { name: /Gestão de Filiados/i })).toBeVisible();
+    // Verifica cabeçalho
+    await expect(page.getByRole('heading', { name: /Diretorias e Gestões/i })).toBeVisible();
     
-    // Verifica botão de cadastro
-    await expect(page.getByRole('link', { name: /Cadastrar Filiado/i })).toBeVisible();
+    // Verifica se a lista de gestões ou a mensagem de vazia aparece
+    await expect(page.getByRole('heading', { name: /Gestões Cadastradas/i })).toBeVisible({ timeout: 10000 });
   });
 });
