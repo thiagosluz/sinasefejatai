@@ -10,6 +10,7 @@ interface ConfirmModalProps {
   type: ModalType;
   message: string;
   placeholder?: string;
+  inputType?: 'text' | 'password';
   onConfirm: (value?: string) => void;
   onCancel: () => void;
 }
@@ -19,6 +20,7 @@ export function ConfirmModal({
   type,
   message,
   placeholder,
+  inputType = 'text',
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -91,7 +93,7 @@ export function ConfirmModal({
           {message}
           {type === 'prompt' && (
             <input 
-              type="text" 
+              type={inputType} 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={placeholder}

@@ -7,7 +7,7 @@ import { ConfirmModal, ModalType } from '@/components/ui/confirm-modal';
 interface ModalContextData {
   confirm: (message: string) => Promise<boolean>;
   alert: (message: string) => Promise<void>;
-  prompt: (message: string, placeholder?: string) => Promise<string | null>;
+  prompt: (message: string, placeholder?: string, buttonText?: string, inputType?: 'text' | 'password') => Promise<string | null>;
 }
 
 const ModalContext = createContext<ModalContextData | undefined>(undefined);
@@ -16,6 +16,7 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [placeholder, setPlaceholder] = useState('');
+  const [inputType, setInputType] = useState<'text' | 'password'>('text');
   const [type, setType] = useState<ModalType>('confirm');
   
   // Guardamos as funções de resolução da Promise atual
@@ -42,9 +43,10 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const prompt = useCallback((msg: string, ph: string = ''): Promise<string | null> => {
+  const prompt = useCallback((msg: string, ph: string = '', _btnText: string = 'Confirmar', inputTypeOpt: 'text' | 'password' = 'text'): Promise<string | null> => {
     setMessage(msg);
     setPlaceholder(ph);
+    setInputType(inputTypeOpt);
     setType('prompt');
     setIsOpen(true);
 
@@ -77,6 +79,7 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
         type={type}
         message={message}
         placeholder={placeholder}
+        inputType={inputType}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />

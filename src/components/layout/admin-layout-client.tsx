@@ -8,10 +8,12 @@ import { Sidebar } from './sidebar'
 
 export function AdminLayoutClient({ 
   children, 
-  topbarRight 
+  topbarRight,
+  role = 'operador'
 }: { 
   children: React.ReactNode
   topbarRight: React.ReactNode 
+  role?: string
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -28,6 +30,7 @@ export function AdminLayoutClient({
         setIsOpen={setSidebarOpen} 
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
+        role={role}
       />
       
       <div className="flex-1 flex flex-col overflow-hidden relative print:block print:h-auto print:overflow-visible">

@@ -7,9 +7,10 @@ interface FinanceiroTableProps {
   transacoes: Transacao[]
   onEdit: (t: Transacao) => void
   onDelete: (id: string) => void
+  mesesAprovados?: string[]
 }
 
-export const FinanceiroTable = memo(function FinanceiroTable({ transacoes, onEdit, onDelete }: FinanceiroTableProps) {
+export const FinanceiroTable = memo(function FinanceiroTable({ transacoes, onEdit, onDelete, mesesAprovados = [] }: FinanceiroTableProps) {
   return (
     <div className="bg-brand-card border border-brand-border shadow-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -33,7 +34,16 @@ export const FinanceiroTable = memo(function FinanceiroTable({ transacoes, onEdi
                 </td>
               </tr>
             ) : (
-              transacoes.map((t) => (
+              transacoes.map((t) => {
+                const mesAnoTransacao = (() => {
+                  const d = new Date(t.data + 'T12:00:00')
+                  const ano = d.getFullYear()
+                  const mes = (d.getMonth() + 1).toString().padStart(2, '0')
+                  return `${ano}-${mes}`
+                })()
+                const isAprovado = mesesAprovados.includes(mesAnoTransacao)
+
+                return (
                 <tr key={t.id} className="hover:bg-brand-cream/40 transition-colors">
                   <td className="py-4 px-6 font-semibold text-brand-ink border-r border-brand-border">
                     {new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR')}
@@ -75,22 +85,24 @@ export const FinanceiroTable = memo(function FinanceiroTable({ transacoes, onEdi
                     <div className="flex items-center justify-center gap-2">
                       <button 
                         onClick={() => onEdit(t)}
-                        className="p-1 hover:bg-brand-cream text-brand-ink/50 hover:text-brand-olive transition-colors cursor-pointer"
-                        title="Editar Lançamento"
+                        disabled={isAprovado}
+                        className="p-1 hover:bg-brand-cream text-brand-ink/50 hover:text-brand-olive transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={isAprovado ? "Mês aprovado, edição bloqueada" : "Editar Lançamento"}
                       >
                         <Edit size={15} />
                       </button>
                       <button 
                         onClick={() => onDelete(t.id)}
-                        className="p-1 hover:bg-brand-cream text-brand-ink/50 hover:text-brand-tinto transition-colors cursor-pointer"
-                        title="Excluir Lançamento"
+                        disabled={isAprovado}
+                        className="p-1 hover:bg-brand-cream text-brand-ink/50 hover:text-brand-tinto transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={isAprovado ? "Mês aprovado, exclusão bloqueada" : "Excluir Lançamento"}
                       >
                         <Trash2 size={15} />
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))
+              )})
             )}
           </tbody>
         </table>

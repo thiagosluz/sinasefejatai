@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { DocumentHeaderConfig } from '@/components/document-header'
+import { useModal } from '@/providers/modal-provider'
 
 import { PrestacaoPrintLayout } from './components/prestacao-print-layout'
 import { usePrestacaoMath } from './hooks/use-prestacao-math'
@@ -21,15 +22,24 @@ interface Transacao {
   created_at: string
 }
 
+interface PrestacaoMensal {
+  id: string
+  mes_ano: string
+  status: 'ENVIADO_CONSELHO' | 'COM_RESSALVAS' | 'APROVADO' | 'REJEITADO'
+  parecer_texto: string | null
+}
+
 interface PrestacaoClienteProps {
   transacoes: Transacao[]
   config?: DocumentHeaderConfig | null
+  prestacoesMensais?: PrestacaoMensal[]
 }
 
-export default function PrestacaoCliente({ transacoes, config }: PrestacaoClienteProps) {
+export default function PrestacaoCliente({ transacoes, config, prestacoesMensais = [] }: PrestacaoClienteProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { alert, confirm } = useModal()
 
   const { obterMesPadrao } = usePrestacaoMath(transacoes, '')
   
@@ -61,6 +71,30 @@ export default function PrestacaoCliente({ transacoes, config }: PrestacaoClient
 
   const mesesOpcoes = math.obterMesesOpcoes()
 
+  const prestacaoAtual = prestacoesMensais.find(p => p.mes_ano === mesAno)
+  const statusAtual = prestacaoAtual?.status || 'PENDENTE'
+  const podeEnviar = ['PENDENTE', 'COM_RESSALVAS', 'REJEITADO'].includes(statusAtual)
+
+  const handleEnviarConselho = async () => {
+    const ok = await confirm(`Deseja enviar a prestação de ${obterNomeMesExtenso(mesAno)} para análise do Conselho Fiscal?`)
+    if (!ok) return
+
+    try {
+      // Import the action dynamically or assume we pass it down?
+      // Since it's a client component, we should import the action at the top.
+      const { submeterPrestacao } = await import('../../parecer-fiscal/actions')
+      const res = await submeterPrestacao(mesAno)
+      if (res.success) {
+        await alert('Enviado com sucesso para análise.')
+      } else {
+        await alert(res.error || 'Erro ao enviar.')
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao enviar.'
+      await alert(msg)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink p-4 md:p-8 print:bg-white print:text-black print:p-0 font-sans selection:bg-brand-tinto selection:text-white">
       
@@ -81,14 +115,30 @@ export default function PrestacaoCliente({ transacoes, config }: PrestacaoClient
               onChange={(e) => handleMesChange(e.target.value)}
               className="bg-brand-cream border border-zinc-350 text-brand-ink text-xs px-4 py-2.5 focus:outline-none focus:border-brand-tinto pr-10 cursor-pointer rounded-none font-bold uppercase tracking-wider appearance-none"
             >
-              {mesesOpcoes.map(m => (
-                <option key={m} value={m}>
-                  {obterNomeMesExtenso(m).toUpperCase()}
-                </option>
-              ))}
+              {mesesOpcoes.map(m => {
+                const p = prestacoesMensais.find(p => p.mes_ano === m)
+                const statusStr = p ? ` [${p.status.replace('_', ' ')}]` : ''
+                return (
+                  <option key={m} value={m}>
+                    {obterNomeMesExtenso(m).toUpperCase()}{statusStr}
+                  </option>
+                )
+              })}
             </select>
             <Calendar size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
           </div>
+
+          <button 
+            onClick={handleEnviarConselho}
+            disabled={!podeEnviar}
+            className={`text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all flex items-center gap-2 cursor-pointer ${
+              podeEnviar 
+                ? 'bg-zinc-800 hover:bg-zinc-700 text-white shadow-[2px_2px_0px_#121214] hover:translate-x-[1px] hover:translate-y-[1px]' 
+                : 'bg-zinc-300 text-zinc-500 cursor-not-allowed'
+            }`}
+          >
+            {statusAtual === 'ENVIADO_CONSELHO' ? 'Em Análise' : statusAtual === 'APROVADO' ? 'Mês Aprovado' : 'Enviar ao Conselho'}
+          </button>
 
           <button 
             onClick={() => window.print()}
@@ -112,6 +162,7 @@ export default function PrestacaoCliente({ transacoes, config }: PrestacaoClient
         resumoEntradas={math.resumoEntradas}
         resumoSaidas={math.resumoSaidas}
         transacoesDoMes={math.transacoesDoMes}
+        parecerTexto={prestacaoAtual?.parecer_texto}
       />
     </div>
   )

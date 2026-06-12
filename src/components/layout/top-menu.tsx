@@ -14,6 +14,7 @@ export function TopMenu() {
   const links = [
     { href: '/admin/dashboard', label: 'Painel' },
     { href: '/admin/diretoria', label: 'Diretoria' },
+    { href: '/admin/conselho-fiscal', label: 'Conselho Fiscal' },
     { href: '/admin/filiados', label: 'Filiados' },
     { href: '/admin/assembleias', label: 'Assembleias' },
     { href: '/admin/documentos', label: 'Documentos' },

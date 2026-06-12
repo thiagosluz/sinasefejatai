@@ -16,9 +16,10 @@ import { Transacao } from './types'
 
 interface FinanceiroClienteProps {
   transacoesIniciais: Transacao[]
+  mesesAprovados?: string[]
 }
 
-export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClienteProps) {
+export default function FinanceiroCliente({ transacoesIniciais, mesesAprovados = [] }: FinanceiroClienteProps) {
   const { confirm } = useModal()
   
   const router = useRouter()
@@ -192,7 +193,8 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
           <button 
             onClick={abrirNovoLancamento}
             data-testid="btn-lancar-movimento"
-            className="bg-brand-tinto hover:bg-brand-tinto-light text-white py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px] flex items-center gap-2 cursor-pointer"
+            disabled={filtroMesAno ? mesesAprovados.includes(filtroMesAno) : false}
+            className="bg-brand-tinto hover:bg-brand-tinto-light text-white py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px] flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <PlusCircle size={15} />
             <span>Lançar Movimento</span>
@@ -205,6 +207,7 @@ export default function FinanceiroCliente({ transacoesIniciais }: FinanceiroClie
         transacoes={transacoesFiltradas} 
         onEdit={abrirEdicaoLancamento} 
         onDelete={handleDelete} 
+        mesesAprovados={mesesAprovados}
       />
 
       {/* Gaveta Lateral (Drawer) extraída para componente */}

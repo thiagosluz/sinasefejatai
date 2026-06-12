@@ -24,6 +24,7 @@ interface PrestacaoPrintLayoutProps {
   resumoEntradas: { categoria: string; total: number }[]
   resumoSaidas: { categoria: string; total: number }[]
   transacoesDoMes: Transacao[]
+  parecerTexto?: string | null
 }
 
 export function PrestacaoPrintLayout({
@@ -36,7 +37,8 @@ export function PrestacaoPrintLayout({
   saldoAtual,
   resumoEntradas,
   resumoSaidas,
-  transacoesDoMes
+  transacoesDoMes,
+  parecerTexto
 }: PrestacaoPrintLayoutProps) {
   return (
     <main className="bg-white text-black p-12 max-w-[800px] mx-auto shadow-2xl font-serif text-sm leading-relaxed print:shadow-none print:p-0 print:max-w-none">
@@ -205,9 +207,9 @@ export function PrestacaoPrintLayout({
                   </td>
                   <td className="py-1.5 px-2 border-r border-black text-center font-semibold">
                     {t.comprovante_url ? (
-                      <span className="text-emerald-700 flex items-center justify-center gap-0.5">
+                      <a href={t.comprovante_url} target="_blank" rel="noreferrer" className="text-emerald-700 hover:text-emerald-500 hover:underline flex items-center justify-center gap-0.5 print:text-emerald-700 print:no-underline" title="Abrir Comprovante">
                         <FileCheck size={10} /> Sim
-                      </span>
+                      </a>
                     ) : (
                       <span className="text-gray-500 flex items-center justify-center gap-0.5">
                         <FileX size={10} /> Não
@@ -227,36 +229,16 @@ export function PrestacaoPrintLayout({
       {/* Parecer do Conselho Fiscal e Assinaturas */}
       <div className="mt-12 text-xs">
         <div className="border border-black p-4 mb-10 bg-gray-50 leading-relaxed text-justify">
-          <strong>PARECER DO CONSELHO FISCAL:</strong> O Conselho Fiscal da Seção Sindical Jataí do SINASEFE, no uso de suas atribuições regimentais, após minuciosa análise dos lançamentos financeiros, receitas consolidadas, despesas efetuadas e respectivos comprovantes de recebimento e pagamento em anexo referentes ao mês de <strong>{obterNomeMesExtenso(mesAno)}</strong>, manifesta parecer pela <strong>[  ] APROVAÇÃO  [  ] REJEIÇÃO</strong> das presentes contas, considerando-as conformes com as normas financeiras vigentes.
+          <strong>PARECER DO CONSELHO FISCAL:</strong>{' '}
+          {parecerTexto ? (
+            <span className="whitespace-pre-wrap">{parecerTexto}</span>
+          ) : (
+            <span className="text-gray-400 italic">O Conselho Fiscal ainda não emitiu parecer sobre estas contas.</span>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 gap-8 text-center mt-12">
-          {/* Assinatura Coordenação Financeira */}
-          <div className="flex flex-col items-center justify-end min-h-[90px]">
-            <div className="w-[200px] border-b border-black mb-2"></div>
-            <div className="font-semibold uppercase">Coordenação Financeira</div>
-            <div className="text-[10px] text-gray-600 mt-0.5">SINASEFE - Seção Sindical Jataí</div>
-          </div>
-
-          {/* Assinatura Conselho Fiscal */}
-          <div className="flex flex-col items-center justify-end min-h-[90px]">
-            <div className="w-[200px] border-b border-black mb-2"></div>
-            <div className="font-semibold uppercase">Conselho Fiscal - Membro 1</div>
-            <div className="text-[10px] text-gray-600 mt-0.5">Assinatura do Conselheiro</div>
-          </div>
-
-          {/* Membros Adicionais */}
-          <div className="flex flex-col items-center justify-end min-h-[90px] mt-4">
-            <div className="w-[200px] border-b border-black mb-2"></div>
-            <div className="font-semibold uppercase">Conselho Fiscal - Membro 2</div>
-            <div className="text-[10px] text-gray-600 mt-0.5">Assinatura do Conselheiro</div>
-          </div>
-
-          <div className="flex flex-col items-center justify-end min-h-[90px] mt-4">
-            <div className="w-[200px] border-b border-black mb-2"></div>
-            <div className="font-semibold uppercase">Conselho Fiscal - Membro 3</div>
-            <div className="text-[10px] text-gray-600 mt-0.5">Assinatura do Conselheiro</div>
-          </div>
+        <div className="text-center mt-8 text-[10px] text-gray-500 italic">
+          * Este documento é assinado de forma eletrônica pelo sistema, dispensando assinaturas manuais.
         </div>
       </div>
 

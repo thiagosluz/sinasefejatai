@@ -43,8 +43,8 @@ export async function requireAdmin() {
     throw new Error('Acesso negado: Seu usuário não possui um perfil ativo.')
   }
 
-  if (perfil.role !== 'superadmin' && perfil.role !== 'diretoria') {
-    throw new Error('Acesso negado: Acesso restrito a administradores e membros da diretoria.')
+  if (perfil.role !== 'superadmin' && perfil.role !== 'diretoria' && perfil.role !== 'conselho_fiscal') {
+    throw new Error('Acesso negado: Acesso restrito a administradores, diretoria e conselho fiscal.')
   }
 
   // Anexa o perfil ao objeto user retornado para conveniência nas actions

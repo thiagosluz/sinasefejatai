@@ -32,6 +32,14 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
     .order('data', { ascending: false })
     .order('created_at', { ascending: false })
 
+  // Buscar meses aprovados para travar a interface
+  const { data: mesesAprovadosData } = await supabase
+    .from('financeiro_prestacoes_mensais')
+    .select('mes_ano')
+    .eq('status', 'APROVADO')
+  
+  const mesesAprovados = mesesAprovadosData?.map(m => m.mes_ano) || []
+
   const resolvedSearchParams = await searchParams
 
   return (
@@ -50,7 +58,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         </div>
       )}
 
-      <FinanceiroCliente transacoesIniciais={transacoes || []} />
+      <FinanceiroCliente transacoesIniciais={transacoes || []} mesesAprovados={mesesAprovados} />
     </AdminPageWrapper>
   )
 }

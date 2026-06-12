@@ -13,11 +13,21 @@ export default async function AdminLayout({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  let role = 'operador'
+  if (user) {
+    const { data: perfil } = await supabase.from('perfis').select('role').eq('id', user.id).single()
+    if (perfil) {
+      role = perfil.role
+    }
+  }
+
+  const roleDisplay = role === 'superadmin' ? 'Super Admin' : role === 'diretoria' ? 'Diretoria' : role === 'conselho_fiscal' ? 'Conselho Fiscal' : 'Operador'
+
   const topbarRight = (
     <>
       <ThemeToggle />
       <div className="hidden sm:block text-right border-r-2 border-brand-ink pr-4 mr-1">
-        <span className="text-[9px] font-bold uppercase tracking-wider text-brand-ink/60 block">Operador</span>
+        <span className="text-[9px] font-bold uppercase tracking-wider text-brand-ink/60 block">{roleDisplay}</span>
         <span className="text-xs font-semibold text-brand-ink">{user?.email || 'N/A'}</span>
       </div>
       <form action={logout}>
@@ -30,7 +40,7 @@ export default async function AdminLayout({
   )
 
   return (
-    <AdminLayoutClient topbarRight={topbarRight}>
+    <AdminLayoutClient topbarRight={topbarRight} role={role}>
       {children}
     </AdminLayoutClient>
   )

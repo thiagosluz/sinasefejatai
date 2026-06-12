@@ -23,9 +23,10 @@ interface SidebarProps {
   setIsOpen: (open: boolean) => void
   isCollapsed: boolean
   setIsCollapsed: (collapsed: boolean) => void
+  role?: string
 }
 
-export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }: SidebarProps) {
+export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role = 'operador' }: SidebarProps) {
   const pathname = usePathname()
 
   if (pathname === '/login') return null
@@ -42,6 +43,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }: Side
       items: [
         { href: '/admin/filiados', label: 'Filiados', icon: Users },
         { href: '/admin/diretoria', label: 'Diretoria', icon: UsersRound },
+        { href: '/admin/conselho-fiscal', label: 'Conselho Fiscal', icon: ShieldCheck },
         { href: '/admin/usuarios', label: 'Usuários/Acessos', icon: ShieldCheck },
         { href: '/admin/locais', label: 'Locais de Reunião', icon: MapPin },
       ]
@@ -59,10 +61,29 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }: Side
       group: 'Financeiro',
       items: [
         { href: '/admin/financeiro', label: 'Livro Caixa', icon: Landmark },
+        { href: '/admin/parecer-fiscal', label: 'Parecer Fiscal', icon: ShieldCheck },
         { href: '/admin/auditoria', label: 'Auditoria', icon: ShieldCheck },
       ]
     }
   ]
+
+  let filteredNavigation = navigation
+  if (role === 'conselho_fiscal') {
+    filteredNavigation = [
+      {
+        group: 'Geral',
+        items: [
+          { href: '/admin/dashboard', label: 'Painel', icon: Home }
+        ]
+      },
+      {
+        group: 'Financeiro',
+        items: [
+          { href: '/admin/parecer-fiscal', label: 'Parecer Fiscal', icon: ShieldCheck }
+        ]
+      }
+    ]
+  }
 
   return (
     <>
@@ -104,7 +125,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }: Side
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-6">
           <div className={`space-y-8 ${isCollapsed ? 'px-2' : 'px-4'}`}>
-            {navigation.map((section) => (
+            {filteredNavigation.map((section) => (
               <div key={section.group}>
                 {!isCollapsed && (
                   <h3 className="px-2 text-[10px] font-bold uppercase tracking-widest text-brand-ink/50 mb-3 font-serif truncate">

@@ -60,7 +60,7 @@ export async function getAssinanteInfo(): Promise<ActionResponse<{ nome: string,
   // Busca o perfil
   const { data: perfil } = await supabase
     .from('perfis')
-    .select('filiado_id')
+    .select('filiado_id, role')
     .eq('id', user.id)
     .single()
     
@@ -75,27 +75,40 @@ export async function getAssinanteInfo(): Promise<ActionResponse<{ nome: string,
     
   if (!filiado?.nome) return { success: false, error: 'Nome do filiado não encontrado.' }
 
-  // Busca o cargo atual (apenas em gestões ativas)
-  // Como `gestoes` tem is_atual, fazemos um join. 
-  // No Supabase, gestao_membros tem gestao_id.
-  const { data: cargo, error: cargoError } = await supabase
-    .from('gestao_membros')
-    .select('cargo_nome, gestoes!inner(is_atual)')
-    .eq('filiado_id', perfil.filiado_id)
-    .eq('gestoes.is_atual', true)
-    .order('criado_em', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  let cargoNome = null;
 
-  if (cargoError) {
-    console.error('Erro ao buscar cargo do assinante:', cargoError)
+  if (perfil.role === 'conselho_fiscal') {
+    const { data: cargo, error: cargoError } = await supabase
+      .from('conselho_fiscal_membros')
+      .select('cargo_nome, conselho_fiscal_gestoes!inner(is_atual)')
+      .eq('filiado_id', perfil.filiado_id)
+      .eq('conselho_fiscal_gestoes.is_atual', true)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (cargoError) console.error('Erro ao buscar cargo conselho:', cargoError)
+    cargoNome = cargo?.cargo_nome;
+  } else {
+    // Busca o cargo atual na diretoria
+    const { data: cargo, error: cargoError } = await supabase
+      .from('gestao_membros')
+      .select('cargo_nome, gestoes!inner(is_atual)')
+      .eq('filiado_id', perfil.filiado_id)
+      .eq('gestoes.is_atual', true)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (cargoError) console.error('Erro ao buscar cargo diretoria:', cargoError)
+    cargoNome = cargo?.cargo_nome;
   }
 
-  if (!cargo || !cargo.cargo_nome) {
-    return { success: false, error: 'Você não possui um cargo ativo na diretoria atual para assinar este documento.' }
+  if (!cargoNome) {
+    return { success: false, error: 'Você não possui um cargo ativo na gestão atual para assinar este documento.' }
   }
 
-  return { success: true, data: { nome: filiado.nome, cargo: cargo.cargo_nome } }
+  return { success: true, data: { nome: filiado.nome, cargo: cargoNome } }
 }
 
 // Função para o botão de "Assinar"

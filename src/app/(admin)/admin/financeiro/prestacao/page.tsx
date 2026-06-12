@@ -22,6 +22,11 @@ export default async function PrestacaoPage() {
     .select('*')
     .order('data', { ascending: true })
 
+  // Buscar status das prestacoes mensais
+  const { data: prestacoesMensais } = await supabase
+    .from('financeiro_prestacoes_mensais')
+    .select('*')
+
   // Buscar configurações de cabeçalho
   const { data: config } = await supabase
     .from('configuracoes')
@@ -30,6 +35,10 @@ export default async function PrestacaoPage() {
     .single()
 
   return (
-    <PrestacaoCliente transacoes={transacoes || []} config={config} />
+    <PrestacaoCliente 
+      transacoes={transacoes || []} 
+      config={config} 
+      prestacoesMensais={prestacoesMensais || []} 
+    />
   )
 }
