@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
+import { CancelParecerButton } from '@/app/(admin)/admin/documentos/components/cancel-parecer-button'
 import { PrestacaoPrintLayout } from '@/app/(admin)/admin/financeiro/prestacao/components/prestacao-print-layout'
 import { usePrestacaoMath } from '@/app/(admin)/admin/financeiro/prestacao/hooks/use-prestacao-math'
 import { useModal } from '@/providers/modal-provider'
 
 import { aprovarPrestacao,avaliarPrestacao } from '../actions'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ParecerFiscalDetalheCliente({ 
   mesAno, 
   transacoes, 
@@ -18,7 +18,8 @@ export default function ParecerFiscalDetalheCliente({
   prestacaoMensal,
   totalConselheiros = 1,
   assinaturasCount = 0,
-  jaAssinou = false
+  jaAssinou = false,
+  isConselhoFiscal = false
 }: { 
   mesAno: string, 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -29,7 +30,8 @@ export default function ParecerFiscalDetalheCliente({
   prestacaoMensal: any,
   totalConselheiros?: number,
   assinaturasCount?: number,
-  jaAssinou?: boolean
+  jaAssinou?: boolean,
+  isConselhoFiscal?: boolean
 }) {
   const router = useRouter()
   const { alert, prompt } = useModal()
@@ -81,7 +83,6 @@ export default function ParecerFiscalDetalheCliente({
     const senha = await prompt(
       modalMsg, 
       'Sua senha de login',
-      'Confirmar',
       'password'
     )
 
@@ -107,7 +108,7 @@ export default function ParecerFiscalDetalheCliente({
   const status = prestacaoMensal?.status
   const isAprovado = status === 'APROVADO'
   const isAguardando = status === 'AGUARDANDO_ASSINATURAS'
-  const bloqueiaEdicaoTexto = isAprovado || isAguardando
+  const bloqueiaEdicaoTexto = isAprovado || isAguardando || !isConselhoFiscal
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
@@ -122,7 +123,7 @@ export default function ParecerFiscalDetalheCliente({
           )}
         </div>
         <div className="h-[800px] overflow-y-auto bg-brand-cream border-4 border-transparent p-4">
-          <div className="scale-[0.85] origin-top bg-white shadow-lg pointer-events-none">
+          <div className="scale-[0.85] origin-top bg-white shadow-lg">
             <PrestacaoPrintLayout
               config={config}
               mesAno={mesAno}
@@ -156,7 +157,7 @@ export default function ParecerFiscalDetalheCliente({
             className={`flex-1 w-full border p-3 text-sm focus:outline-none focus:border-brand-tinto resize-none mb-6 ${bloqueiaEdicaoTexto ? 'bg-zinc-50 border-zinc-200 text-zinc-600' : 'border-zinc-300'}`}
           />
 
-          {!isAprovado && !isAguardando && (
+          {(!isAprovado && !isAguardando && isConselhoFiscal) && (
             <div className="flex flex-col gap-3">
               <button 
                 onClick={() => handleDevolver('COM_RESSALVAS')}
@@ -186,7 +187,7 @@ export default function ParecerFiscalDetalheCliente({
             </div>
           )}
 
-          {isAguardando && (
+          {(isAguardando && isConselhoFiscal) && (
             <div className="flex flex-col gap-4">
               <div className="bg-amber-50 border border-amber-200 p-4 text-center">
                 <AlertTriangle size={32} className="mx-auto text-amber-500 mb-2" />
@@ -211,11 +212,29 @@ export default function ParecerFiscalDetalheCliente({
           )}
 
           {isAprovado && (
-            <div className="bg-green-50 border border-green-200 p-4 text-center">
-              <CheckCircle size={32} className="mx-auto text-green-600 mb-2" />
-              <h4 className="font-bold text-green-800 uppercase tracking-wider text-sm mb-1">Aprovado e Trancado</h4>
-              <p className="text-xs text-green-700">Esta prestação já foi aprovada por todos os conselheiros ({assinaturasCount}/{totalConselheiros}). Nenhuma transação financeira deste mês pode ser alterada.</p>
+            <div className="bg-green-50 border border-green-200 p-4 text-center flex flex-col gap-4">
+              <div>
+                <CheckCircle size={32} className="mx-auto text-green-600 mb-2" />
+                <h4 className="font-bold text-green-800 uppercase tracking-wider text-sm mb-1">Aprovado e Trancado</h4>
+                <p className="text-xs text-green-700">Esta prestação já foi aprovada por todos os conselheiros ({assinaturasCount}/{totalConselheiros}). Nenhuma transação financeira deste mês pode ser alterada.</p>
+              </div>
+
+              {prestacaoMensal?.documento_parecer_id && (
+                <div className="border-t border-green-200 pt-4 mt-2 text-left">
+                  <p className="text-xs text-zinc-600 mb-3">
+                    Se foi detectado algum erro formal após o trancamento, um membro do Conselho Fiscal pode cancelar este documento para reabrir a análise:
+                  </p>
+                  {isConselhoFiscal && <CancelParecerButton id={prestacaoMensal.documento_parecer_id} withText={true} />}
+                </div>
+              )}
             </div>
+          )}
+          
+          {(!isConselhoFiscal && !isAprovado) && (
+             <div className="bg-zinc-50 border border-zinc-200 p-4 text-center mt-auto rounded">
+               <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider mb-1">Modo de Acompanhamento</p>
+               <p className="text-xs text-zinc-500">Apenas membros do Conselho Fiscal podem avaliar e assinar esta prestação.</p>
+             </div>
           )}
         </div>
       </div>

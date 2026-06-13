@@ -14,10 +14,7 @@ export function BtnNovaGestao() {
   const [loading, setLoading] = useState(false)
 
   const handleNovaGestao = async () => {
-    const nome = await prompt(
-      'Nova Gestão', 
-      'Digite o nome da gestão (ex: Biênio 2024-2026):'
-    )
+    const nome = await prompt('Nova Gestão da Diretoria', 'Digite o nome da nova gestão (ex: Biênio 2024-2026):')
     if (!nome) return
 
     try {

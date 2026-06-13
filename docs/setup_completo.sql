@@ -161,6 +161,60 @@ CREATE TABLE public.audit_logs (
 
 
 -- ==========================================
+
+-- 2.12 Conselho Fiscal
+CREATE TABLE public.conselho_fiscal_gestoes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nome TEXT NOT NULL,
+  is_atual BOOLEAN NOT NULL DEFAULT false,
+  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX apenas_uma_gestao_conselho_atual ON public.conselho_fiscal_gestoes (is_atual) WHERE is_atual = true;
+
+CREATE TABLE public.conselho_fiscal_membros (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  gestao_id UUID NOT NULL REFERENCES public.conselho_fiscal_gestoes(id) ON DELETE CASCADE,
+  filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL,
+  cadeira_referencia TEXT NOT NULL, 
+  cargo_nome TEXT NOT NULL,
+  nome TEXT,
+  foto_url TEXT,
+  is_cargo_fixo BOOLEAN NOT NULL DEFAULT false,
+  ordem INTEGER NOT NULL DEFAULT 99,
+  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 9.1 Tabela Documentos Administrativos (Recibos, Portarias, Ofícios, etc)
+CREATE TABLE IF NOT EXISTS public.documentos_administrativos (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tipo TEXT NOT NULL,
+    titulo TEXT NOT NULL,
+    numero TEXT,
+    dados JSONB NOT NULL DEFAULT '{}'::jsonb,
+    autor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    status TEXT DEFAULT 'ativo' CHECK (status IN ('ativo', 'cancelado', 'revogado')),
+    is_publico BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+
+-- 2.13 Prestações de Contas Mensais (Conselho Fiscal)
+CREATE TABLE public.financeiro_prestacoes_mensais (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  mes_ano TEXT UNIQUE NOT NULL, -- Format: YYYY-MM
+  status TEXT NOT NULL CHECK (status IN ('ENVIADO_CONSELHO', 'COM_RESSALVAS', 'APROVADO', 'REJEITADO', 'AGUARDANDO_ASSINATURAS')),
+  parecer_texto TEXT,
+  tesoureiro_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  documento_parecer_id UUID REFERENCES public.documentos_administrativos(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TRIGGER handle_updated_at_financeiro_prestacoes_mensais
+  BEFORE UPDATE ON public.financeiro_prestacoes_mensais
+  FOR EACH ROW EXECUTE PROCEDURE moddatetime(updated_at);
+
 -- 3. HABILITANDO SEGURANÇA DE LINHAS (RLS)
 -- ==========================================
 ALTER TABLE public.filiados ENABLE ROW LEVEL SECURITY;
@@ -175,6 +229,10 @@ ALTER TABLE public.gestao_membros ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mensagens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conselho_fiscal_gestoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conselho_fiscal_membros ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.financeiro_prestacoes_mensais ENABLE ROW LEVEL SECURITY;
+
 
 -- ==========================================
 -- 4. POLÍTICAS DE ACESSO (POLICIES)
@@ -194,6 +252,13 @@ CREATE POLICY "Permitir tudo para autenticados em mensagens" ON public.mensagens
 CREATE POLICY "Permitir tudo para autenticados em configuracoes" ON public.configuracoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir tudo para autenticados em audit_logs" ON public.audit_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
+CREATE POLICY "Permitir leitura anonima conselho gestoes" ON public.conselho_fiscal_gestoes FOR SELECT TO anon USING (true);
+CREATE POLICY "Permitir leitura anonima conselho membros" ON public.conselho_fiscal_membros FOR SELECT TO anon USING (true);
+CREATE POLICY "Permitir tudo para autenticados em conselho_fiscal_gestoes" ON public.conselho_fiscal_gestoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Permitir tudo para autenticados em conselho_fiscal_membros" ON public.conselho_fiscal_membros FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Permitir tudo para autenticados em financeiro_prestacoes_mensais" ON public.financeiro_prestacoes_mensais FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+
 -- 4.2. PERMISSÕES DO PORTAL PÚBLICO (Usuários Anonimos)
 -- Qualquer visitante pode ver as configurações e layouts timbrados
 CREATE POLICY "Permitir leitura publica de configuracoes" ON public.configuracoes FOR SELECT TO anon USING (true);
@@ -207,6 +272,12 @@ CREATE POLICY "Permitir pedido de filiacao" ON public.filiados FOR INSERT TO ano
 -- Visitantes podem ver assembleias publicadas (não rascunho) e seus anexos
 CREATE POLICY "Permitir leitura publica de assembleias" ON public.assembleias FOR SELECT TO anon USING (status != 'Rascunho');
 CREATE POLICY "Permitir leitura publica de anexos assembleia" ON public.assembleia_documentos FOR SELECT TO anon USING (EXISTS (SELECT 1 FROM public.assembleias a WHERE a.id = assembleia_documentos.assembleia_id AND a.status != 'Rascunho'));
+
+
+-- 9.3 RLS e Policies para Documentos Administrativos
+ALTER TABLE public.documentos_administrativos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir leitura anonima documentos_administrativos publicos" ON public.documentos_administrativos FOR SELECT TO anon USING (is_publico = true);
+CREATE POLICY "Permitir tudo para autenticados em documentos_administrativos" ON public.documentos_administrativos FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 
 -- ==========================================
@@ -288,6 +359,61 @@ CREATE TRIGGER audit_configuracoes_trigger AFTER INSERT OR UPDATE OR DELETE ON c
 
 
 -- ==========================================
+
+-- ==========================================
+-- 7.1 TRIGGERS DE HARD LOCK FINANCEIRO
+-- ==========================================
+
+CREATE OR REPLACE FUNCTION trg_lock_financeiro_transacoes()
+RETURNS TRIGGER AS $
+DECLARE
+  v_mes_ano TEXT;
+  v_status TEXT;
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    v_mes_ano := to_char(OLD.data, 'YYYY-MM');
+  ELSE
+    v_mes_ano := to_char(NEW.data, 'YYYY-MM');
+  END IF;
+
+  SELECT status INTO v_status FROM public.financeiro_prestacoes_mensais WHERE mes_ano = v_mes_ano;
+
+  IF v_status = 'APROVADO' THEN
+    RAISE EXCEPTION 'Não é permitido alterar ou remover transações de um mês com prestação de contas já aprovada pelo Conselho Fiscal.';
+  END IF;
+
+  IF TG_OP = 'UPDATE' AND NEW.data != OLD.data THEN
+    v_mes_ano := to_char(OLD.data, 'YYYY-MM');
+    SELECT status INTO v_status FROM public.financeiro_prestacoes_mensais WHERE mes_ano = v_mes_ano;
+    IF v_status = 'APROVADO' THEN
+      RAISE EXCEPTION 'Não é permitido alterar a data de uma transação que pertencia a um mês com prestação já aprovada.';
+    END IF;
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+  RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_lock_financeiro_transacoes_bd BEFORE UPDATE OR DELETE ON public.financeiro FOR EACH ROW EXECUTE FUNCTION trg_lock_financeiro_transacoes();
+
+CREATE OR REPLACE FUNCTION trg_lock_financeiro_transacoes_insert()
+RETURNS TRIGGER AS $
+DECLARE
+  v_mes_ano TEXT;
+  v_status TEXT;
+BEGIN
+  v_mes_ano := to_char(NEW.data, 'YYYY-MM');
+  SELECT status INTO v_status FROM public.financeiro_prestacoes_mensais WHERE mes_ano = v_mes_ano;
+  IF v_status = 'APROVADO' THEN
+    RAISE EXCEPTION 'Não é permitido inserir novas transações num mês com prestação já aprovada.';
+  END IF;
+  RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_lock_financeiro_transacoes_ins BEFORE INSERT ON public.financeiro FOR EACH ROW EXECUTE FUNCTION trg_lock_financeiro_transacoes_insert();
+
 -- 8. TAREFAS AGENDADAS (CRON)
 -- ==========================================
 
@@ -300,21 +426,8 @@ SELECT cron.schedule('cleanup_old_audit_logs', '0 0 * * 0', $$
 $$);
   
 -- ==========================================  
--- 9. ATUALIZA��ES RECENTES  
+-- 9. ATUALIZA��ES RECENTES  
 -- ========================================== 
-
--- 9.1 Tabela Documentos Administrativos (Recibos, Portarias, Ofícios, etc)
-CREATE TABLE IF NOT EXISTS public.documentos_administrativos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tipo TEXT NOT NULL,
-    titulo TEXT NOT NULL,
-    numero TEXT,
-    dados JSONB NOT NULL DEFAULT '{}'::jsonb,
-    autor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-    status TEXT DEFAULT 'ativo' CHECK (status IN ('ativo', 'cancelado', 'revogado')),
-    is_publico BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
 
 -- 9.2 Tabela Publicações (Arquivos Externos)
 CREATE TABLE IF NOT EXISTS public.publicacoes (
@@ -326,11 +439,6 @@ CREATE TABLE IF NOT EXISTS public.publicacoes (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- 9.3 RLS e Policies para Documentos Administrativos
-ALTER TABLE public.documentos_administrativos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Permitir leitura anonima documentos_administrativos publicos" ON public.documentos_administrativos FOR SELECT TO anon USING (is_publico = true);
-CREATE POLICY "Permitir tudo para autenticados em documentos_administrativos" ON public.documentos_administrativos FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 9.4 RLS e Policies para Publicações
 ALTER TABLE public.publicacoes ENABLE ROW LEVEL SECURITY;
@@ -351,7 +459,7 @@ CREATE POLICY "Admin gerencia storage de publicacoes" ON storage.objects FOR ALL
 -- 10.1 Tabela de Perfis
 CREATE TABLE IF NOT EXISTS public.perfis (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    role TEXT NOT NULL CHECK (role IN ('superadmin', 'diretoria', 'filiado')),
+    role TEXT NOT NULL CHECK (role IN ('superadmin', 'diretoria', 'filiado', 'conselho_fiscal')),
     filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL

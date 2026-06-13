@@ -2,6 +2,7 @@ import {
   Award,
   Banknote,
   BookMarked,
+  Calculator,
   FileSignature,
   Gavel,
   type LucideIcon,
@@ -15,9 +16,18 @@ export interface TipoDocumentoConfig {
   icon: LucideIcon
   descricao: string
   prefixoNumero: string
+  isAutomated?: boolean
 }
 
 export const TIPOS_DOCUMENTO: Record<string, TipoDocumentoConfig> = {
+  parecer_fiscal: {
+    label: 'Parecer Fiscal',
+    slug: 'parecer_fiscal',
+    icon: Calculator,
+    descricao: 'Parecer do Conselho Fiscal sobre a prestação de contas mensal.',
+    prefixoNumero: 'Parecer Fiscal',
+    isAutomated: true,
+  },
   recibo_pagamento: {
     label: 'Recibo',
     slug: 'recibos',

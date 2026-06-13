@@ -61,6 +61,8 @@ export async function avaliarPrestacao(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Não autorizado')
     
+    await requireConselhoFiscal(supabase, user.id)
+    
     const { error } = await supabase
       .from('financeiro_prestacoes_mensais')
       .update({
@@ -91,6 +93,8 @@ export async function aprovarPrestacao(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Não autorizado')
     
+    await requireConselhoFiscal(supabase, user.id)
+    
     // Busca a prestação atual
     const { data: prestacao } = await supabase
       .from('financeiro_prestacoes_mensais')
@@ -106,8 +110,8 @@ export async function aprovarPrestacao(
     if (!docId) {
       const tituloDoc = `Parecer Fiscal - Balancete ${mesAno}`
       const htmlParecer = `
-        <div style="font-family: Arial, sans-serif;">
-          <h2 style="text-align: center;">Parecer do Conselho Fiscal</h2>
+        <div class="parecer-fiscal-content">
+          <h2>Parecer do Conselho Fiscal</h2>
           <p><strong>Referência:</strong> Mês ${mesAno}</p>
           <hr/>
           <div style="margin-top: 20px;">
@@ -116,11 +120,13 @@ export async function aprovarPrestacao(
         </div>
       `
       
+      const numeroDoc = mesAno.split('-').reverse().join('/')
       const { data: doc, error: docError } = await supabase
         .from('documentos_administrativos')
         .insert({
           tipo: 'parecer_fiscal',
           titulo: tituloDoc,
+          numero: numeroDoc,
           dados: { conteudo_html: htmlParecer },
           autor_id: user.id
         })
@@ -145,6 +151,8 @@ export async function aprovarPrestacao(
       .from('conselho_fiscal_membros')
       .select('id, conselho_fiscal_gestoes!inner(is_atual)', { count: 'exact', head: true })
       .eq('conselho_fiscal_gestoes.is_atual', true)
+      .neq('nome', '')
+      .not('nome', 'is', null)
 
     const totalConselheiros = Math.max(1, countConselheiros || 1)
 
@@ -186,5 +194,79 @@ export async function aprovarPrestacao(
     return { success: true }
   } catch (err) {
     return handleError(err, 'Erro ao aprovar a prestação.')
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function requireConselhoFiscal(supabase: any, userId: string) {
+  const { data: perfil } = await supabase
+    .from('perfis')
+    .select('filiado_id, role')
+    .eq('id', userId)
+    .single()
+
+  if (!perfil?.filiado_id || perfil.role !== 'conselho_fiscal') {
+    throw new Error('Acesso negado. Apenas membros ativos do Conselho Fiscal podem realizar esta operação.')
+  }
+
+  const { data: membro } = await supabase
+    .from('conselho_fiscal_membros')
+    .select('id, conselho_fiscal_gestoes!inner(is_atual)')
+    .eq('filiado_id', perfil.filiado_id)
+    .eq('conselho_fiscal_gestoes.is_atual', true)
+    .maybeSingle()
+
+  if (!membro) {
+    throw new Error('Acesso negado. Apenas membros ativos do Conselho Fiscal podem realizar esta operação.')
+  }
+}
+
+// 4. Cancelar Parecer Fiscal
+export async function cancelarParecerFiscal(documentoId: string): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Não autorizado')
+
+    await requireConselhoFiscal(supabase, user.id)
+
+    // 2. Fetch the prestacao linked to this document
+    const { data: prestacao } = await supabase
+      .from('financeiro_prestacoes_mensais')
+      .select('id, mes_ano')
+      .eq('documento_parecer_id', documentoId)
+      .single()
+
+    if (!prestacao) {
+      throw new Error('Prestação de contas vinculada a este documento não encontrada.')
+    }
+
+    // 3. Mark the document as cancelado
+    const { error: cancelError } = await supabase
+      .from('documentos_administrativos')
+      .update({ status: 'cancelado' })
+      .eq('id', documentoId)
+
+    if (cancelError) throw new Error('Erro ao cancelar o documento na base.')
+
+    // 4. Revert the prestacao status back to ENVIADO_CONSELHO and unlink the document
+    const { error: resetError } = await supabase
+      .from('financeiro_prestacoes_mensais')
+      .update({
+        status: 'ENVIADO_CONSELHO',
+        documento_parecer_id: null
+      })
+      .eq('id', prestacao.id)
+
+    if (resetError) throw new Error('Erro ao reabrir a prestação de contas.')
+
+    revalidatePath('/admin/documentos')
+    revalidatePath(`/admin/documentos/pareceres/${documentoId}`)
+    revalidatePath(`/admin/parecer-fiscal/${prestacao.mes_ano}`)
+    revalidatePath('/admin/parecer-fiscal')
+    revalidatePath('/admin/financeiro/prestacao')
+
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Erro ao cancelar o parecer fiscal.')
   }
 }

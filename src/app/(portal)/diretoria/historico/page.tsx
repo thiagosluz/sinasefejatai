@@ -2,8 +2,8 @@ import { ArrowLeft, History, UserCircle2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { getGestoesHistorico } from '@/app/(admin)/admin/diretoria/actions'
-
+import { getGestoesHistorico as getGestoesConselho } from '@/app/(admin)/admin/conselho-fiscal/actions'
+import { getGestoesHistorico as getGestoesDiretoria } from '@/app/(admin)/admin/diretoria/actions'
 export const metadata = {
   title: 'Histórico de Diretorias | SINASEFE Jataí',
   description: 'Acervo e histórico das gestões passadas do sindicato.',
@@ -24,7 +24,8 @@ type Gestao = {
 }
 
 export default async function HistoricoDiretoriaPage() {
-  const gestoesHistorico = await getGestoesHistorico()
+  const gestoesDiretoria = await getGestoesDiretoria()
+  const gestoesConselho = await getGestoesConselho()
 
   return (
     <>
@@ -53,15 +54,19 @@ export default async function HistoricoDiretoriaPage() {
       <section className="bg-brand-cream flex-1 py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {gestoesHistorico.length === 0 ? (
-            <div className="text-center py-24">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-brand-ink font-serif mb-6 border-b border-brand-border-muted pb-2">Diretoria Executiva</h2>
+          </div>
+
+          {gestoesDiretoria.length === 0 ? (
+            <div className="text-center py-12">
               <div className="text-5xl mb-4">📋</div>
               <h2 className="text-xl font-bold text-brand-ink font-serif mb-2">Nenhuma gestão anterior cadastrada</h2>
               <p className="text-zinc-500">O acervo histórico será preenchido em breve.</p>
             </div>
           ) : (
             <div className="space-y-8">
-              {gestoesHistorico.map((gestao: Gestao) => (
+              {gestoesDiretoria.map((gestao: Gestao) => (
                 <div key={gestao.id} className="bg-white rounded-2xl border border-brand-border-muted overflow-hidden hover:shadow-md transition-all">
                   {/* Cabeçalho da Gestão */}
                   <div className="bg-brand-cream border-b border-brand-border-muted px-6 py-5 sm:px-8 flex items-center gap-3">
@@ -111,6 +116,67 @@ export default async function HistoricoDiretoriaPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Histórico do Conselho Fiscal */}
+          {gestoesConselho.length > 0 && (
+            <div className="mt-20">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-brand-ink font-serif mb-6 border-b border-brand-border-muted pb-2">Conselho Fiscal</h2>
+              </div>
+              <div className="space-y-8">
+                {gestoesConselho.map((gestao: Gestao) => (
+                  <div key={gestao.id} className="bg-white/60 backdrop-blur-sm rounded-2xl border border-brand-border-muted overflow-hidden hover:shadow-md transition-all">
+                    {/* Cabeçalho da Gestão */}
+                    <div className="bg-brand-cream/50 border-b border-brand-border-muted px-6 py-5 sm:px-8 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+                        <History size={20} className="text-brand-tinto" />
+                      </div>
+                      <h2 className="text-xl font-bold font-serif text-brand-ink">
+                        {gestao.nome}
+                      </h2>
+                    </div>
+
+                    {/* Lista de Membros */}
+                    <div className="p-6 sm:p-8">
+                      {gestao.membros.length === 0 ? (
+                        <p className="text-zinc-500 italic">Membros não registrados para esta gestão.</p>
+                      ) : (
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                          {gestao.membros.map((membro: Membro) => (
+                            <li key={membro.id} className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full overflow-hidden border border-brand-border-muted relative shrink-0">
+                                {membro.foto_url ? (
+                                  <Image
+                                    src={membro.foto_url}
+                                    alt={membro.nome || membro.cargo_nome}
+                                    fill
+                                    className="object-cover"
+                                    sizes="48px"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-300">
+                                    <UserCircle2 size={24} strokeWidth={1} />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-bold text-brand-ink font-serif leading-tight text-lg">
+                                  {membro.nome || 'Vago'}
+                                </p>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-brand-tinto mt-0.5">
+                                  {membro.cargo_nome}
+                                </p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

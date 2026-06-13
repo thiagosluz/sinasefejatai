@@ -23,6 +23,15 @@ export default async function ParecerFiscalDetalhePage({ params }: PageProps) {
     return redirect('/login')
   }
 
+  // Buscar se o usuário é do conselho fiscal
+  const { data: perfil } = await supabase
+    .from('perfis')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  
+  const isConselhoFiscal = perfil?.role === 'conselho_fiscal'
+
   // Buscar transações APENAS DO MÊS, ou deixamos a lógica de filtragem igual à de prestacao (mandamos tudo do DB ou prefiltramos?)
   // Para evitar mandar tudo, vamos filtrar na query: ano_mes
   // Wait, no. usePrestacaoMath filters locally using string startsWith. It's safe to fetch everything or fetch just the month + anterior.
@@ -51,6 +60,8 @@ export default async function ParecerFiscalDetalhePage({ params }: PageProps) {
     .from('conselho_fiscal_membros')
     .select('id, conselho_fiscal_gestoes!inner(is_atual)', { count: 'exact', head: true })
     .eq('conselho_fiscal_gestoes.is_atual', true)
+    .neq('nome', '')
+    .not('nome', 'is', null)
 
   const totalConselheiros = Math.max(1, countConselheiros || 1)
 
@@ -97,6 +108,7 @@ export default async function ParecerFiscalDetalhePage({ params }: PageProps) {
         totalConselheiros={totalConselheiros}
         assinaturasCount={assinaturasCount}
         jaAssinou={jaAssinou}
+        isConselhoFiscal={isConselhoFiscal}
       />
     </AdminPageWrapper>
   )

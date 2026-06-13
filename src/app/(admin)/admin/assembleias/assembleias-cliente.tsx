@@ -94,7 +94,7 @@ export default function AssembleiasCliente({ assembleiasIniciais }: AssembleiasC
   }, [confirm])
 
   const handleDeletarSeguro = useCallback(async (id: string) => {
-    const word = await prompt('Para excluir definitivamente esta assembleia e todos os seus dados, digite a palavra DELETAR:', 'DELETAR')
+    const word = await prompt('Para excluir definitivamente esta assembleia e todos os seus dados, digite a palavra DELETAR:')
     if (word === 'DELETAR') {
       try {
         await deleteAssembleia(id)

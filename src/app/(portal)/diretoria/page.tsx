@@ -2,8 +2,8 @@ import { History, UserCircle2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { getGestaoAtualPublica } from '@/app/(admin)/admin/diretoria/actions'
-
+import { getGestaoAtualPublica as getConselhoAtual } from '@/app/(admin)/admin/conselho-fiscal/actions'
+import { getGestaoAtualPublica as getDiretoriaAtual } from '@/app/(admin)/admin/diretoria/actions'
 export const metadata = {
   title: 'Atual Direção | SINASEFE Jataí',
   description: 'Conheça os membros da atual diretoria do SINASEFE Jataí.',
@@ -18,7 +18,8 @@ type Membro = {
 }
 
 export default async function DiretoriaPublicaPage() {
-  const gestao = await getGestaoAtualPublica()
+  const gestao = await getDiretoriaAtual()
+  const conselho = await getConselhoAtual()
 
   return (
     <>
@@ -125,6 +126,41 @@ export default async function DiretoriaPublicaPage() {
                 </div>
               )}
 
+            </div>
+          )}
+
+          {conselho && conselho.membros && conselho.membros.length > 0 && (
+            <div className="mt-16 pt-16 border-t border-brand-border-muted/50">
+              <div className="text-center mb-10">
+                <p className="text-brand-ink/60 font-semibold text-sm uppercase tracking-widest mb-2">Órgão Independente</p>
+                <h2 className="text-3xl font-bold text-brand-ink font-serif">Conselho Fiscal</h2>
+                <p className="text-brand-ink/70 mt-2">Membros eleitos para compor o conselho da gestão {conselho.nome}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {conselho.membros.map((membro: Membro) => (
+                  <div key={membro.id} className="bg-white/60 backdrop-blur-sm rounded-2xl border border-brand-border-muted p-4 flex items-center gap-4 hover:shadow-md transition-all">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-brand-cream relative shrink-0">
+                      {membro.foto_url ? (
+                        <Image
+                          src={membro.foto_url}
+                          alt={membro.nome || membro.cargo_nome}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-300">
+                          <UserCircle2 size={32} strokeWidth={1} />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold font-serif text-brand-ink text-lg leading-tight">{membro.nome || 'Vago'}</h3>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink/70 mt-1">{membro.cargo_nome}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

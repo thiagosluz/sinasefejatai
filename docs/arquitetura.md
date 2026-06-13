@@ -6,7 +6,7 @@ Este documento descreve as decisões arquiteturais, o stack de tecnologia e a or
 
 O sistema é um portal web e aplicativo de gestão de retaguarda focado em centralizar as operações burocráticas, financeiras e de transparência do sindicato. Ele serve a dois públicos distintos:
 - **Público (Filiados e Visitantes):** Acesso a notícias, histórico de gestões, transparência básica e formulário de pedido de filiação.
-- **Privado (Diretoria e Secretaria):** Painel administrativo para gerir filiados, caixa, atas, editais e configurações de documentos.
+- **Privado (Diretoria, Secretaria e Conselho Fiscal):** Painel administrativo para gerir filiados, caixa, atas, editais, documentos e aprovação de contas.
 
 ## 2. Stack Tecnológico
 
@@ -23,41 +23,54 @@ Por padrão, toda página de rota (`page.tsx`) é um Server Component que busca 
 Para evitar sobrecarga de estado no servidor e manter a performance, as interações ricas de UI (formulários, filtros, modais) são delegadas a componentes Client anexos (geralmente nomeados como `modulo-cliente.tsx`).
 
 ### Server Actions & Segurança (DAL)
-A manipulação de dados (mutations como Create, Update, Delete) é feita unicamente via Server Actions (arquivos `actions.ts` dentro de cada módulo). Para garantir a integridade, o sistema usa o padrão **DAL (Data Access Layer)**: todo arquivo de mutação administrativa DEVE importar e chamar `requireAdmin()` na primeira linha da função para evitar ataques CSRF ou invasão de endpoint.
+A manipulação de dados (mutations como Create, Update, Delete) é feita unicamente via Server Actions (arquivos `actions.ts` dentro de cada módulo). Para garantir a integridade, o sistema usa o padrão **DAL (Data Access Layer)**: todo arquivo de mutação administrativa DEVE chamar validadores de permissão de acesso e autenticação para evitar ataques CSRF ou invasão de endpoint.
 
 ### Logs e Auditoria
 - **Application Logger:** É TERMINANTEMENTE proibido o uso de `console.log` para depuração no backend em produção. O sistema utiliza a biblioteca Pino configurada em `src/lib/logger.ts`, que mascara automaticamente (Redaction) e-mails, tokens, e dados sensíveis de filiados para evitar vazamentos de logs de container.
 - **Triggers Passivos:** A auditoria de modificações em tabelas ("quem apagou", "quem editou") **não é** feita no código TypeScript para evitar falha humana. Nós utilizamos `Triggers` no PostgreSQL (`process_audit_log()`) que rodam em background, interceptam qualquer alteração e salvam os deltas completos em JSON na tabela `audit_logs`.
 
-### Row Level Security (RLS)
-O banco de dados PostgreSQL roda sob políticas estritas de segurança em nível de linha:
-- O perfil `anon` (usuários não logados) só possui permissões de leitura (SELECT) em tabelas públicas (como `configuracoes` e `diretoria`) e escrita limitada (INSERT) apenas para pedidos de filiação e mensagens de contato.
-- O perfil `authenticated` (diretoria) tem acesso total a todos os dados corporativos.
+### Controle de Acesso Baseado em Perfis (RBAC) & Row Level Security (RLS)
+A autenticação do Supabase (Auth) não possui campos granulares de permissão, por isso criamos a tabela auxiliar de segurança `perfis`.
+O sistema atua com 4 níveis lógicos de perfil: `superadmin`, `diretoria`, `conselho_fiscal` e `filiado`.
+O banco de dados PostgreSQL roda sob políticas estritas de segurança em nível de linha (RLS):
+- O perfil `anon` (visitantes) só possui permissões de leitura (SELECT) em tabelas públicas (como `configuracoes`, `diretoria` e `publicacoes`) e escrita limitada (INSERT) para pedidos de contato/filiação.
+- O perfil de `diretoria` / `superadmin` tem acesso total à gestão principal do sistema, **exceto nas ações do Parecer Fiscal**, onde a `diretoria` possui acesso estritamente **somente-leitura** (read-only).
+- O perfil de `conselho_fiscal` possui acesso segmentado à avaliação e emissão de pareceres no fluxo financeiro, possuindo exclusividade para **Aprovar, Rejeitar, Devolver com Ressalvas ou Cancelar** um Parecer Fiscal.
+
+A validação de perfis (ex: `requireConselhoFiscal()`) é rigorosamente aplicada na camada **Server Actions (DAL)**, de forma que ações do Conselho Fiscal não podem ser disparadas pela Diretoria mesmo que o botão estivesse visível ou as rotas API fossem forçadas.
 
 ## 4. Módulos do Sistema
 
 ### 4.1. Painel de Controle (Dashboard)
-Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual operador (e-mail) está logado.
+Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual operador está logado.
 
 ### 4.2. Gestão de Filiados
 - **Escopo:** Controle da base (SIAPE, Campus, Situação, Status de Filiação).
-- **Portal Público:** Permite ao próprio usuário preencher sua ficha de filiação online, caindo numa fila de aprovação (status `pendente`) para a diretoria avaliar.
+- **Portal Público:** Permite ao próprio usuário preencher sua ficha de filiação online, caindo numa fila de aprovação.
 
 ### 4.3. Atos & Assembleias
-- **Escopo:** Agendamento de reuniões (Ordinárias/Extraordinárias), definição de pautas e público-alvo (Filiados ou Todos os Servidores).
+- **Escopo:** Agendamento de reuniões (Ordinárias/Extraordinárias), definição de pautas e público-alvo.
 - **Atas e Presenças:** Permite redação de ata rica e registro de lista de presença.
 
-### 4.4. Livro Caixa (Financeiro)
+### 4.4. Livro Caixa (Financeiro) & Hard Lock
 - **Escopo:** Controle de fluxo financeiro (Entradas e Saídas).
 - **Comprovantes:** Upload de comprovantes em PDF/Imagens direto para um Supabase Storage Bucket.
-- **Importação:** Mecanismo desenhado para suportar o recebimento futuro de dados via OFX.
+- **Hard Lock Triggers:** O sistema implementa uma camada de proteção nativa em BD (Trigger) onde, se um determinado mês financeiro tiver a "Prestação de Contas Aprovada" pelo Conselho Fiscal, nenhuma transação deste mês poderá ser criada, excluída ou editada, nem por administradores do banco.
 
-### 4.5. Diretoria & Gestões (Histórico)
-- **Escopo:** Manter a transparência sobre quem compõe a atual e as passadas diretorias (cargos estatutários e extras).
-- **Paridade:** Reflete politicamente as coordenações e secretarias (ex: Coordenador(a) Geral).
+### 4.5. Conselho Fiscal & Parecer Mensal
+- **Escopo:** O Conselho Fiscal avalia o fechamento do caixa do mês via sistema.
+- **Fluxo:** O sistema compila automaticamente os saldos do mês, junta os comprovantes de despesas e cria um documento que transita por uma máquina de estados: `AGUARDANDO_ASSINATURAS` -> `COM_RESSALVAS` / `REJEITADO` / `APROVADO`. Cada conselheiro logado pode assinar digitalmente o parecer até o número total de conselheiros da gestão ser batido, bloqueando o mês.
 
-### 4.6. Locais & Configurações de Layout
-- **Escopo:** Parametrização global. Permite à própria diretoria alterar o endereço do sindicato, gestão e logo sem necessitar de alteração no código fonte. Todos os documentos gerados pelo sistema buscam os "timbres oficiais" desta configuração central.
+### 4.6. Documentos Administrativos e Publicações
+- **Escopo:** Emissão e versionamento digital de Recibos, Ofícios, Memorandos, Portarias e Resoluções.
+- **Publicações:** Todo e qualquer material público do sindicato que não for um documento interno vai para o portal transparência (Publicações). 
+- **Assinatura Eletrônica:** Utiliza o sistema interno nativo em tabelas vinculando UUIDs de `documento_verificacoes`.
 
-### 4.7. Auditoria (Logs)
-- **Escopo:** Painel de visualização ("Fichário Físico") imutável para a diretoria enxergar todas as movimentações críticas da plataforma (Logins, Criações, Edições e Exclusões) com acesso ao payload cru (JSON) da alteração. Retenção automática de 1 ano.
+### 4.7. Diretoria & Gestões (Histórico)
+- **Escopo:** Manter a transparência sobre quem compõe a atual e as passadas diretorias.
+
+### 4.8. Locais & Configurações de Layout
+- **Escopo:** Parametrização global e configuração de Timbres (Header corporativo dinâmico) para documentos em PDF impressos ou online.
+
+### 4.9. Auditoria (Logs)
+- **Escopo:** Painel de visualização ("Fichário Físico") imutável para a diretoria enxergar todas as movimentações críticas da plataforma. Retenção automática de 1 ano via PG Cron.

@@ -23,7 +23,9 @@ export default function NovoDocumentoPage() {
       </AdminPageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Object.entries(TIPOS_DOCUMENTO).map(([, config]) => {
+        {Object.entries(TIPOS_DOCUMENTO)
+          .filter(([, config]) => !config.isAutomated)
+          .map(([, config]) => {
           const Icon = config.icon
           return (
             <Link

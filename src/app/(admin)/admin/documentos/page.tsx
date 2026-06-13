@@ -6,6 +6,7 @@ import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
 import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
+import { CancelParecerButton } from './components/cancel-parecer-button'
 import { DeleteDocButton } from './components/delete-doc-button'
 import { DocumentosFiltros } from './components/documentos-filtros'
 import { Paginacao } from './components/paginacao'
@@ -18,6 +19,18 @@ export default async function DocumentosPage({
   searchParams?: Promise<{ q?: string; mes?: string; ano?: string; tipo?: string; page?: string }>
 }) {
   const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  let isConselhoFiscal = false
+  if (user) {
+    const { data: perfil } = await supabase
+      .from('perfis')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    
+    isConselhoFiscal = perfil?.role === 'conselho_fiscal'
+  }
 
   const resolvedSearchParams = await searchParams
   const q = resolvedSearchParams?.q || ''
@@ -198,7 +211,11 @@ export default async function DocumentosPage({
                           {doc.status !== 'cancelado' && doc.status !== 'revogado' && doc.tipo === 'resolucao_normativa' && (
                             <TogglePublicoButton id={doc.id} isPublico={!!doc.is_publico} />
                           )}
-                          <DeleteDocButton id={doc.id} />
+                          {doc.tipo === 'parecer_fiscal' ? (
+                            isConselhoFiscal && <CancelParecerButton id={doc.id} />
+                          ) : (
+                            <DeleteDocButton id={doc.id} />
+                          )}
                         </div>
                       </td>
                     </tr>

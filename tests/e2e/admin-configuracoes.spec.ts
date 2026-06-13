@@ -45,7 +45,13 @@ test.describe('Admin - Configurações do Cabeçalho', () => {
     await inputSecao.fill('SECAO TESTE PLAYWRIGHT');
     await expect(inputSecao).toHaveValue('SECAO TESTE PLAYWRIGHT');
     
-    // Não vamos salvar de fato para não modificar o banco acidentalmente
-    // O teste termina provando que os campos recebem input e interagem bem.
+    // We will let the action hit the real database. The test environment has a dedicated DB cleanup.
+
+    // Agora podemos clicar no botão de salvar com segurança!
+    await page.getByRole('button', { name: /Salvar Alterações/i }).click();
+
+    // Verifica se o toast de sucesso (disparado pelo frontend ao receber o success: true) apareceu
+    await expect(page.getByText('Configurações de cabeçalho salvas com sucesso')).toBeVisible();
   });
 });
+

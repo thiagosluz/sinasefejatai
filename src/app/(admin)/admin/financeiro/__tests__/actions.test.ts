@@ -52,6 +52,17 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }));
 
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
+    storage: {
+      from: vi.fn(() => ({
+        upload: mockUpload,
+        remove: mockRemove,
+      }))
+    }
+  }))
+}));
+
 describe('Financeiro Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();

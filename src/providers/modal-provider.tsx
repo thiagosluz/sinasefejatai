@@ -7,7 +7,7 @@ import { ConfirmModal, ModalType } from '@/components/ui/confirm-modal';
 interface ModalContextData {
   confirm: (message: string) => Promise<boolean>;
   alert: (message: string) => Promise<void>;
-  prompt: (message: string, placeholder?: string, buttonText?: string, inputType?: 'text' | 'password') => Promise<string | null>;
+  prompt: (message: string, placeholder?: string, inputType?: 'text' | 'password') => Promise<string | null>;
 }
 
 const ModalContext = createContext<ModalContextData | undefined>(undefined);
@@ -43,7 +43,7 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const prompt = useCallback((msg: string, ph: string = '', _btnText: string = 'Confirmar', inputTypeOpt: 'text' | 'password' = 'text'): Promise<string | null> => {
+  const prompt = useCallback((msg: string, ph: string = '', inputTypeOpt: 'text' | 'password' = 'text'): Promise<string | null> => {
     setMessage(msg);
     setPlaceholder(ph);
     setInputType(inputTypeOpt);

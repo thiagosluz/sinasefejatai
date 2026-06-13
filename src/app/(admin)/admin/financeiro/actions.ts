@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 
 import { ActionResponse, handleError } from '@/lib/action-utils'
 import { requireAdmin } from '@/lib/dal'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 export async function addTransacao(formData: FormData): Promise<ActionResponse> {
@@ -49,7 +50,8 @@ export async function addTransacao(formData: FormData): Promise<ActionResponse> 
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      const { error: uploadError } = await supabase.storage
+      const supabaseAdmin = createAdminClient()
+      const { error: uploadError } = await supabaseAdmin.storage
         .from('comprovantes')
         .upload(fileName, buffer, {
           contentType: file.type,
@@ -57,6 +59,7 @@ export async function addTransacao(formData: FormData): Promise<ActionResponse> 
         })
 
         if (uploadError) {
+          console.error('Upload error in addTransacao:', uploadError)
           return { success: false, error: 'Falha ao carregar o arquivo de comprovante' }
         }
 
@@ -114,7 +117,8 @@ export async function deleteTransacao(id: string): Promise<ActionResponse> {
       const parts = transacao.comprovante_url.split('/')
       const fileName = parts[parts.length - 1]
       
-      await supabase.storage
+      const supabaseAdmin = createAdminClient()
+      await supabaseAdmin.storage
         .from('comprovantes')
         .remove([fileName])
     } catch (err) {
@@ -187,7 +191,8 @@ export async function updateTransacao(id: string, formData: FormData): Promise<A
         const parts = transacaoAtual.comprovante_url.split('/')
         const fileName = parts[parts.length - 1]
         
-        await supabase.storage
+        const supabaseAdmin = createAdminClient()
+        await supabaseAdmin.storage
           .from('comprovantes')
           .remove([fileName])
       } catch (err) {
@@ -216,7 +221,8 @@ export async function updateTransacao(id: string, formData: FormData): Promise<A
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      const { error: uploadError } = await supabase.storage
+      const supabaseAdmin = createAdminClient()
+      const { error: uploadError } = await supabaseAdmin.storage
         .from('comprovantes')
         .upload(fileName, buffer, {
           contentType: file.type,
@@ -224,6 +230,7 @@ export async function updateTransacao(id: string, formData: FormData): Promise<A
         })
 
         if (uploadError) {
+          console.error('Upload error in updateTransacao:', uploadError)
           return { success: false, error: 'Falha ao carregar o arquivo de comprovante' }
         }
 

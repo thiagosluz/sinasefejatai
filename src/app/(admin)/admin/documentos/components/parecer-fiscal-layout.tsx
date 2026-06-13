@@ -34,7 +34,7 @@ export function ParecerFiscalLayout({ dados, config, verificacao, status = 'ativ
         {/* Corpo do Parecer em HTML puro */}
         {dados.conteudo_html ? (
           <div 
-            className="text-base leading-relaxed mb-12"
+            className="text-base leading-relaxed mb-12 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:tracking-[0.2em] [&_h2]:uppercase [&_h2]:mb-8 [&_h2]:text-center [&_hr]:my-6 [&_hr]:border-zinc-300 [&_p:first-of-type]:text-center [&_p:first-of-type]:mb-8 [&_p:first-of-type]:text-sm [&_p:first-of-type]:text-zinc-600"
             dangerouslySetInnerHTML={{ __html: dados.conteudo_html }}
           />
         ) : (
