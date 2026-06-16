@@ -68,5 +68,17 @@ Marketing direto das vantagens econômicas de ser sindicalizado.
 * **Mecânica:** A diretoria cadastra Parceiros (nome, logo, regras de desconto, validade do convênio) pelo painel de admin. Isso alimenta uma aba belíssima de "Convênios" no Portal Público.
 * **Benefícios:** Funciona como o maior argumento de atração para filiação de novos servidores, que batem o olho nos benefícios (planos de saúde, escolas, postos de combustível) e enxergam retorno financeiro na taxa sindical.
 
+## Módulo: Segurança e Proteção Anti-Spam
+
+O sistema de proteção atual possui Honeypot Nativo + Verificação de Tempo de Preenchimento (Time-based).
+
+### 1. Integração com Cloudflare Turnstile (Captcha Invisível)
+* **Mecânica:** Implementar o widget invisível do Cloudflare Turnstile nos formulários públicos (`/filiacao` e `/contato`). A Server Action fará a verificação do token na API do Cloudflare antes de registrar no banco.
+* **Benefícios:** Bloqueia headless browsers e bots sofisticados sem prejudicar a experiência do usuário real (sem testes de reconhecimento de imagem chatos). É gratuito e respeita mais a privacidade que o reCAPTCHA.
+
+### 2. Rate Limiting no Middleware
+* **Mecânica:** Usar Supabase Edge Functions ou Vercel KV (Redis) com `@upstash/ratelimit` para bloquear múltiplos requests em curtos espaços de tempo oriundos do mesmo IP nas rotas públicas de form.
+* **Benefícios:** Impede completamente ataques de negação de serviço e força bruta de spam.
+
 ---
 *Documento vivo. Adicione novas ideias e módulos conforme surgirem discussões e feedbacks da diretoria.*

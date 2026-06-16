@@ -17,7 +17,14 @@ export async function solicitarFiliacao(dadosRaw: FiliacaoFormData): Promise<Act
       return { success: false, error: 'Dados preenchidos incorretamente. Verifique os campos.' }
     }
 
-    const { nome, email, telefone, siape, unidade_lotacao, campus, categoria, situacao } = validacao.data
+    const { nome, email, telefone, siape, unidade_lotacao, campus, categoria, situacao, website, timestamp } = validacao.data
+
+    // 2. Proteção Anti-Spam (Honeypot + Time-based)
+    const isBot = website || (timestamp && Date.now() - parseInt(timestamp, 10) < 3000)
+    if (isBot) {
+      console.warn('[filiacao] Submissão bloqueada por suspeita de bot (honeypot/time-based).')
+      redirect('/filiacao?sucesso=1')
+    }
 
     const { error } = await supabase.from('filiados').insert({
       nome,

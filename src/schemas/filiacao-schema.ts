@@ -12,7 +12,9 @@ export const FiliacaoSchema = z.object({
   }),
   situacao: z.enum(['Ativo', 'Aposentado'], {
     message: 'Selecione uma situação válida.'
-  })
+  }),
+  website: z.string().optional(),
+  timestamp: z.string().optional()
 })
 
 export type FiliacaoFormData = z.infer<typeof FiliacaoSchema>

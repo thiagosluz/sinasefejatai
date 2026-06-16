@@ -12,6 +12,7 @@ import { solicitarFiliacao } from './actions'
 
 export function FiliacaoForm() {
   const [erro, setErro] = useState<string | null>(null)
+  const [renderTime] = useState(() => Date.now().toString())
 
   const {
     register,
@@ -43,6 +44,10 @@ export function FiliacaoForm() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="hidden" aria-hidden="true">
+          <input type="text" {...register('website')} tabIndex={-1} autoComplete="off" />
+          <input type="hidden" {...register('timestamp')} value={renderTime} />
+        </div>
         {/* Nome + SIAPE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

@@ -17,7 +17,14 @@ export async function enviarMensagem(dadosRaw: ContatoFormData): Promise<ActionR
       return { success: false, error: 'Dados preenchidos incorretamente. Verifique os campos.' }
     }
 
-    const { nome, email, assunto, mensagem } = validacao.data
+    const { nome, email, assunto, mensagem, website, timestamp } = validacao.data
+
+    // 2. Proteção Anti-Spam (Honeypot + Time-based)
+    const isBot = website || (timestamp && Date.now() - parseInt(timestamp, 10) < 3000)
+    if (isBot) {
+      console.warn('[contato] Submissão bloqueada por suspeita de bot (honeypot/time-based).')
+      redirect('/contato?sucesso=1')
+    }
 
     const { error } = await supabase.from('mensagens').insert({
       nome,

@@ -12,6 +12,7 @@ import { enviarMensagem } from './actions'
 
 export function ContatoForm() {
   const [erro, setErro] = useState<string | null>(null)
+  const [renderTime] = useState(() => Date.now().toString())
 
   const {
     register,
@@ -48,6 +49,10 @@ export function ContatoForm() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="hidden" aria-hidden="true">
+          <input type="text" {...register('website')} tabIndex={-1} autoComplete="off" />
+          <input type="hidden" {...register('timestamp')} value={renderTime} />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="nome" className="block text-sm font-medium text-brand-ink mb-1.5">
