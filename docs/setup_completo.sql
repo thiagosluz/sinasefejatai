@@ -245,6 +245,23 @@ CREATE TABLE IF NOT EXISTS public.perfis (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- 2.18 Boletins Semanais
+CREATE TABLE IF NOT EXISTS public.boletins (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    titulo TEXT NOT NULL,
+    corpo_texto TEXT NOT NULL,
+    capa_url TEXT NOT NULL,
+    arquivo_pdf_url TEXT,
+    link_externo TEXT,
+    data_publicacao DATE NOT NULL,
+    status TEXT DEFAULT 'Rascunho' CHECK (status IN ('Rascunho', 'Publicado')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TRIGGER set_boletins_updated_at 
+BEFORE UPDATE ON public.boletins 
+FOR EACH ROW EXECUTE FUNCTION moddatetime(updated_at);
 
 -- ==========================================
 -- 3. HABILITANDO SEGURANÇA DE LINHAS (RLS)
@@ -268,6 +285,7 @@ ALTER TABLE public.financeiro_prestacoes_mensais ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.documentos_administrativos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.publicacoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.perfis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.boletins ENABLE ROW LEVEL SECURITY;
 
 
 -- ==========================================
@@ -325,6 +343,10 @@ CREATE POLICY "Superadmin pode gerenciar perfis"
   USING (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'))
   WITH CHECK (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'));
 
+-- 4.8 Boletins Semanais
+CREATE POLICY "Leitura publica de boletins" ON public.boletins FOR SELECT TO public USING (status = 'Publicado');
+CREATE POLICY "Admin pode gerenciar boletins" ON public.boletins FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
 
 -- ==========================================
 -- 5. BUCKETS DE STORAGE (Arquivos em nuvem)
@@ -344,6 +366,11 @@ CREATE POLICY "Leitura publica sistema" ON storage.objects FOR SELECT TO public 
 INSERT INTO storage.buckets (id, name, public) VALUES ('documentos_publicos', 'documentos_publicos', true) ON CONFLICT (id) DO NOTHING;
 CREATE POLICY "Leitura publica no storage de publicacoes" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documentos_publicos');
 CREATE POLICY "Admin gerencia storage de publicacoes" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'documentos_publicos') WITH CHECK (bucket_id = 'documentos_publicos');
+
+-- Bucket Boletins
+INSERT INTO storage.buckets (id, name, public) VALUES ('boletins', 'boletins', true) ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Leitura publica no storage de boletins" ON storage.objects FOR SELECT TO public USING (bucket_id = 'boletins');
+CREATE POLICY "Admin gerencia storage de boletins" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'boletins') WITH CHECK (bucket_id = 'boletins');
 
 
 -- ==========================================
@@ -425,6 +452,7 @@ CREATE TRIGGER audit_gestoes_trigger AFTER INSERT OR UPDATE OR DELETE ON gestoes
 CREATE TRIGGER audit_membros_gestao_trigger AFTER INSERT OR UPDATE OR DELETE ON gestao_membros FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 CREATE TRIGGER audit_configuracoes_trigger AFTER INSERT OR UPDATE OR DELETE ON configuracoes FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 CREATE TRIGGER audit_perfis_trigger AFTER INSERT OR UPDATE OR DELETE ON public.perfis FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_boletins_trigger AFTER INSERT OR UPDATE OR DELETE ON public.boletins FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 
 
 -- ==========================================

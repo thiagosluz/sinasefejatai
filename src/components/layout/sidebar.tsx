@@ -9,6 +9,7 @@ import {
   Home, 
   Landmark, 
   MapPin, 
+  Newspaper,
   ShieldCheck, 
   Sliders, 
   Users, 
@@ -52,6 +53,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
       group: 'Documental',
       items: [
         { href: '/admin/assembleias', label: 'Assembleias', icon: CalendarRange },
+        { href: '/admin/boletins', label: 'Boletins', icon: Newspaper },
         { href: '/admin/documentos', label: 'Documentos', icon: FileText },
         { href: '/admin/publicacoes', label: 'Portal Público', icon: Globe },
         { href: '/admin/configuracoes', label: 'Identidade Visual', icon: Sliders },

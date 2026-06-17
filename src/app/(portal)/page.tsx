@@ -5,13 +5,13 @@ import { EMAIL_SINDICATO } from '@/lib/constants'
 import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
-async function getAssembleiasRecentes() {
+async function getBoletinsRecentes() {
   const supabase = await createClient()
   const { data } = await supabase
-    .from('assembleias')
-    .select('id, numero, tipo, data_realizacao, local, status, pautas')
-    .neq('status', 'Rascunho')
-    .order('data_realizacao', { ascending: false })
+    .from('boletins')
+    .select('id, titulo, data_publicacao, capa_url')
+    .eq('status', 'Publicado')
+    .order('data_publicacao', { ascending: false })
     .limit(3)
   return data ?? []
 }
@@ -34,15 +34,9 @@ function formatDate(dateStr: string) {
   })
 }
 
-const statusStyles: Record<string, string> = {
-  Agendada: 'bg-blue-100 text-blue-800',
-  Realizada: 'bg-green-100 text-green-800',
-  Cancelada: 'bg-zinc-100 text-zinc-600',
-}
-
 export default async function PortalHomePage() {
-  const [assembleias, config] = await Promise.all([
-    getAssembleiasRecentes(),
+  const [boletins, config] = await Promise.all([
+    getBoletinsRecentes(),
     getConfiguracoes(),
   ])
 
@@ -159,93 +153,74 @@ export default async function PortalHomePage() {
         </div>
       </section>
 
-      {/* ── Últimas Assembleias ── */}
+      {/* ── Últimos Boletins ── */}
       <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <p className="text-brand-tinto font-semibold text-sm uppercase tracking-widest mb-2">Transparência</p>
-              <h2 className="text-3xl font-bold text-brand-ink font-serif">Últimas Assembleias</h2>
+              <p className="text-brand-tinto font-semibold text-sm uppercase tracking-widest mb-2">Publicações</p>
+              <h2 className="text-3xl font-bold text-brand-ink font-serif">Últimos Boletins Semanais</h2>
             </div>
             <Link
-              href="/assembleias"
-              id="home-ver-todas-assembleias"
+              href="/boletins"
+              id="home-ver-todos-boletins"
               className="hidden sm:inline-flex items-center gap-1.5 text-brand-tinto font-semibold text-sm hover:gap-2.5 transition-all"
             >
-              Ver todas <ChevronRight size={16} />
+              Ver todos <ChevronRight size={16} />
             </Link>
           </div>
 
-          {assembleias.length === 0 ? (
-            <p className="text-zinc-500 text-center py-12">Nenhuma assembleia publicada até o momento.</p>
+          {boletins.length === 0 ? (
+            <p className="text-zinc-500 text-center py-12">Nenhum boletim publicado até o momento.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {assembleias.map((a) => (
-                <article
-                  key={a.id}
-                  className="group bg-brand-card border border-brand-border-muted rounded-2xl p-6 hover:shadow-lg hover:border-brand-tinto/30 transition-all flex flex-col"
+              {boletins.map((b) => (
+                <Link
+                  key={b.id}
+                  href={`/boletins/${b.id}`}
+                  className="group bg-brand-card border border-brand-border-muted rounded-2xl overflow-hidden hover:shadow-md hover:border-brand-tinto/30 transition-all flex flex-col"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full ${statusStyles[a.status] ?? 'bg-zinc-100 text-zinc-600'}`}
-                    >
-                      {a.status}
-                    </span>
-                    {a.numero && (
-                      <span className="text-xs text-zinc-400 font-mono">Nº {a.numero}</span>
+                  <div className="aspect-[4/3] bg-brand-cream relative overflow-hidden border-b border-brand-border-muted">
+                    {b.capa_url ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={b.capa_url} 
+                          alt={b.titulo}
+                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-brand-ink/20">
+                        <FileText size={48} />
+                      </div>
                     )}
                   </div>
-
-                  <h3 className="font-bold text-brand-ink font-serif mb-2">
-                    Assembleia {a.tipo}
-                  </h3>
-
-                  <div className="flex items-center gap-2 text-zinc-500 text-sm mb-2">
-                    <CalendarDays size={14} className="text-brand-tinto flex-shrink-0" />
-                    <span>{formatDate(a.data_realizacao)}</span>
+                  
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-center gap-2 text-zinc-500 text-sm mb-3">
+                      <CalendarDays size={14} className="text-brand-tinto" />
+                      <span>{formatDate(b.data_publicacao)}</span>
+                    </div>
+                    <h3 className="text-brand-ink font-bold font-serif text-lg leading-tight mb-4 group-hover:text-brand-tinto transition-colors line-clamp-2">
+                      {b.titulo}
+                    </h3>
+                    
+                    <div className="mt-auto flex items-center justify-end text-brand-tinto text-sm font-semibold pt-4 border-t border-brand-border-muted">
+                      Ler Edição <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
-
-                  <div className="flex items-start gap-2 text-zinc-500 text-sm mb-4">
-                    <MapPin size={14} className="text-brand-tinto flex-shrink-0 mt-0.5" />
-                    <span className="line-clamp-1">{a.local}</span>
-                  </div>
-
-                  {a.pautas && a.pautas.length > 0 && (
-                    <ul className="space-y-1">
-                      {a.pautas.slice(0, 2).map((pauta: string, i: number) => (
-                        <li key={i} className="text-xs text-zinc-500 flex items-start gap-1.5">
-                          <span className="mt-1 w-1 h-1 rounded-full bg-brand-tinto flex-shrink-0" />
-                          <span className="line-clamp-1">{pauta}</span>
-                        </li>
-                      ))}
-                      {a.pautas.length > 2 && (
-                        <li className="text-xs text-zinc-400 pl-3">
-                          +{a.pautas.length - 2} item(s)...
-                        </li>
-                      )}
-                    </ul>
-                  )}
-
-                  <div className="mt-auto pt-6 flex justify-end">
-                    <Link
-                      href={`/assembleias/${a.id}`}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-tinto text-white text-xs font-semibold rounded-full hover:bg-brand-tinto-light transition-all hover:shadow-md"
-                    >
-                      Ver Detalhes
-                      <ArrowRight size={14} />
-                    </Link>
-                  </div>
-                </article>
+                </Link>
               ))}
             </div>
           )}
 
           <div className="sm:hidden mt-6 text-center">
             <Link
-              href="/assembleias"
+              href="/boletins"
               className="inline-flex items-center gap-1.5 text-brand-tinto font-semibold text-sm"
             >
-              Ver todas as assembleias <ChevronRight size={16} />
+              Ver todos os boletins <ChevronRight size={16} />
             </Link>
           </div>
         </div>
