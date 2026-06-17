@@ -5,14 +5,48 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 ![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)
 ![Supabase](https://img.shields.io/badge/Supabase-DB_&_Auth-3ECF8E?logo=supabase)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)
+![Vitest](https://img.shields.io/badge/Vitest-Tests-6E9F18?logo=vitest)
+![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright)
 ![Licença](https://img.shields.io/badge/License-MIT-blue.svg)
+
+## 📋 Principais Módulos
+
+| Módulo | Descrição |
+|--------|-----------|
+| **Dashboard** | KPIs e links rápidos para os módulos vitais |
+| **Filiados** | Gestão da base sindical (SIAPE, Campus, Situação) com pedido de filiação online |
+| **Assembleias** | Agendamento, pautas, atas, lista de presença e portal público |
+| **Financeiro** | Livro Caixa com categorias dinâmicas, importação OFX e comprovantes |
+| **Categorias Financeiras** | CRUD administrativo para categorias de entrada/saída |
+| **Conselho Fiscal** | Avaliação e aprovação mensal de prestação de contas |
+| **Documentos** | Emissão de Recibos, Ofícios, Memorandos, Portarias, Certificados, Declarações e Resoluções |
+| **Publicações** | Portal de transparência para materiais públicos |
+| **Diretoria** | Histórico de gestões e membros com fotos |
+| **Auditoria** | Logs imutáveis via Triggers PostgreSQL com retenção de 1 ano |
 
 ## 🛡️ Segurança e Auditoria
 
 O sistema foi desenhado com foco total em rastreabilidade e proteção de dados:
 - **DAL (Data Access Layer)**: Todas as Server Actions passam por uma verificação rigorosa `requireAdmin()` impedindo mutações não autorizadas (CSRF e manipulação via terminal).
+- **RBAC com Perfis**: 4 níveis de acesso (`superadmin`, `diretoria`, `conselho_fiscal`, `filiado`) com validação rigorosa na camada de Server Actions.
 - **Triggers Nativos**: Inserções, edições e exclusões nas tabelas críticas (`filiados`, `assembleias`, `financeiro`, etc) geram automaticamente um snapshot em JSON na tabela de `audit_logs` pelo próprio PostgreSQL, sem intervenção do backend.
+- **Hard Lock Financeiro**: Triggers que impedem qualquer alteração em transações de meses com prestação de contas já aprovada pelo Conselho Fiscal.
 - **Log Centralizado (`Pino`)**: Todos os erros de sistema e acessos sensíveis mascaram senhas e informações pessoais (PII) antes de serem impressos no console.
+
+## 🧪 Testes
+
+O projeto possui uma suíte completa de testes automatizados:
+
+```bash
+# Testes unitários e de integração (Vitest)
+pnpm test
+
+# Testes End-to-End (Playwright)
+pnpm test:e2e
+
+# Pipeline completo de verificação
+pnpm lint && pnpm test && pnpm test:e2e && pnpm tsc --noEmit && pnpm build
+```
 
 ## 📚 Documentação Profunda
 

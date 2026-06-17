@@ -14,6 +14,7 @@ O sistema é um portal web e aplicativo de gestão de retaguarda focado em centr
 - **Estilização:** [Tailwind CSS v4](https://tailwindcss.com) e componentes baseados no ecossistema [Lucide React](https://lucide.dev) para iconografia.
 - **Banco de Dados & Autenticação:** [Supabase](https://supabase.com) (PostgreSQL) com `@supabase/ssr` para autenticação segura baseada em cookies no lado do servidor.
 - **Tipagem:** TypeScript rigoroso.
+- **Testes:** Vitest (unitários/integração), Playwright (E2E).
 - **Identidade Visual:** Design System "Retro-Editorial" focado em paletas institucionais (creme, tinto, ink) e fontes serifadas para documentos oficiais.
 
 ## 3. Padrões e Decisões de Código
@@ -51,9 +52,12 @@ Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual o
 ### 4.3. Atos & Assembleias
 - **Escopo:** Agendamento de reuniões (Ordinárias/Extraordinárias), definição de pautas e público-alvo.
 - **Atas e Presenças:** Permite redação de ata rica e registro de lista de presença.
+- **Portal Público:** Página pública com histórico de assembleias filtradas por ano e detalhamento individual com documentos públicos anexados.
 
-### 4.4. Livro Caixa (Financeiro) & Hard Lock
-- **Escopo:** Controle de fluxo financeiro (Entradas e Saídas).
+### 4.4. Livro Caixa (Financeiro), Categorias Dinâmicas & Hard Lock
+- **Escopo:** Controle de fluxo financeiro (Entradas e Saídas) com categorias normalizadas e relacionais.
+- **Categorias Dinâmicas:** As categorias de transações (`financeiro_categorias`) são gerenciadas via CRUD administrativo (`/admin/financeiro/categorias`), permitindo que a diretoria cadastre, edite, ative e desative categorias sem necessidade de alteração no código. A tabela `financeiro` referencia `categoria_id` (FK) ao invés de texto livre, garantindo integridade referencial.
+- **Importação OFX:** O sistema permite importar extratos bancários no formato OFX (Open Financial Exchange), classificando automaticamente as transações com as categorias dinâmicas existentes. Transações duplicatas são detectadas e ignoradas via campo `banco_id` (UNIQUE).
 - **Comprovantes:** Upload de comprovantes em PDF/Imagens direto para um Supabase Storage Bucket.
 - **Hard Lock Triggers:** O sistema implementa uma camada de proteção nativa em BD (Trigger) onde, se um determinado mês financeiro tiver a "Prestação de Contas Aprovada" pelo Conselho Fiscal, nenhuma transação deste mês poderá ser criada, excluída ou editada, nem por administradores do banco.
 
@@ -62,7 +66,7 @@ Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual o
 - **Fluxo:** O sistema compila automaticamente os saldos do mês, junta os comprovantes de despesas e cria um documento que transita por uma máquina de estados: `AGUARDANDO_ASSINATURAS` -> `COM_RESSALVAS` / `REJEITADO` / `APROVADO`. Cada conselheiro logado pode assinar digitalmente o parecer até o número total de conselheiros da gestão ser batido, bloqueando o mês.
 
 ### 4.6. Documentos Administrativos e Publicações
-- **Escopo:** Emissão e versionamento digital de Recibos, Ofícios, Memorandos, Portarias e Resoluções.
+- **Escopo:** Emissão e versionamento digital de Recibos, Ofícios, Memorandos, Portarias, Certificados, Declarações e Resoluções.
 - **Publicações:** Todo e qualquer material público do sindicato que não for um documento interno vai para o portal transparência (Publicações). 
 - **Assinatura Eletrônica:** Utiliza o sistema interno nativo em tabelas vinculando UUIDs de `documento_verificacoes`.
 
@@ -74,3 +78,23 @@ Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual o
 
 ### 4.9. Auditoria (Logs)
 - **Escopo:** Painel de visualização ("Fichário Físico") imutável para a diretoria enxergar todas as movimentações críticas da plataforma. Retenção automática de 1 ano via PG Cron.
+
+## 5. Estrutura de Testes
+
+O projeto segue a pirâmide de testes clássica:
+
+### Testes Unitários & Integração (Vitest)
+- **Server Actions:** Todas as ações de mutação de dados (`actions.ts`) possuem testes que mocam o Supabase client, verificando validações de campos, parsing de valores e fluxos de upload de arquivo.
+- **Componentes UI:** Componentes interativos (`financeiro-form-drawer`, `assembleia-card`, `modal-provider`) possuem testes de rendering e interação via Testing Library.
+- **Utilitários:** Parsers (OFX, datas), loaders de imagem e helpers de ação possuem testes unitários puros.
+
+### Testes End-to-End (Playwright)
+- Cobrem os fluxos críticos completos: login, dashboard, CRUD de assembleias, diretoria, filiados, financeiro, configurações, documentos e portal público.
+- Executam contra o banco de dados real com limpeza automática via Global Setup/Teardown.
+- **Comando:** `pnpm test:e2e`
+
+### Pipeline de Verificação
+A validação completa do projeto é feita com:
+```bash
+pnpm lint && pnpm test && pnpm test:e2e && pnpm tsc --noEmit && pnpm build
+```

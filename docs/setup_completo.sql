@@ -85,20 +85,31 @@ CREATE TABLE public.assembleia_documentos (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now()) NOT NULL
 );
 
--- 2.7 Financeiro (Livro Caixa e Comprovantes)
+-- 2.7 Categorias Financeiras (Dinâmicas)
+CREATE TABLE public.financeiro_categorias (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome TEXT NOT NULL,
+  tipo TEXT NOT NULL CHECK (tipo IN ('Entrada', 'Saída')),
+  ativo BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.financeiro_categorias ADD CONSTRAINT unq_financeiro_categorias_nome_tipo UNIQUE (nome, tipo);
+
+-- 2.8 Financeiro (Livro Caixa e Comprovantes)
 CREATE TABLE public.financeiro (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tipo TEXT NOT NULL CHECK (tipo in ('Entrada', 'Saída')),
     data DATE NOT NULL,
     descricao TEXT NOT NULL,
     valor NUMERIC(10,2) NOT NULL,
-    categoria TEXT NOT NULL,
+    categoria_id UUID NOT NULL REFERENCES public.financeiro_categorias(id),
     comprovante_url TEXT,
     banco_id TEXT UNIQUE, -- ID único da transação bancária vinda do extrato OFX (evita duplicidade).
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2.8 Histórico de Gestões e Diretoria
+-- 2.9 Histórico de Gestões e Diretoria
 CREATE TABLE public.gestoes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   nome TEXT NOT NULL,
@@ -117,11 +128,12 @@ CREATE TABLE public.gestao_membros (
   nome TEXT,                        
   foto_url TEXT,                    
   is_cargo_fixo BOOLEAN NOT NULL DEFAULT false,
+  filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL,
   ordem INTEGER NOT NULL DEFAULT 99,
   criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2.9 Mensagens (Fale Conosco Portal Público)
+-- 2.10 Mensagens (Fale Conosco Portal Público)
 CREATE TABLE public.mensagens (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   nome TEXT NOT NULL,
@@ -132,7 +144,7 @@ CREATE TABLE public.mensagens (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2.10 Configurações Globais (Timbres Oficiais)
+-- 2.11 Configurações Globais (Timbres Oficiais)
 CREATE TABLE public.configuracoes (
     id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
     titulo TEXT NOT NULL DEFAULT 'SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA',
@@ -146,7 +158,7 @@ CREATE TABLE public.configuracoes (
 );
 
 
--- 2.11 Auditoria (Logs do Sistema)
+-- 2.12 Auditoria (Logs do Sistema)
 CREATE TABLE public.audit_logs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -160,9 +172,7 @@ CREATE TABLE public.audit_logs (
 );
 
 
--- ==========================================
-
--- 2.12 Conselho Fiscal
+-- 2.13 Conselho Fiscal
 CREATE TABLE public.conselho_fiscal_gestoes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   nome TEXT NOT NULL,
@@ -185,7 +195,7 @@ CREATE TABLE public.conselho_fiscal_membros (
   criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 9.1 Tabela Documentos Administrativos (Recibos, Portarias, Ofícios, etc)
+-- 2.14 Documentos Administrativos (Recibos, Portarias, Ofícios, etc)
 CREATE TABLE IF NOT EXISTS public.documentos_administrativos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tipo TEXT NOT NULL,
@@ -199,7 +209,7 @@ CREATE TABLE IF NOT EXISTS public.documentos_administrativos (
 );
 
 
--- 2.13 Prestações de Contas Mensais (Conselho Fiscal)
+-- 2.15 Prestações de Contas Mensais (Conselho Fiscal)
 CREATE TABLE public.financeiro_prestacoes_mensais (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   mes_ano TEXT UNIQUE NOT NULL, -- Format: YYYY-MM
@@ -215,6 +225,28 @@ CREATE TRIGGER handle_updated_at_financeiro_prestacoes_mensais
   BEFORE UPDATE ON public.financeiro_prestacoes_mensais
   FOR EACH ROW EXECUTE PROCEDURE moddatetime(updated_at);
 
+-- 2.16 Publicações (Arquivos Externos)
+CREATE TABLE IF NOT EXISTS public.publicacoes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  titulo TEXT NOT NULL,
+  categoria TEXT NOT NULL,
+  arquivo_url TEXT NOT NULL,
+  data_publicacao DATE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2.17 Gestão de Acessos e Perfis
+CREATE TABLE IF NOT EXISTS public.perfis (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('superadmin', 'diretoria', 'filiado', 'conselho_fiscal')),
+    filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+
+-- ==========================================
 -- 3. HABILITANDO SEGURANÇA DE LINHAS (RLS)
 -- ==========================================
 ALTER TABLE public.filiados ENABLE ROW LEVEL SECURITY;
@@ -223,6 +255,7 @@ ALTER TABLE public.locais ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.presencas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.atas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assembleia_documentos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.financeiro_categorias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financeiro ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gestoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gestao_membros ENABLE ROW LEVEL SECURITY;
@@ -232,6 +265,9 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conselho_fiscal_gestoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conselho_fiscal_membros ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financeiro_prestacoes_mensais ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documentos_administrativos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.publicacoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.perfis ENABLE ROW LEVEL SECURITY;
 
 
 -- ==========================================
@@ -251,39 +287,50 @@ CREATE POLICY "Permitir tudo para autenticados em gestao_membros" ON public.gest
 CREATE POLICY "Permitir tudo para autenticados em mensagens" ON public.mensagens FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir tudo para autenticados em configuracoes" ON public.configuracoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir tudo para autenticados em audit_logs" ON public.audit_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Permitir tudo para autenticados em financeiro_prestacoes_mensais" ON public.financeiro_prestacoes_mensais FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
+-- 4.2 Categorias Financeiras
+CREATE POLICY "Permitir todos para autenticados categorias" ON public.financeiro_categorias FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Permitir leitura publica categorias" ON public.financeiro_categorias FOR SELECT USING (true);
+
+-- 4.3 Conselho Fiscal
 CREATE POLICY "Permitir leitura anonima conselho gestoes" ON public.conselho_fiscal_gestoes FOR SELECT TO anon USING (true);
 CREATE POLICY "Permitir leitura anonima conselho membros" ON public.conselho_fiscal_membros FOR SELECT TO anon USING (true);
 CREATE POLICY "Permitir tudo para autenticados em conselho_fiscal_gestoes" ON public.conselho_fiscal_gestoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir tudo para autenticados em conselho_fiscal_membros" ON public.conselho_fiscal_membros FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Permitir tudo para autenticados em financeiro_prestacoes_mensais" ON public.financeiro_prestacoes_mensais FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
-
--- 4.2. PERMISSÕES DO PORTAL PÚBLICO (Usuários Anonimos)
--- Qualquer visitante pode ver as configurações e layouts timbrados
+-- 4.4 PERMISSÕES DO PORTAL PÚBLICO (Usuários Anônimos)
 CREATE POLICY "Permitir leitura publica de configuracoes" ON public.configuracoes FOR SELECT TO anon USING (true);
--- Qualquer visitante pode ler as gestões
 CREATE POLICY "Permitir leitura publica de gestoes" ON public.gestoes FOR SELECT TO anon USING (true);
 CREATE POLICY "Permitir leitura publica de gestao_membros" ON public.gestao_membros FOR SELECT TO anon USING (true);
--- Qualquer visitante pode enviar mensagem de contato
 CREATE POLICY "Permitir envio de mensagem publica" ON public.mensagens FOR INSERT TO anon WITH CHECK (true);
--- Qualquer visitante pode pedir filiação, mas forçando o status para pendente
 CREATE POLICY "Permitir pedido de filiacao" ON public.filiados FOR INSERT TO anon WITH CHECK (status_filiacao = 'pendente');
--- Visitantes podem ver assembleias publicadas (não rascunho) e seus anexos
 CREATE POLICY "Permitir leitura publica de assembleias" ON public.assembleias FOR SELECT TO anon USING (status != 'Rascunho');
 CREATE POLICY "Permitir leitura publica de anexos assembleia" ON public.assembleia_documentos FOR SELECT TO anon USING (EXISTS (SELECT 1 FROM public.assembleias a WHERE a.id = assembleia_documentos.assembleia_id AND a.status != 'Rascunho'));
 
-
--- 9.3 RLS e Policies para Documentos Administrativos
-ALTER TABLE public.documentos_administrativos ENABLE ROW LEVEL SECURITY;
+-- 4.5 Documentos Administrativos
 CREATE POLICY "Permitir leitura anonima documentos_administrativos publicos" ON public.documentos_administrativos FOR SELECT TO anon USING (is_publico = true);
 CREATE POLICY "Permitir tudo para autenticados em documentos_administrativos" ON public.documentos_administrativos FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- 4.6 Publicações
+CREATE POLICY "Leitura publica de publicacoes" ON public.publicacoes FOR SELECT TO public USING (true);
+CREATE POLICY "Admin pode gerenciar publicacoes" ON public.publicacoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- 4.7 Perfis
+CREATE POLICY "Permitir leitura de perfis para autenticados" 
+  ON public.perfis FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Superadmin pode gerenciar perfis" 
+  ON public.perfis FOR ALL TO authenticated 
+  USING (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'));
 
 
 -- ==========================================
 -- 5. BUCKETS DE STORAGE (Arquivos em nuvem)
 -- ==========================================
--- Bucket Financeiro
+
+-- Bucket Financeiro (Comprovantes)
 INSERT INTO storage.buckets (id, name, public) VALUES ('comprovantes', 'comprovantes', true) ON CONFLICT DO NOTHING;
 CREATE POLICY "Autenticados gerenciam comprovantes" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'comprovantes') WITH CHECK (bucket_id = 'comprovantes');
 CREATE POLICY "Leitura publica comprovantes" ON storage.objects FOR SELECT TO public USING (bucket_id = 'comprovantes');
@@ -292,6 +339,11 @@ CREATE POLICY "Leitura publica comprovantes" ON storage.objects FOR SELECT TO pu
 INSERT INTO storage.buckets (id, name, public) VALUES ('sistema', 'sistema', true) ON CONFLICT DO NOTHING;
 CREATE POLICY "Autenticados gerenciam sistema" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'sistema') WITH CHECK (bucket_id = 'sistema');
 CREATE POLICY "Leitura publica sistema" ON storage.objects FOR SELECT TO public USING (bucket_id = 'sistema');
+
+-- Bucket Documentos Públicos (Publicações)
+INSERT INTO storage.buckets (id, name, public) VALUES ('documentos_publicos', 'documentos_publicos', true) ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Leitura publica no storage de publicacoes" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documentos_publicos');
+CREATE POLICY "Admin gerencia storage de publicacoes" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'documentos_publicos') WITH CHECK (bucket_id = 'documentos_publicos');
 
 
 -- ==========================================
@@ -315,6 +367,22 @@ INSERT INTO public.locais (nome_curto, texto_completo) VALUES
 ('Miniauditório 1 (Campus Jataí)', 'no Miniauditório 1 da unidade Flamboyant do Campus Jataí do Instituto Federal de Educação, Ciência e Tecnologia de Goiás – IFG, Av. Presidente Juscelino Kubitschek, nº 775, Residencial Flamboyant, CEP 75.804-714, no município de Jataí-GO'),
 ('Auditório Principal (Campus Jataí)', 'no Auditório Principal da unidade Flamboyant do Campus Jataí do Instituto Federal de Educação, Ciência e Tecnologia de Goiás – IFG, Av. Presidente Juscelino Kubitschek, nº 775, Residencial Flamboyant, CEP 75.804-714, no município de Jataí-GO')
 ON CONFLICT DO NOTHING;
+
+-- Seed: Categorias Financeiras padrão
+INSERT INTO public.financeiro_categorias (nome, tipo) VALUES 
+('Repasse Nacional', 'Entrada'),
+('Contribuição de Filiados', 'Entrada'),
+('Rendimentos', 'Entrada'),
+('Saldo de Abertura', 'Entrada'),
+('Outros', 'Entrada'),
+('Despesas com Viagens', 'Saída'),
+('Material de Consumo', 'Saída'),
+('Eventos/Mobilizações', 'Saída'),
+('Serviços de Terceiros', 'Saída'),
+('Despesas Administrativas', 'Saída'),
+('Tarifas Bancárias', 'Saída'),
+('Outros', 'Saída')
+ON CONFLICT (nome, tipo) DO NOTHING;
 
 
 -- ==========================================
@@ -356,9 +424,8 @@ CREATE TRIGGER audit_financeiro_trigger AFTER INSERT OR UPDATE OR DELETE ON fina
 CREATE TRIGGER audit_gestoes_trigger AFTER INSERT OR UPDATE OR DELETE ON gestoes FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 CREATE TRIGGER audit_membros_gestao_trigger AFTER INSERT OR UPDATE OR DELETE ON gestao_membros FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 CREATE TRIGGER audit_configuracoes_trigger AFTER INSERT OR UPDATE OR DELETE ON configuracoes FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_perfis_trigger AFTER INSERT OR UPDATE OR DELETE ON public.perfis FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 
-
--- ==========================================
 
 -- ==========================================
 -- 7.1 TRIGGERS DE HARD LOCK FINANCEIRO
@@ -414,6 +481,15 @@ $ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_lock_financeiro_transacoes_ins BEFORE INSERT ON public.financeiro FOR EACH ROW EXECUTE FUNCTION trg_lock_financeiro_transacoes_insert();
 
+
+-- ==========================================
+-- 7.2 TRIGGER DE UPDATED_AT (PERFIS)
+-- ==========================================
+
+CREATE TRIGGER set_perfis_updated_at BEFORE UPDATE ON public.perfis FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+
+-- ==========================================
 -- 8. TAREFAS AGENDADAS (CRON)
 -- ==========================================
 
@@ -424,63 +500,3 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 SELECT cron.schedule('cleanup_old_audit_logs', '0 0 * * 0', $$
     DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '1 year';
 $$);
-  
--- ==========================================  
--- 9. ATUALIZA��ES RECENTES  
--- ========================================== 
-
--- 9.2 Tabela Publicações (Arquivos Externos)
-CREATE TABLE IF NOT EXISTS public.publicacoes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  titulo TEXT NOT NULL,
-  categoria TEXT NOT NULL,
-  arquivo_url TEXT NOT NULL,
-  data_publicacao DATE NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 9.4 RLS e Policies para Publicações
-ALTER TABLE public.publicacoes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Leitura publica de publicacoes" ON public.publicacoes FOR SELECT TO public USING (true);
-CREATE POLICY "Admin pode gerenciar publicacoes" ON public.publicacoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
--- 9.5 Storage Bucket para Documentos Públicos
-INSERT INTO storage.buckets (id, name, public) VALUES ('documentos_publicos', 'documentos_publicos', true) ON CONFLICT (id) DO NOTHING;
-CREATE POLICY "Leitura publica no storage de publicacoes" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documentos_publicos');
-CREATE POLICY "Admin gerencia storage de publicacoes" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'documentos_publicos') WITH CHECK (bucket_id = 'documentos_publicos');
-
--- FIM DA ATUALIZAÇÃO
-
--- ==========================================
--- 10. GESTÃO DE ACESSOS E PERFIS
--- ==========================================
-
--- 10.1 Tabela de Perfis
-CREATE TABLE IF NOT EXISTS public.perfis (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    role TEXT NOT NULL CHECK (role IN ('superadmin', 'diretoria', 'filiado', 'conselho_fiscal')),
-    filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- 10.2 Vínculo em Gestão Membros
-ALTER TABLE public.gestao_membros ADD COLUMN IF NOT EXISTS filiado_id UUID REFERENCES public.filiados(id) ON DELETE SET NULL;
-
--- 10.3 RLS para Perfis
-ALTER TABLE public.perfis ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Permitir leitura de perfis para autenticados" 
-  ON public.perfis FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Superadmin pode gerenciar perfis" 
-  ON public.perfis FOR ALL TO authenticated 
-  USING (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'))
-  WITH CHECK (EXISTS (SELECT 1 FROM public.perfis p WHERE p.id = auth.uid() AND p.role = 'superadmin'));
-
--- Trigger Update
-CREATE TRIGGER set_perfis_updated_at BEFORE UPDATE ON public.perfis FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
-
--- Auditoria
-CREATE TRIGGER audit_perfis_trigger AFTER INSERT OR UPDATE OR DELETE ON public.perfis FOR EACH ROW EXECUTE FUNCTION process_audit_log();
