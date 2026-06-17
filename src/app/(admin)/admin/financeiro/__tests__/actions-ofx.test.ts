@@ -81,7 +81,7 @@ describe('Financeiro OFX Actions', () => {
           tipo: 'Entrada',
           descricao: 'Pix Recebido',
           valor: 100,
-          categoria: 'Contribuições',
+          categoria_id: 'Contribuições',
           banco_id: 'fit-1',
         },
       ]
@@ -104,7 +104,7 @@ describe('Financeiro OFX Actions', () => {
           tipo: 'Entrada',
           descricao: 'Pix Recebido',
           valor: 100,
-          categoria: 'Contribuições',
+          categoria_id: 'Contribuições',
           banco_id: 'fit-1',
         },
       ]

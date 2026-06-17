@@ -17,10 +17,18 @@ export default async function PrestacaoPage() {
   }
 
   // Buscar todas as transações para processamento e filtragem no lado do cliente
-  const { data: transacoes } = await supabase
+  const { data: transacoesData } = await supabase
     .from('financeiro')
-    .select('*')
+    .select(`
+      *,
+      financeiro_categorias ( nome )
+    `)
     .order('data', { ascending: true })
+
+  const transacoes = transacoesData?.map(t => ({
+    ...t,
+    categoria: (t.financeiro_categorias as { nome: string } | null)?.nome || 'Sem Categoria'
+  })) || []
 
   // Buscar status das prestacoes mensais
   const { data: prestacoesMensais } = await supabase

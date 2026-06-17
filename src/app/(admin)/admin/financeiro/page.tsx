@@ -25,12 +25,27 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
     return redirect('/login')
   }
 
-  // Buscar lançamentos financeiros ordenados por data decrescente
-  const { data: transacoes } = await supabase
-    .from('financeiro')
+  // Buscar categorias ativas para passar para o modal
+  const { data: categoriasData } = await supabase
+    .from('financeiro_categorias')
     .select('*')
+    .eq('ativo', true)
+    .order('nome')
+
+  // Buscar lançamentos financeiros ordenados por data decrescente com a categoria join
+  const { data: transacoesData } = await supabase
+    .from('financeiro')
+    .select(`
+      *,
+      financeiro_categorias ( nome )
+    `)
     .order('data', { ascending: false })
     .order('created_at', { ascending: false })
+
+  const transacoes = transacoesData?.map(t => ({
+    ...t,
+    categoria: (t.financeiro_categorias as { nome: string } | null)?.nome || 'Sem Categoria'
+  })) || []
 
   // Buscar meses aprovados para travar a interface
   const { data: mesesAprovadosData } = await supabase
@@ -58,7 +73,11 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         </div>
       )}
 
-      <FinanceiroCliente transacoesIniciais={transacoes || []} mesesAprovados={mesesAprovados} />
+      <FinanceiroCliente 
+        transacoesIniciais={transacoes} 
+        mesesAprovados={mesesAprovados} 
+        categorias={categoriasData || []}
+      />
     </AdminPageWrapper>
   )
 }

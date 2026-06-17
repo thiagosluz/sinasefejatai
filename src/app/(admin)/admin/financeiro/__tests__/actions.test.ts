@@ -87,7 +87,7 @@ describe('Financeiro Actions', () => {
       formData.append('tipo', 'Entrada');
       formData.append('data', '2026-10-10');
       formData.append('descricao', 'Teste');
-      formData.append('categoria', 'Repasse');
+      formData.append('categoria_id', 'uuid-123');
       formData.append('valor', '-100,00');
 
       const result = await addTransacao(formData);
@@ -99,7 +99,7 @@ describe('Financeiro Actions', () => {
       formData.append('tipo', 'Saída');
       formData.append('data', '2026-10-10');
       formData.append('descricao', 'Compra material');
-      formData.append('categoria', 'Material');
+      formData.append('categoria_id', 'uuid-123');
       formData.append('valor', '150,50');
 
       mockInsert.mockResolvedValueOnce({ error: null });
@@ -112,7 +112,7 @@ describe('Financeiro Actions', () => {
         data: '2026-10-10',
         descricao: 'Compra material',
         valor: 150.5,
-        categoria: 'Material',
+        categoria_id: 'uuid-123',
         comprovante_url: null,
       });
     });
@@ -122,7 +122,7 @@ describe('Financeiro Actions', () => {
       formData.append('tipo', 'Saída');
       formData.append('data', '2026-10-10');
       formData.append('descricao', 'Teste com anexo grande');
-      formData.append('categoria', 'Material');
+      formData.append('categoria_id', 'uuid-123');
       formData.append('valor', '100');
 
       // Mock file > 5MB
@@ -183,7 +183,7 @@ describe('Financeiro Actions', () => {
       formData.append('tipo', 'Entrada');
       formData.append('data', '2026-10-10');
       formData.append('descricao', 'Material');
-      formData.append('categoria', 'Material');
+      formData.append('categoria_id', 'uuid-123');
       formData.append('valor', '-10.00');
 
       const result = await updateTransacao('id-123', formData);
@@ -195,7 +195,7 @@ describe('Financeiro Actions', () => {
       formData.append('tipo', 'Saída');
       formData.append('data', '2026-10-10');
       formData.append('descricao', 'Material editado');
-      formData.append('categoria', 'Material de Consumo');
+      formData.append('categoria_id', 'uuid-123');
       formData.append('valor', '250.00');
       formData.append('manterComprovante', 'true');
 
@@ -213,7 +213,7 @@ describe('Financeiro Actions', () => {
         data: '2026-10-10',
         descricao: 'Material editado',
         valor: 250.00,
-        categoria: 'Material de Consumo',
+        categoria_id: 'uuid-123',
         comprovante_url: 'https://storage/comprovantes/atual.pdf',
       });
     });
@@ -223,7 +223,7 @@ describe('Financeiro Actions', () => {
       formData.append('tipo', 'Saída');
       formData.append('data', '2026-10-10');
       formData.append('descricao', 'Material editado');
-      formData.append('categoria', 'Material de Consumo');
+      formData.append('categoria_id', 'uuid-123');
       formData.append('valor', '250.00');
       formData.append('manterComprovante', 'false');
 
@@ -239,7 +239,7 @@ describe('Financeiro Actions', () => {
         data: '2026-10-10',
         descricao: 'Material editado',
         valor: 250.00,
-        categoria: 'Material de Consumo',
+        categoria_id: 'uuid-123',
         comprovante_url: null,
       });
     });

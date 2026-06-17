@@ -10,7 +10,7 @@ export interface SaveTransaction {
   tipo: 'Entrada' | 'Saída';
   descricao: string;
   valor: number;
-  categoria: string;
+  categoria_id: string;
   banco_id: string;
 }
 

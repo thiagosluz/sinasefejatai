@@ -16,10 +16,10 @@ export async function addTransacao(formData: FormData): Promise<ActionResponse> 
     const data = formData.get('data') as string
     const descricao = formData.get('descricao') as string
     const valorRaw = formData.get('valor') as string
-    const categoria = formData.get('categoria') as string
+    const categoria_id = formData.get('categoria_id') as string
     const file = formData.get('comprovante') as File | null
 
-    if (!tipo || !data || !descricao || !valorRaw || !categoria) {
+    if (!tipo || !data || !descricao || !valorRaw || !categoria_id) {
       return { success: false, error: 'Preencha todos os campos obrigatórios' }
     }
 
@@ -78,7 +78,7 @@ export async function addTransacao(formData: FormData): Promise<ActionResponse> 
       data,
       descricao,
       valor,
-      categoria,
+      categoria_id,
       comprovante_url
     })
 
@@ -154,11 +154,11 @@ export async function updateTransacao(id: string, formData: FormData): Promise<A
     const data = formData.get('data') as string
     const descricao = formData.get('descricao') as string
     const valorRaw = formData.get('valor') as string
-    const categoria = formData.get('categoria') as string
+    const categoria_id = formData.get('categoria_id') as string
     const file = formData.get('comprovante') as File | null
     const manterComprovante = formData.get('manterComprovante') === 'true'
 
-    if (!tipo || !data || !descricao || !valorRaw || !categoria) {
+    if (!tipo || !data || !descricao || !valorRaw || !categoria_id) {
       return { success: false, error: 'Preencha todos os campos obrigatórios' }
     }
 
@@ -252,7 +252,7 @@ export async function updateTransacao(id: string, formData: FormData): Promise<A
         data,
         descricao,
         valor,
-        categoria,
+        categoria_id,
         comprovante_url
       })
       .eq('id', id)

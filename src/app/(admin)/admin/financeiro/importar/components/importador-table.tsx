@@ -2,31 +2,34 @@ import { Calendar, Check, CheckCircle, HelpCircle } from 'lucide-react'
 
 import { OFXTransaction } from '@/lib/ofx-parser'
 
+import { CategoriaFinanceira } from '../../types'
+
 export interface ExtendedTransaction extends OFXTransaction {
   selected: boolean;
-  categoria: string;
+  categoria_id: string;
   alreadyExists: boolean;
 }
 
 interface ImportadorTableProps {
   transacoes: ExtendedTransaction[]
-  categoriasEntrada: string[]
-  categoriasSaida: string[]
+  categorias: CategoriaFinanceira[]
   onToggleAll: (val: boolean) => void
   onToggleSelect: (index: number) => void
-  onCategoryChange: (index: number, cat: string) => void
+  onCategoryChange: (index: number, catId: string) => void
 }
 
 export function ImportadorTable({
   transacoes,
-  categoriasEntrada,
-  categoriasSaida,
+  categorias,
   onToggleAll,
   onToggleSelect,
   onCategoryChange
 }: ImportadorTableProps) {
   const isAllSelected = transacoes.filter(t => !t.alreadyExists).length > 0 
     && transacoes.filter(t => !t.alreadyExists).every(t => t.selected)
+
+  const categoriasEntrada = categorias.filter(c => c.tipo === 'Entrada')
+  const categoriasSaida = categorias.filter(c => c.tipo === 'Saída')
 
   return (
     <div className="bg-brand-card border border-brand-border shadow-xl overflow-hidden">
@@ -117,14 +120,14 @@ export function ImportadorTable({
                 </td>
                 <td className="py-3 px-4 border-r border-brand-border">
                   <select
-                    value={t.categoria}
+                    value={t.categoria_id}
                     disabled={t.alreadyExists || !t.selected}
                     onChange={(e) => onCategoryChange(idx, e.target.value)}
                     className="w-full bg-brand-cream border border-brand-border text-xs px-2 py-1.5 focus:outline-none focus:border-brand-tinto cursor-pointer rounded-none disabled:opacity-50 disabled:cursor-not-allowed font-sans font-bold"
                   >
                     {t.tipo === 'Entrada' 
-                      ? categoriasEntrada.map(c => <option key={c} value={c}>{c}</option>)
-                      : categoriasSaida.map(c => <option key={c} value={c}>{c}</option>)
+                      ? categoriasEntrada.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)
+                      : categoriasSaida.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)
                     }
                   </select>
                 </td>

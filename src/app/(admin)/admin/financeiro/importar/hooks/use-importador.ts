@@ -6,47 +6,38 @@ import { parseOFX } from '@/lib/ofx-parser'
 import { useModal } from '@/providers/modal-provider'
 
 import { checkExistingTransactions, importTransactions, SaveTransaction } from '../../actions-ofx'
+import { CategoriaFinanceira } from '../../types'
 import { ExtendedTransaction } from '../components/importador-table'
 
-export const CATEGORIAS_ENTRADA = [
-  'Contribuição de Filiados',
-  'Repasse Nacional',
-  'Rendimentos',
-  'Saldo de Abertura',
-  'Outros'
-]
-
-export const CATEGORIAS_SAIDA = [
-  'Tarifas Bancárias',
-  'Despesas Administrativas',
-  'Material de Consumo',
-  'Eventos/Mobilizações',
-  'Serviços de Terceiros',
-  'Despesas com Viagens',
-  'Outros'
-]
-
 // Mapeamento automático inteligente de categorias
-const sugerirCategoria = (descricao: string, tipo: 'Entrada' | 'Saída'): string => {
+const sugerirCategoria = (descricao: string, tipo: 'Entrada' | 'Saída', categorias: CategoriaFinanceira[]): string => {
   const desc = descricao.toLowerCase()
+  const categoriasDoTipo = categorias.filter(c => c.tipo === tipo)
   
+  if (categoriasDoTipo.length === 0) return ''
+
+  // Busca o nome provavel
+  let provavel = ''
   if (tipo === 'Entrada') {
-    if (/rendimento|rend|juros|aplic/i.test(desc)) return 'Rendimentos'
-    if (/repasse|nacional|sinasefe/i.test(desc)) return 'Repasse Nacional'
-    if (/saldo|abertura|inicial/i.test(desc)) return 'Saldo de Abertura'
-    return 'Contribuição de Filiados' // Padrão mais comum
+    if (/rendimento|rend|juros|aplic/i.test(desc)) provavel = 'Rendimentos'
+    else if (/repasse|nacional|sinasefe/i.test(desc)) provavel = 'Repasse Nacional'
+    else if (/saldo|abertura|inicial/i.test(desc)) provavel = 'Saldo de Abertura'
+    else provavel = 'Contribuição de Filiados'
   } else {
-    if (/tarifa|cobranca|manutencao|mensal|anuidade/i.test(desc)) return 'Tarifas Bancárias'
-    if (/viagem|hosped|transp|combust|aliment|diaria/i.test(desc)) return 'Despesas com Viagens'
-    if (/evento|mobiliz|reuniao|paraliz|panf|som/i.test(desc)) return 'Eventos/Mobilizações'
-    if (/servico|terc|honor|advoc|contab|advogado|contador/i.test(desc)) return 'Serviços de Terceiros'
-    if (/papel|copia|resma|escrit|consumo|pasta|caneta/i.test(desc)) return 'Material de Consumo'
-    if (/aluguel|luz|agua|tel|internet|adm|taxa|condominio/i.test(desc)) return 'Despesas Administrativas'
-    return 'Outros'
+    if (/tarifa|cobranca|manutencao|mensal|anuidade/i.test(desc)) provavel = 'Tarifas Bancárias'
+    else if (/viagem|hosped|transp|combust|aliment|diaria/i.test(desc)) provavel = 'Despesas com Viagens'
+    else if (/evento|mobiliz|reuniao|paraliz|panf|som/i.test(desc)) provavel = 'Eventos/Mobilizações'
+    else if (/servico|terc|honor|advoc|contab|advogado|contador/i.test(desc)) provavel = 'Serviços de Terceiros'
+    else if (/papel|copia|resma|escrit|consumo|pasta|caneta/i.test(desc)) provavel = 'Material de Consumo'
+    else if (/aluguel|luz|agua|tel|internet|adm|taxa|condominio/i.test(desc)) provavel = 'Despesas Administrativas'
+    else provavel = 'Outros'
   }
+
+  const categoriaAchada = categoriasDoTipo.find(c => c.nome.toLowerCase() === provavel.toLowerCase())
+  return categoriaAchada ? categoriaAchada.id : categoriasDoTipo[0].id
 }
 
-export function useImportador() {
+export function useImportador(categoriasAtivas: CategoriaFinanceira[]) {
   const router = useRouter()
   const { confirm } = useModal()
   
@@ -91,7 +82,7 @@ export function useImportador() {
             ...t,
             alreadyExists,
             selected: !alreadyExists, // Marcado para importação por padrão se for inédito
-            categoria: sugerirCategoria(t.descricao, t.tipo)
+            categoria_id: sugerirCategoria(t.descricao, t.tipo, categoriasAtivas)
           }
         })
 
@@ -127,9 +118,9 @@ export function useImportador() {
     setTransacoes(updated)
   }
 
-  const handleCategoryChange = (index: number, cat: string) => {
+  const handleCategoryChange = (index: number, catId: string) => {
     const updated = [...transacoes]
-    updated[index].categoria = cat
+    updated[index].categoria_id = catId
     setTransacoes(updated)
   }
 
@@ -149,7 +140,7 @@ export function useImportador() {
         tipo: t.tipo,
         descricao: t.descricao,
         valor: t.valor,
-        categoria: t.categoria,
+        categoria_id: t.categoria_id,
         banco_id: t.id
       }))
 

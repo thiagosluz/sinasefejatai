@@ -12,14 +12,15 @@ import { FinanceiroFormDrawer } from './components/financeiro-form-drawer'
 import { FinanceiroStats } from './components/financeiro-stats'
 import { FinanceiroTable } from './components/financeiro-table'
 import { deleteTransacao } from './actions'
-import { Transacao } from './types'
+import { CategoriaFinanceira,Transacao } from './types'
 
 interface FinanceiroClienteProps {
   transacoesIniciais: Transacao[]
   mesesAprovados?: string[]
+  categorias: CategoriaFinanceira[]
 }
 
-export default function FinanceiroCliente({ transacoesIniciais, mesesAprovados = [] }: FinanceiroClienteProps) {
+export default function FinanceiroCliente({ transacoesIniciais, mesesAprovados = [], categorias }: FinanceiroClienteProps) {
   const { confirm } = useModal()
   
   const router = useRouter()
@@ -189,6 +190,14 @@ export default function FinanceiroCliente({ transacoesIniciais, mesesAprovados =
             <Upload size={15} />
             <span>Importar Extrato</span>
           </Link>
+
+          <Link 
+            href="/admin/financeiro/categorias" 
+            className="border border-brand-ink hover:border-brand-ink bg-brand-cream hover:bg-brand-card text-brand-ink py-2.5 px-4 text-xs font-serif font-bold uppercase tracking-wider transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[1px_1px_0px_var(--brand-ink)] hover:translate-x-[1px] hover:translate-y-[1px] flex items-center gap-1.5"
+          >
+            <Filter size={15} />
+            <span>Categorias</span>
+          </Link>
           
           <button 
             onClick={abrirNovoLancamento}
@@ -216,6 +225,7 @@ export default function FinanceiroCliente({ transacoesIniciais, mesesAprovados =
         aberto={drawerAberto} 
         onClose={() => setDrawerAberto(false)} 
         transacaoEmEdicao={transacaoEmEdicao} 
+        categorias={categorias}
       />
     </div>
   )

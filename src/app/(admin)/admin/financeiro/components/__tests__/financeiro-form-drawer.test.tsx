@@ -21,6 +21,13 @@ vi.mock('../../actions', () => ({
   updateTransacao: vi.fn()
 }))
 
+import { CategoriaFinanceira } from '../../types'
+
+const mockCategorias = [
+  { id: '1', nome: 'Despesas Administrativas', tipo: 'Saída', ativo: true },
+  { id: '2', nome: 'Contribuição de Filiados', tipo: 'Entrada', ativo: true }
+] as CategoriaFinanceira[]
+
 describe('FinanceiroFormDrawer (Integração UI)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -29,7 +36,7 @@ describe('FinanceiroFormDrawer (Integração UI)', () => {
 
   it('não deve renderizar nada se aberto for false', () => {
     const { container } = render(
-      <FinanceiroFormDrawer aberto={false} onClose={vi.fn()} transacaoEmEdicao={null} />
+      <FinanceiroFormDrawer aberto={false} onClose={vi.fn()} transacaoEmEdicao={null} categorias={mockCategorias} />
     )
     expect(container).toBeEmptyDOMElement()
   })
@@ -37,7 +44,7 @@ describe('FinanceiroFormDrawer (Integração UI)', () => {
   it('deve alternar as opções de categoria ao mudar de Saída para Entrada', async () => {
     const user = userEvent.setup()
     render(
-      <FinanceiroFormDrawer aberto={true} onClose={vi.fn()} transacaoEmEdicao={null} />
+      <FinanceiroFormDrawer aberto={true} onClose={vi.fn()} transacaoEmEdicao={null} categorias={mockCategorias} />
     )
 
     // Por padrão é saída, então deve ter categorias de saída (ex: Despesas com Viagens)
@@ -58,7 +65,7 @@ describe('FinanceiroFormDrawer (Integração UI)', () => {
     const onClose = vi.fn()
     
     render(
-      <FinanceiroFormDrawer aberto={true} onClose={onClose} transacaoEmEdicao={null} />
+      <FinanceiroFormDrawer aberto={true} onClose={onClose} transacaoEmEdicao={null} categorias={mockCategorias} />
     )
 
     // Digita nos campos

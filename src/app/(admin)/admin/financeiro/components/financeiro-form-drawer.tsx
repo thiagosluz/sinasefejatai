@@ -1,47 +1,28 @@
-import { useState } from 'react'
-import { Check, Trash2,X } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Check, Settings,Trash2, X } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 
 import { addTransacao, updateTransacao } from '../actions'
-
-const CATEGORIAS_ENTRADA = [
-  'Repasse Nacional',
-  'Contribuição de Filiados',
-  'Rendimentos',
-  'Saldo de Abertura',
-  'Outros'
-]
-
-const CATEGORIAS_SAIDA = [
-  'Despesas com Viagens',
-  'Material de Consumo',
-  'Eventos/Mobilizações',
-  'Serviços de Terceiros',
-  'Despesas Administrativas',
-  'Tarifas Bancárias',
-  'Outros'
-]
-
-interface Transacao {
-  id: string
-  tipo: 'Entrada' | 'Saída'
-  data: string
-  descricao: string
-  valor: number
-  categoria: string
-  comprovante_url: string | null
-  created_at: string
-}
+import { CategoriaFinanceira,Transacao } from '../types'
 
 interface FinanceiroFormDrawerProps {
   aberto: boolean
   onClose: () => void
   transacaoEmEdicao: Transacao | null
+  categorias: CategoriaFinanceira[]
 }
 
-export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: FinanceiroFormDrawerProps) {
+export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao, categorias }: FinanceiroFormDrawerProps) {
+  const categoriasEntrada = useMemo(() => categorias.filter(c => c.tipo === 'Entrada'), [categorias])
+  const categoriasSaida = useMemo(() => categorias.filter(c => c.tipo === 'Saída'), [categorias])
+
   const [formTipo, setFormTipo] = useState<'Saída' | 'Entrada'>(transacaoEmEdicao ? transacaoEmEdicao.tipo : 'Saída')
-  const [formCategoria, setFormCategoria] = useState(transacaoEmEdicao ? transacaoEmEdicao.categoria : CATEGORIAS_SAIDA[0])
+  const [formCategoriaId, setFormCategoriaId] = useState(
+    transacaoEmEdicao 
+      ? transacaoEmEdicao.categoria_id 
+      : (categoriasSaida.length > 0 ? categoriasSaida[0].id : '')
+  )
   const [salvando, setSalvando] = useState(false)
   const [formData, setFormData] = useState({
     data: transacaoEmEdicao ? transacaoEmEdicao.data : new Date().toISOString().split('T')[0],
@@ -52,7 +33,13 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
 
   const handleFormTipoChange = (tipo: 'Entrada' | 'Saída') => {
     setFormTipo(tipo)
-    setFormCategoria(tipo === 'Entrada' ? CATEGORIAS_ENTRADA[0] : CATEGORIAS_SAIDA[0])
+    if (!transacaoEmEdicao) {
+      if (tipo === 'Entrada' && categoriasEntrada.length > 0) {
+        setFormCategoriaId(categoriasEntrada[0].id)
+      } else if (tipo === 'Saída' && categoriasSaida.length > 0) {
+        setFormCategoriaId(categoriasSaida[0].id)
+      }
+    }
   }
 
   const handleSubmit = async (formData: FormData) => {
@@ -76,7 +63,7 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-end print:hidden">
       <div className="flex-1" onClick={onClose}></div>
       
-      <div className="w-full max-w-md bg-brand-cream border-l-2 border-brand-ink p-6 flex flex-col justify-between shadow-2xl relative animate-slide-left">
+      <div className="w-full max-w-md bg-brand-cream border-l-2 border-brand-ink p-6 flex flex-col justify-between shadow-2xl relative animate-slide-left overflow-y-auto">
         <div>
           <div className="flex items-center justify-between border-b-2 border-brand-ink pb-4 mb-6">
             <h3 className="text-lg font-serif font-bold text-brand-tinto">
@@ -173,21 +160,32 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
             </div>
 
             <div>
-              <label htmlFor="categoria" className="block text-xs font-bold text-brand-ink/60 uppercase tracking-wider mb-2 font-serif">
+              <label htmlFor="categoria_id" className="block text-xs font-bold text-brand-ink/60 uppercase tracking-wider mb-2 font-serif">
                 Categoria
               </label>
               <select
-                id="categoria"
-                name="categoria"
-                value={formCategoria}
-                onChange={(e) => setFormCategoria(e.target.value)}
+                id="categoria_id"
+                name="categoria_id"
+                value={formCategoriaId}
+                onChange={(e) => setFormCategoriaId(e.target.value)}
+                required
                 className="w-full bg-brand-card border border-brand-border rounded-none px-4 py-2.5 text-sm text-brand-ink focus:outline-none focus:border-brand-tinto cursor-pointer"
               >
+                <option value="" disabled>Selecione uma categoria...</option>
                 {formTipo === 'Entrada' 
-                  ? CATEGORIAS_ENTRADA.map(c => <option key={c} value={c}>{c}</option>)
-                  : CATEGORIAS_SAIDA.map(c => <option key={c} value={c}>{c}</option>)
+                  ? categoriasEntrada.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)
+                  : categoriasSaida.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)
                 }
               </select>
+              <div className="mt-1 text-right">
+                <Link 
+                  href="/admin/financeiro/categorias" 
+                  className="text-[10px] text-brand-tinto hover:underline uppercase tracking-wider font-bold inline-flex items-center gap-1"
+                >
+                  <Settings size={10} />
+                  Gerenciar Categorias
+                </Link>
+              </div>
             </div>
 
             {transacaoEmEdicao?.comprovante_url && (
@@ -249,7 +247,7 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
               <span className="block text-[10px] text-brand-ink/50 mt-1">Formatos aceitos: PDF, PNG, JPEG. Limite de 5MB.</span>
             </div>
 
-            <div className="pt-6 border-t border-dashed border-brand-border flex gap-3">
+            <div className="pt-6 border-t border-dashed border-brand-border flex gap-3 pb-6">
               <button 
                 type="button" 
                 onClick={onClose}
@@ -272,3 +270,4 @@ export function FinanceiroFormDrawer({ aberto, onClose, transacaoEmEdicao }: Fin
     </div>
   )
 }
+

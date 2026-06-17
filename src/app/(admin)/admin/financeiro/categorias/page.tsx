@@ -2,9 +2,9 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 
-import ImportadorCliente from './importador-cliente'
+import { CategoriasCliente } from './categorias-cliente'
 
-export default async function ImportarOFXPage() {
+export default async function CategoriasFinanceiroPage() {
   const supabase = await createClient()
 
   // Validar autenticação
@@ -16,11 +16,10 @@ export default async function ImportarOFXPage() {
     return redirect('/login')
   }
 
-  // Buscar categorias ativas
+  // Buscar todas as categorias (ativas e inativas)
   const { data: categoriasData } = await supabase
     .from('financeiro_categorias')
     .select('*')
-    .eq('ativo', true)
     .order('nome')
 
   const categorias = categoriasData || []
@@ -30,12 +29,12 @@ export default async function ImportarOFXPage() {
       {/* Cabeçalho */}
       <header className="flex items-center justify-between mb-8 border-b-2 border-brand-ink pb-6">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Importador de Extrato Bancário</h1>
-          <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Mapeamento, Conciliação e Prevenção de Duplicidades (OFX)</p>
+          <h1 className="text-2xl font-serif font-bold text-brand-tinto tracking-tight">Categorias Financeiras</h1>
+          <p className="text-zinc-600 text-xs mt-1 uppercase tracking-wider">Gerencie as categorias de entradas e saídas</p>
         </div>
       </header>
 
-      <ImportadorCliente categorias={categorias} />
+      <CategoriasCliente categorias={categorias} />
     </div>
   )
 }

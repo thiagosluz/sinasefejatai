@@ -68,10 +68,19 @@ export default async function AssembleiaDetalhesPage(props: { params: Promise<{ 
     <>
       {/* Hero */}
       <section
-        className="py-16 sm:py-20"
-        style={{ background: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%)' }}
+        className="relative overflow-hidden py-16 sm:py-20"
+        style={{ background: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 45%, #1c1917 100%)' }}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Padrão de fundo sutil */}
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `repeating-linear-gradient(45deg, #fff 0px, #fff 1px, transparent 1px, transparent 50%)`,
+            backgroundSize: '30px 30px',
+          }}
+        />
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/assembleias"
             className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors text-xs font-semibold uppercase tracking-wider mb-6"

@@ -3,12 +3,18 @@
 import { ArrowLeft, Check, FileSpreadsheet } from 'lucide-react'
 import Link from 'next/link'
 
+import { CategoriaFinanceira } from '../types'
+
 import { ImportadorDropzone } from './components/importador-dropzone'
 import { ImportadorTable } from './components/importador-table'
-import { CATEGORIAS_ENTRADA, CATEGORIAS_SAIDA,useImportador } from './hooks/use-importador'
+import { useImportador } from './hooks/use-importador'
 
-export default function ImportadorCliente() {
-  const { state, actions } = useImportador()
+interface ImportadorClienteProps {
+  categorias: CategoriaFinanceira[]
+}
+
+export default function ImportadorCliente({ categorias }: ImportadorClienteProps) {
+  const { state, actions } = useImportador(categorias)
   
   const { loading, transacoes, nomeArquivo, totalSelecionadas, totalValorSelecionadas } = state
   const { processarArquivo, handleToggleSelect, handleToggleAll, handleCategoryChange, handleImportSubmit, handleLimparExtrato } = actions
@@ -63,8 +69,7 @@ export default function ImportadorCliente() {
 
           <ImportadorTable
             transacoes={transacoes}
-            categoriasEntrada={CATEGORIAS_ENTRADA}
-            categoriasSaida={CATEGORIAS_SAIDA}
+            categorias={categorias}
             onToggleAll={handleToggleAll}
             onToggleSelect={handleToggleSelect}
             onCategoryChange={handleCategoryChange}
