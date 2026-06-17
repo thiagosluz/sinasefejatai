@@ -6,7 +6,7 @@ import { BtnNovaGestao } from './btn-nova-gestao'
 import ConselhoFiscalCliente from './conselho-fiscal-cliente'
 
 export const metadata = {
-  title: 'Conselho Fiscal | SINASEFE Jataí',
+  title: 'Conselho Fiscal | SINASEFE JATAÍ',
 }
 
 export default async function ConselhoFiscalAdminPage() {

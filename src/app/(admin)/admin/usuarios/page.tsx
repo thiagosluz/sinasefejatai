@@ -5,7 +5,7 @@ import { UsersClient } from './components/users-client'
 import { listarUsuarios } from './actions'
 
 export const metadata = {
-  title: 'Gestão de Usuários | SINASEFE Jataí',
+  title: 'Gestão de Usuários | SINASEFE JATAÍ',
 }
 
 export default async function UsuariosPage() {

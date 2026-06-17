@@ -43,7 +43,7 @@ export function PrestacaoPrintLayout({
   return (
     <main className="bg-white text-black p-12 max-w-[800px] mx-auto shadow-2xl font-serif text-sm leading-relaxed print:shadow-none print:p-0 print:max-w-none">
       
-      {/* Timbre do SINASEFE Jataí Dinâmico */}
+      {/* Timbre do SINASEFE JATAÍ Dinâmico */}
       <DocumentHeader config={config} />
 
       {/* Título */}

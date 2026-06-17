@@ -56,7 +56,7 @@ export default async function AssembleiasPublicasPage() {
           <p className="text-red-300 font-semibold text-sm uppercase tracking-widest mb-3">Transparência</p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white font-serif mb-4">Assembleias</h1>
           <p className="text-white/75 text-lg max-w-2xl">
-            Acompanhe as reuniões deliberativas do SINASEFE Jataí. Aqui estão registrados os editais de convocação, pautas e resultados de todas as assembleias realizadas.
+            Acompanhe as reuniões deliberativas do SINASEFE JATAÍ. Aqui estão registrados os editais de convocação, pautas e resultados de todas as assembleias realizadas.
           </p>
         </div>
       </section>

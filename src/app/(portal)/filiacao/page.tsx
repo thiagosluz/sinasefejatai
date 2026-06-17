@@ -1,5 +1,7 @@
-import { Check,CheckCircle2 } from 'lucide-react'
+import { Check, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
+
+import { EMAIL_SINDICATO } from '@/lib/constants'
 
 import { FiliacaoForm } from './filiacao-form'
 
@@ -31,7 +33,7 @@ export default async function FiliacaoPage({ searchParams }: Props) {
           <p className="text-red-300 font-semibold text-sm uppercase tracking-widest mb-3">Seja parte do movimento</p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white font-serif mb-4">Solicitação de Filiação</h1>
           <p className="text-white/75 text-lg max-w-2xl">
-            Junte-se ao SINASEFE Jataí e faça parte da luta pelos direitos dos servidores federais da educação.
+            Junte-se ao SINASEFE JATAÍ e faça parte da luta pelos direitos dos servidores federais da educação.
           </p>
         </div>
       </section>
@@ -48,7 +50,7 @@ export default async function FiliacaoPage({ searchParams }: Props) {
               </div>
               <h2 className="text-3xl font-bold text-brand-ink font-serif mb-4">Pedido Enviado!</h2>
               <p className="text-zinc-600 leading-relaxed mb-2">
-                Seu pedido de filiação foi recebido com sucesso. A diretoria do SINASEFE Jataí entrará em contato para confirmar sua filiação.
+                Seu pedido de filiação foi recebido com sucesso. A diretoria do SINASEFE JATAÍ entrará em contato para confirmar sua filiação.
               </p>
               <p className="text-zinc-500 text-sm mb-8">
                 Guarde o seu e-mail informado para receber a confirmação.
@@ -84,8 +86,8 @@ export default async function FiliacaoPage({ searchParams }: Props) {
                 <div className="mt-8 pt-6 border-t border-white/20">
                   <p className="text-white/60 text-xs">
                     Dúvidas? Entre em contato:{' '}
-                    <a href="mailto:sinasefe.jatai@gmail.com" className="text-white/90 hover:text-white underline">
-                      sinasefe.jatai@gmail.com
+                    <a href={`mailto:${EMAIL_SINDICATO}`} className="text-brand-tinto hover:text-brand-tinto-light hover:underline font-medium">
+                      {EMAIL_SINDICATO}
                     </a>
                   </p>
                 </div>

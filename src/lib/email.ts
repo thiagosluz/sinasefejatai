@@ -2,8 +2,12 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM_ADDRESS = 'SINASEFE Jataí <noreply@sinasefejatai.org.br>'
-const DIRETORIA_EMAIL = process.env.DIRETORIA_EMAIL ?? 'sinasefe.jatai@gmail.com'
+// Resend exige que o domínio de remetente seja verificado. 
+// Como ainda não foi verificado no painel da Resend, usamos o e-mail de teste padrão deles para não dar erro 403.
+const FROM_ADDRESS = 'onboarding@resend.dev'
+import { EMAIL_SINDICATO } from '@/lib/constants'
+
+const DIRETORIA_EMAIL = EMAIL_SINDICATO
 
 interface SendEmailOptions {
   to: string | string[]
@@ -57,7 +61,7 @@ export async function notificarNovoContato({
           <hr style="border-color: #e5e7eb; margin: 16px 0;" />
           <p style="white-space: pre-wrap; color: #374151;">${mensagem}</p>
           <hr style="border-color: #e5e7eb; margin: 16px 0;" />
-          <p style="color: #9ca3af; font-size: 12px;">Mensagem recebida via portal público do SINASEFE Jataí.</p>
+          <p style="color: #9ca3af; font-size: 12px;">Mensagem recebida via portal público do SINASEFE JATAÍ.</p>
         </div>
       </div>
     `,

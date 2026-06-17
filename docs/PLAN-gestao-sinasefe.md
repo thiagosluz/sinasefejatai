@@ -1,4 +1,4 @@
-# PLAN-gestao-sinasefe.md - Plano de Desenvolvimento do Sistema SINASEFE Jataí
+# PLAN-gestao-sinasefe.md - Plano de Desenvolvimento do Sistema SINASEFE JATAÍ
 
 Este documento serve como mapa de execução serial para a construção do sistema.
 

@@ -15,7 +15,7 @@ test.describe('Portal Público', () => {
     await expect(filiacaoBtn).toBeVisible();
 
     // Footer
-    await expect(page.getByText('Seção Sindical Jataí').first()).toBeVisible();
+    await expect(page.getByText('Seção Sindical').first()).toBeVisible();
     await expect(page.getByText('©').first()).toBeVisible();
   });
 

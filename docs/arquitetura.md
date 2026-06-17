@@ -1,6 +1,6 @@
-# Documentação de Arquitetura - SINASEFE Jataí
+# Documentação de Arquitetura - SINASEFE JATAÍ
 
-Este documento descreve as decisões arquiteturais, o stack de tecnologia e a organização de código do sistema unificado do SINASEFE Jataí (Portal Público e Painel Administrativo).
+Este documento descreve as decisões arquiteturais, o stack de tecnologia e a organização de código do sistema unificado do SINASEFE JATAÍ (Portal Público e Painel Administrativo).
 
 ## 1. Visão Geral
 

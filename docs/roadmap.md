@@ -1,4 +1,4 @@
-# Roadmap de Implementações - SINASEFE Jataí
+# Roadmap de Implementações - SINASEFE JATAÍ
 
 Este documento centraliza as ideias e sugestões de melhorias futuras para o sistema, servindo como um guia de visão de longo prazo para os módulos existentes e novos.
 

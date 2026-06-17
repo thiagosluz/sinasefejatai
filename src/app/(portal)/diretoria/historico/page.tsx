@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { getGestoesHistorico as getGestoesConselho } from '@/app/(admin)/admin/conselho-fiscal/actions'
 import { getGestoesHistorico as getGestoesDiretoria } from '@/app/(admin)/admin/diretoria/actions'
 export const metadata = {
-  title: 'Histórico de Diretorias | SINASEFE Jataí',
+  title: 'Histórico de Diretorias | SINASEFE JATAÍ',
   description: 'Acervo e histórico das gestões passadas do sindicato.',
 }
 
@@ -45,7 +45,7 @@ export default async function HistoricoDiretoriaPage() {
           <p className="text-red-300 font-semibold text-sm uppercase tracking-widest mb-3">Acervo</p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white font-serif mb-4">Histórico de Diretorias</h1>
           <p className="text-white/75 text-lg max-w-2xl">
-            Membros e gestões que construíram o legado do SINASEFE Jataí.
+            Membros e gestões que construíram o legado do SINASEFE JATAÍ.
           </p>
         </div>
       </section>

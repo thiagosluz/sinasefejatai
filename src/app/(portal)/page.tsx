@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarDays, ChevronRight, FileText, MapPin, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 
+import { EMAIL_SINDICATO } from '@/lib/constants'
 import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
@@ -72,7 +73,7 @@ export default async function PortalHomePage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white font-serif leading-tight mb-6">
-              SINASEFE <span className="text-red-300">Seção Sindical Jataí</span>
+              SINASEFE <span className="text-red-300">JATAÍ</span>
             </h1>
             <p className="text-lg sm:text-xl text-white/80 leading-relaxed mb-10 max-w-2xl">
               Representando e defendendo os servidores federais da educação básica, profissional e tecnológica do IFG — Câmpus Jataí.
@@ -131,7 +132,7 @@ export default async function PortalHomePage() {
                 Transparência e representação para todos os servidores
               </h2>
               <p className="text-zinc-600 leading-relaxed mb-4">
-                O SINASEFE Jataí é a entidade sindical que representa os servidores técnicos-administrativos e docentes do Instituto Federal de Goiás — Campus Jataí. Atuamos na defesa dos direitos trabalhistas, na valorização da carreira e na promoção de melhores condições de trabalho.
+                O SINASEFE JATAÍ é a entidade sindical que representa os servidores técnicos-administrativos e docentes do Instituto Federal de Goiás — Campus Jataí. Atuamos na defesa dos direitos trabalhistas, na valorização da carreira e na promoção de melhores condições de trabalho.
               </p>
               <p className="text-zinc-600 leading-relaxed">
                 Acreditamos que a transparência é a base de uma gestão sindical sólida. Por isso, todas as assembleias, atas e prestações de contas são disponibilizadas publicamente neste portal.
@@ -257,7 +258,7 @@ export default async function PortalHomePage() {
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white font-serif mb-4">
-            Faça parte do SINASEFE Jataí
+            Faça parte do SINASEFE JATAÍ
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
             A filiação é gratuita. Juntos somos mais fortes na defesa dos nossos direitos como servidores federais.
@@ -299,10 +300,10 @@ export default async function PortalHomePage() {
               </div>
               <h3 className="font-bold text-brand-ink text-sm mb-1">E-mail</h3>
               <a
-                href="mailto:sinasefe.jatai@gmail.com"
+                href={`mailto:${EMAIL_SINDICATO}`}
                 className="text-brand-tinto text-xs hover:underline"
               >
-                sinasefe.jatai@gmail.com
+                {EMAIL_SINDICATO}
               </a>
             </div>
             <div className="bg-white rounded-2xl p-6 border border-brand-border-muted text-center hover:shadow-md transition-all">

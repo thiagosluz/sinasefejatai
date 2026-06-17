@@ -93,7 +93,7 @@ export default async function DocumentosPublicosPage() {
           <p className="text-red-300 font-semibold text-sm uppercase tracking-widest mb-3">Transparência</p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white font-serif mb-4">Documentos Públicos</h1>
           <p className="text-white/75 text-lg max-w-2xl">
-            Acesso público a regimentos, notas, resoluções normativas e balanços do SINASEFE Jataí.
+            Acesso público a regimentos, notas, resoluções normativas e balanços do SINASEFE JATAÍ.
           </p>
         </div>
       </section>

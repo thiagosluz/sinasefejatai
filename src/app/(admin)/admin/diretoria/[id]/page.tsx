@@ -11,7 +11,7 @@ import { getGestaoById } from '../actions'
 import GestaoMembrosCliente from './gestao-membros-cliente'
 
 export const metadata = {
-  title: 'Membros da Gestão | SINASEFE Jataí',
+  title: 'Membros da Gestão | SINASEFE JATAÍ',
 }
 
 export default async function GestaoMembrosPage({ params }: { params: Promise<{ id: string }> }) {

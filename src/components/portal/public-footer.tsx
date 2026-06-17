@@ -1,6 +1,7 @@
-import { Calendar,Mail, MapPin } from 'lucide-react'
+import { Calendar, Mail, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
+import { EMAIL_SINDICATO } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
 
 async function getConfiguracoes() {
@@ -27,7 +28,7 @@ export async function PublicFooter() {
                 <span className="text-white font-bold font-serif">S</span>
               </div>
               <div>
-                <p className="text-white font-bold font-serif text-sm">SINASEFE Jataí</p>
+                <p className="text-white font-bold font-serif text-sm">SINASEFE JATAÍ</p>
                 <p className="text-zinc-400 text-xs">Seção Sindical</p>
               </div>
             </div>
@@ -77,10 +78,10 @@ export async function PublicFooter() {
               <li className="flex items-center gap-2.5">
                 <Mail size={15} className="text-brand-tinto flex-shrink-0" />
                 <a
-                  href="mailto:sinasefe.jatai@gmail.com"
+                  href={`mailto:${EMAIL_SINDICATO}`}
                   className="text-sm text-zinc-400 hover:text-brand-tinto transition-colors"
                 >
-                  sinasefe.jatai@gmail.com
+                  {EMAIL_SINDICATO}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
@@ -94,7 +95,7 @@ export async function PublicFooter() {
         {/* Linha divisória */}
         <div className="mt-10 pt-6 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-zinc-500">
-            © {new Date().getFullYear()} {config?.secao_sindical ?? 'SINASEFE Jataí'}. Todos os direitos reservados.
+            © {new Date().getFullYear()} {config?.secao_sindical ?? 'SINASEFE JATAÍ'}. Todos os direitos reservados.
           </p>
           <div className="w-8 h-0.5 bg-brand-tinto rounded" />
         </div>

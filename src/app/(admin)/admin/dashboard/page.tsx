@@ -86,7 +86,7 @@ export default async function DashboardPage() {
 
       {/* Informativo de Rodapé */}
       <footer className="mt-20 border-t border-dashed border-brand-border pt-6 text-[10px] text-brand-ink/60 uppercase tracking-widest text-center flex flex-col md:flex-row justify-between items-center gap-2">
-        <span>Sistema Gestão SINASEFE Jataí • Versão 2.1 (Sidebar Edition)</span>
+        <span>Sistema Gestão SINASEFE JATAÍ • Versão 2.1 (Sidebar Edition)</span>
         <span>© 2026 Seção Sindical Jataí</span>
       </footer>
     </AdminPageWrapper>

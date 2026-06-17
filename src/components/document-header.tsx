@@ -19,7 +19,7 @@ interface DocumentHeaderProps {
 }
 
 export default function DocumentHeader({ config }: DocumentHeaderProps) {
-  // Se não houver configuração, usa os padrões oficiais do SINASEFE Jataí
+  // Se não houver configuração, usa os padrões oficiais do SINASEFE JATAÍ
   const c = config || {
     titulo: 'SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA',
     secao_sindical: 'SINASEFE - SEÇÃO SINDICAL JATAÍ',

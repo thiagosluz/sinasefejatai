@@ -50,7 +50,7 @@ export function useConfiguracoesForm(initialConfig: DocumentHeaderConfig | null)
   }
 
   const handleResetToDefault = async () => {
-    if (await confirm('Deseja restaurar todos os campos de texto para os valores oficiais padrões do SINASEFE Jataí? (O logotipo atual não será apagado)')) {
+    if (await confirm('Deseja restaurar todos os campos de texto para os valores oficiais padrões do SINASEFE JATAÍ? (O logotipo atual não será apagado)')) {
       setTitulo('SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA')
       setSecaoSindical('SINASEFE - SEÇÃO SINDICAL JATAÍ')
       setEndereco('RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO')

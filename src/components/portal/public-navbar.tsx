@@ -28,7 +28,7 @@ export function PublicNavbar() {
               <span className="text-white font-bold text-sm font-serif">S</span>
             </div>
             <div className="hidden sm:block">
-              <p className="font-bold text-brand-ink text-sm leading-tight font-serif">SINASEFE Jataí</p>
+              <p className="font-bold text-brand-ink text-sm leading-tight font-serif">SINASEFE JATAÍ</p>
               <p className="text-xs text-zinc-500 leading-tight">Seção Sindical</p>
             </div>
           </Link>

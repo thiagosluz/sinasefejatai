@@ -110,7 +110,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
             </Link>
           )}
           {isCollapsed && (
-            <Link href="/admin/dashboard" className="font-serif font-bold text-xl tracking-tight text-brand-tinto uppercase hidden lg:block" title="SINASEFE Jataí">
+            <Link href="/admin/dashboard" className="font-serif font-bold text-xl tracking-tight text-brand-tinto uppercase hidden lg:block" title="SINASEFE JATAÍ">
               SJ
             </Link>
           )}

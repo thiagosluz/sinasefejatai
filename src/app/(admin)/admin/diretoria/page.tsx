@@ -6,7 +6,7 @@ import { BtnNovaGestao } from './btn-nova-gestao'
 import DiretoriaCliente from './diretoria-cliente'
 
 export const metadata = {
-  title: 'Gestão da Diretoria | SINASEFE Jataí',
+  title: 'Gestão da Diretoria | SINASEFE JATAÍ',
 }
 
 export default async function DiretoriaAdminPage() {

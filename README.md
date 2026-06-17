@@ -1,4 +1,4 @@
-# Sistema Integrado SINASEFE Jataí
+# Sistema Integrado SINASEFE JATAÍ
 
 Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seção Sindical Jataí do SINASEFE. O sistema foca em transparência, gestão de base e eficiência burocrática, com um Design System "Retro-Editorial" e infraestrutura serverless na nuvem.
 

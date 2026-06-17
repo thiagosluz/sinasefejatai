@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { getGestaoAtualPublica as getConselhoAtual } from '@/app/(admin)/admin/conselho-fiscal/actions'
 import { getGestaoAtualPublica as getDiretoriaAtual } from '@/app/(admin)/admin/diretoria/actions'
 export const metadata = {
-  title: 'Atual Direção | SINASEFE Jataí',
-  description: 'Conheça os membros da atual diretoria do SINASEFE Jataí.',
+  title: 'Atual Direção | SINASEFE JATAÍ',
+  description: 'Conheça os membros da atual diretoria do SINASEFE JATAÍ.',
 }
 
 type Membro = {

@@ -1,6 +1,6 @@
 # PLAN-configurable-document-header.md - Cabeçalho de Documentos Configurável e Reutilizável
 
-Este documento detalha o planejamento de engenharia para centralizar e tornar editável o cabeçalho timbrado dos documentos gerados pelo sistema, unificando a identidade visual sob as diretrizes do SINASEFE Jataí.
+Este documento detalha o planejamento de engenharia para centralizar e tornar editável o cabeçalho timbrado dos documentos gerados pelo sistema, unificando a identidade visual sob as diretrizes do SINASEFE JATAÍ.
 
 - **Project Type:** WEB (Next.js Application with Supabase)
 - **Primary Agent:** `database-architect` (modelagem de tabelas e buckets) + `frontend-specialist` (interface reativa e design de impressão) + `test-engineer` (validações estáticas e integridade de compilação)

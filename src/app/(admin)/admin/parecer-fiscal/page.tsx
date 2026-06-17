@@ -6,7 +6,7 @@ import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const metadata = {
-  title: 'Parecer Fiscal | SINASEFE Jataí',
+  title: 'Parecer Fiscal | SINASEFE JATAÍ',
 }
 
 export const dynamic = 'force-dynamic'

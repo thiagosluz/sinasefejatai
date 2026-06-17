@@ -1,5 +1,6 @@
-import { CheckCircle2,Clock, Mail, MapPin } from 'lucide-react'
+import { CheckCircle2, Clock, Mail, MapPin } from 'lucide-react'
 
+import { EMAIL_SINDICATO } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
 
 import { ContatoForm } from './contato-form'
@@ -33,7 +34,7 @@ export default async function ContatoPage({ searchParams }: Props) {
           <p className="text-red-300 font-semibold text-sm uppercase tracking-widest mb-3">Atendimento</p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white font-serif mb-4">Fale Conosco</h1>
           <p className="text-white/75 text-lg max-w-2xl">
-            Entre em contato com a diretoria do SINASEFE Jataí. Estamos aqui para tirar suas dúvidas e ouvir suas demandas.
+            Entre em contato com a diretoria do SINASEFE JATAÍ. Estamos aqui para tirar suas dúvidas e ouvir suas demandas.
           </p>
         </div>
       </section>
@@ -62,10 +63,10 @@ export default async function ContatoPage({ searchParams }: Props) {
                   title: 'E-mail',
                   content: (
                     <a
-                      href="mailto:sinasefe.jatai@gmail.com"
-                      className="text-brand-tinto hover:underline"
+                      href={`mailto:${EMAIL_SINDICATO}`}
+                      className="text-brand-tinto hover:text-brand-tinto-light hover:underline font-medium"
                     >
-                      sinasefe.jatai@gmail.com
+                      {EMAIL_SINDICATO}
                     </a>
                   ),
                 },
@@ -99,7 +100,7 @@ export default async function ContatoPage({ searchParams }: Props) {
                   </div>
                   <h3 className="text-xl font-bold text-brand-ink font-serif mb-2">Mensagem Enviada!</h3>
                   <p className="text-zinc-500 text-sm leading-relaxed mb-6">
-                    Recebemos sua mensagem. A diretoria do SINASEFE Jataí entrará em contato em breve.
+                    Recebemos sua mensagem. A diretoria do SINASEFE JATAÍ entrará em contato em breve.
                   </p>
                   <a
                     href="/contato"

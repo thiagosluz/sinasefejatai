@@ -20,9 +20,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SINASEFE Jataí",
+  title: "SINASEFE JATAÍ",
   description: "Sindicato Nacional dos Servidores Federais da Educação Básica, Profissional e Tecnológica — Seção Sindical Jataí.",
-  appleWebApp: { title: "SINASEFE Jataí" },
+  appleWebApp: { title: "SINASEFE JATAÍ" },
 };
 
 export default function RootLayout({

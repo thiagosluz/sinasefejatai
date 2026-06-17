@@ -1,6 +1,6 @@
 # Implementação da Gestão de Acessos e Usuários 🛡️
 
-A etapa de implementação da gestão de níveis de acesso do SINASEFE Jataí (Opção A aprovada) foi concluída com sucesso!
+A etapa de implementação da gestão de níveis de acesso do SINASEFE JATAÍ (Opção A aprovada) foi concluída com sucesso!
 
 Aqui está um resumo completo do que foi alterado e como testar as novas configurações.
 
