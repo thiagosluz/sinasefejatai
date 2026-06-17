@@ -33,24 +33,34 @@ test.describe('Admin - Configurações do Cabeçalho', () => {
   test('Deve permitir digitar nos campos de texto e salvar', async ({ page }) => {
     await page.goto('/admin/configuracoes');
     
-    // Preencher o Título
+    // Guardar os valores originais para não sujar o banco!
     const inputTitulo = page.getByLabel(/Título Geral da Entidade/i);
+    const originalTitulo = await inputTitulo.inputValue();
+    
+    const inputSecao = page.getByLabel(/Nome da Seção Sindical/i);
+    const originalSecao = await inputSecao.inputValue();
+
+    // Testar o preenchimento dos campos
     await inputTitulo.clear();
     await inputTitulo.fill('TITULO TESTE PLAYWRIGHT');
     await expect(inputTitulo).toHaveValue('TITULO TESTE PLAYWRIGHT');
 
-    // Preencher a Seção Sindical
-    const inputSecao = page.getByLabel(/Nome da Seção Sindical/i);
     await inputSecao.clear();
     await inputSecao.fill('SECAO TESTE PLAYWRIGHT');
     await expect(inputSecao).toHaveValue('SECAO TESTE PLAYWRIGHT');
     
-    // We will let the action hit the real database. The test environment has a dedicated DB cleanup.
+    // Restaurar imediatamente para os valores originais ANTES de salvar!
+    // Assim testamos se a digitação funciona, mas não alteramos o banco real.
+    await inputTitulo.clear();
+    await inputTitulo.fill(originalTitulo);
+    
+    await inputSecao.clear();
+    await inputSecao.fill(originalSecao);
 
-    // Agora podemos clicar no botão de salvar com segurança!
+    // Clicar no botão de salvar com segurança
     await page.getByRole('button', { name: /Salvar Alterações/i }).click();
 
-    // Verifica se o toast de sucesso (disparado pelo frontend ao receber o success: true) apareceu
+    // Verifica se o toast de sucesso apareceu
     await expect(page.getByText('Configurações de cabeçalho salvas com sucesso')).toBeVisible();
   });
 });
