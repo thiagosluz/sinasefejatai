@@ -80,7 +80,7 @@ export default async function FiliacaoPage({ searchParams }: Props) {
               >
                 <h2 className="text-2xl font-bold font-serif mb-2">Por que se filiar?</h2>
                 <p className="text-white/70 text-sm mb-8">
-                  A filiação é gratuita e você garante representação e direitos como servidor.
+                  Você garante representação e direitos como servidor.
                 </p>
                 <ul className="space-y-4">
                   {beneficios.map((b, i) => (

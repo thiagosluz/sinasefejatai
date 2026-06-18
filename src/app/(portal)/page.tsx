@@ -184,8 +184,8 @@ export default async function PortalHomePage() {
                     {b.capa_url ? (
                       <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={b.capa_url} 
+                        <img
+                          src={b.capa_url}
                           alt={b.titulo}
                           className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                         />
@@ -196,7 +196,7 @@ export default async function PortalHomePage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex items-center gap-2 text-zinc-500 text-sm mb-3">
                       <CalendarDays size={14} className="text-brand-tinto" />
@@ -205,7 +205,7 @@ export default async function PortalHomePage() {
                     <h3 className="text-brand-ink font-bold font-serif text-lg leading-tight mb-4 group-hover:text-brand-tinto transition-colors line-clamp-2">
                       {b.titulo}
                     </h3>
-                    
+
                     <div className="mt-auto flex items-center justify-end text-brand-tinto text-sm font-semibold pt-4 border-t border-brand-border-muted">
                       Ler Edição <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -236,7 +236,7 @@ export default async function PortalHomePage() {
             Faça parte do SINASEFE JATAÍ
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-            A filiação é gratuita. Juntos somos mais fortes na defesa dos nossos direitos como servidores federais.
+            Juntos somos mais fortes na defesa dos nossos direitos como servidores federais.
           </p>
           <Link
             href="/filiacao"
