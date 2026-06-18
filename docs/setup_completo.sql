@@ -22,11 +22,24 @@ CREATE TABLE public.filiados (
     siape TEXT,
     cargo TEXT,
     ativo BOOLEAN DEFAULT true,
+    data_nascimento DATE,
+    nome_pai TEXT,
+    nome_mae TEXT,
+    cpf TEXT,
+    rg TEXT,
+    sexo TEXT,
+    endereco_rua TEXT,
+    endereco_bairro TEXT,
+    endereco_cep TEXT,
+    endereco_cidade TEXT,
+    endereco_estado TEXT,
     unidade_lotacao TEXT,
     campus TEXT,
     categoria TEXT, -- 'Técnico Administrativo' | 'Docente'
     situacao TEXT, -- 'Ativo' | 'Aposentado'
-    status_filiacao TEXT DEFAULT 'aprovado', -- 'pendente' | 'aprovado'
+    status_filiacao TEXT DEFAULT 'aprovado', -- 'pendente' | 'aprovado' | 'desfiliado'
+    arquivo_ficha_filiacao TEXT,
+    arquivo_ficha_desfiliacao TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -361,6 +374,11 @@ CREATE POLICY "Leitura publica comprovantes" ON storage.objects FOR SELECT TO pu
 INSERT INTO storage.buckets (id, name, public) VALUES ('sistema', 'sistema', true) ON CONFLICT DO NOTHING;
 CREATE POLICY "Autenticados gerenciam sistema" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'sistema') WITH CHECK (bucket_id = 'sistema');
 CREATE POLICY "Leitura publica sistema" ON storage.objects FOR SELECT TO public USING (bucket_id = 'sistema');
+
+-- Bucket Fichas de Filiação (Anexos de Usuários)
+INSERT INTO storage.buckets (id, name, public) VALUES ('documentos_filiados', 'documentos_filiados', true) ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Autenticados gerenciam documentos filiados" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'documentos_filiados') WITH CHECK (bucket_id = 'documentos_filiados');
+CREATE POLICY "Leitura publica documentos filiados" ON storage.objects FOR SELECT TO public USING (bucket_id = 'documentos_filiados');
 
 -- Bucket Documentos Públicos (Publicações)
 INSERT INTO storage.buckets (id, name, public) VALUES ('documentos_publicos', 'documentos_publicos', true) ON CONFLICT (id) DO NOTHING;

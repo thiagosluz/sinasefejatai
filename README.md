@@ -14,7 +14,7 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 | Módulo | Descrição |
 |--------|-----------|
 | **Dashboard** | KPIs e links rápidos para os módulos vitais |
-| **Filiados** | Gestão da base sindical (SIAPE, Campus, Situação) com pedido de filiação online |
+| **Filiados** | Gestão da base sindical completa (SIAPE, dados pessoais/funcionais e endereço com BrasilAPI), upload de ficha assinada, e importação em lote via Excel (.xls) |
 | **Assembleias** | Agendamento, pautas, atas, lista de presença e portal público |
 | **Financeiro** | Livro Caixa com categorias dinâmicas, importação OFX e comprovantes |
 | **Categorias Financeiras** | CRUD administrativo para categorias de entrada/saída |

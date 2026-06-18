@@ -46,8 +46,10 @@ A validação de perfis (ex: `requireConselhoFiscal()`) é rigorosamente aplicad
 Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual operador está logado.
 
 ### 4.2. Gestão de Filiados
-- **Escopo:** Controle da base (SIAPE, Campus, Situação, Status de Filiação).
-- **Portal Público:** Permite ao próprio usuário preencher sua ficha de filiação online, caindo numa fila de aprovação.
+- **Escopo:** Controle avançado da base sindical (dados pessoais, funcionais, SIAPE, contatos e endereços normalizados via BrasilAPI).
+- **Portal Público e Painel Administrativo:** Permite ao próprio usuário preencher a ficha de filiação online ou à secretaria adicionar o filiado, caindo em uma fila de aprovação.
+- **Importação em Lote:** Permite migrar a base a partir de planilhas `.xls`/`.xlsx`/`.csv` de sistemas externos, utilizando bibliotecas de client-side (XLSX) e inserção unificada.
+- **Armazenamento de Anexos:** Cada filiado tem capacidade de ter seu PDF/Imagem de ficha de filiação ou desfiliação assinado armazenado em nuvem (`documentos_filiados`), com acesso direto pela tabela.
 
 ### 4.3. Atos & Assembleias
 - **Escopo:** Agendamento de reuniões (Ordinárias/Extraordinárias), definição de pautas e público-alvo.
