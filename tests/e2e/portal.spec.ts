@@ -29,6 +29,6 @@ test.describe('Portal Público', () => {
     await page.goto('/filiacao');
     
     await expect(page.getByRole('heading', { name: 'Solicitação de Filiação' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Enviar Pedido de Filiação/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Solicitar Filiação/i })).toBeVisible();
   });
 });

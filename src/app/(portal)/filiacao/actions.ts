@@ -17,7 +17,12 @@ export async function solicitarFiliacao(dadosRaw: FiliacaoFormData): Promise<Act
       return { success: false, error: 'Dados preenchidos incorretamente. Verifique os campos.' }
     }
 
-    const { nome, email, telefone, siape, unidade_lotacao, campus, categoria, situacao, website, timestamp } = validacao.data
+    const { 
+      nome, email, telefone, siape, unidade_lotacao, campus, categoria, situacao, 
+      data_nascimento, nome_pai, nome_mae, cpf, rg, sexo,
+      endereco_rua, endereco_bairro, endereco_cep, endereco_cidade, endereco_estado,
+      website, timestamp 
+    } = validacao.data
 
     // 2. Proteção Anti-Spam (Honeypot + Time-based)
     const isBot = website || (timestamp && Date.now() - parseInt(timestamp, 10) < 3000)
@@ -26,7 +31,7 @@ export async function solicitarFiliacao(dadosRaw: FiliacaoFormData): Promise<Act
       redirect('/filiacao?sucesso=1')
     }
 
-    const { error } = await supabase.from('filiados').insert({
+    const { data: newFiliado, error } = await supabase.from('filiados').insert({
       nome,
       email,
       telefone: telefone || null,
@@ -35,11 +40,23 @@ export async function solicitarFiliacao(dadosRaw: FiliacaoFormData): Promise<Act
       campus: campus || null,
       categoria,
       situacao,
+      data_nascimento: data_nascimento || null,
+      nome_pai: nome_pai || null,
+      nome_mae: nome_mae || null,
+      cpf: cpf || null,
+      rg: rg || null,
+      sexo: sexo || null,
+      endereco_rua: endereco_rua || null,
+      endereco_bairro: endereco_bairro || null,
+      endereco_cep: endereco_cep || null,
+      endereco_cidade: endereco_cidade || null,
+      endereco_estado: endereco_estado || null,
       status_filiacao: 'pendente',
       ativo: false,
-    })
+    }).select('id').single()
 
-    if (error) {
+    if (error || !newFiliado) {
+      console.error(error)
       return { success: false, error: 'Ocorreu um erro ao salvar pedido de filiação. Tente novamente ou entre em contato com o sindicato.' }
     }
 
@@ -50,7 +67,7 @@ export async function solicitarFiliacao(dadosRaw: FiliacaoFormData): Promise<Act
       console.error('[filiacao] Falha ao enviar e-mail de notificação:', emailError)
     }
 
-    redirect('/filiacao?sucesso=1')
+    redirect(`/filiacao?sucesso=1&id=${newFiliado.id}`)
   } catch (err) {
     return handleError(err, 'Falha ao solicitar filiação')
   }

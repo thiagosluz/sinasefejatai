@@ -34,6 +34,15 @@ function formatDate(dateStr: string) {
   })
 }
 
+function calcularAnosDeFundacao(fundacao?: string | null): string {
+  if (!fundacao) return '20+ anos'
+  const match = fundacao.match(/(\d{4})/)
+  if (!match) return '20+ anos'
+  const anoFundacao = parseInt(match[1], 10)
+  const anos = new Date().getFullYear() - anoFundacao
+  return `${anos}+ anos`
+}
+
 export default async function PortalHomePage() {
   const [boletins, config] = await Promise.all([
     getBoletinsRecentes(),
@@ -96,7 +105,7 @@ export default async function PortalHomePage() {
           <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
             {[
               { icon: <Users size={20} />, label: 'Filiados Representados', value: 'IFG Câmpus Jataí' },
-              { icon: <Shield size={20} />, label: 'Anos de Luta Sindical', value: '20+ anos' },
+              { icon: <Shield size={20} />, label: 'Anos de Luta Sindical', value: calcularAnosDeFundacao(config?.fundacao) },
               { icon: <FileText size={20} />, label: 'Filiado à', value: 'CEA' },
             ].map((stat) => (
               <div

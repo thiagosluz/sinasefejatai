@@ -15,7 +15,7 @@ const beneficios = [
 ]
 
 interface Props {
-  searchParams: Promise<{ sucesso?: string; error?: string }>
+  searchParams: Promise<{ sucesso?: string; error?: string; id?: string }>
 }
 
 export default async function FiliacaoPage({ searchParams }: Props) {
@@ -57,19 +57,19 @@ export default async function FiliacaoPage({ searchParams }: Props) {
               <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 size={40} className="text-green-600" />
               </div>
-              <h2 className="text-3xl font-bold text-brand-ink font-serif mb-4">Pedido Enviado!</h2>
-              <p className="text-zinc-600 leading-relaxed mb-2">
-                Seu pedido de filiação foi recebido com sucesso. A diretoria do SINASEFE JATAÍ entrará em contato para confirmar sua filiação.
+              <h2 className="text-3xl font-bold text-brand-ink font-serif mb-4">Pedido Enviado com Sucesso!</h2>
+              <p className="text-zinc-600 leading-relaxed mb-8">
+                Seus dados serão analisados pela diretoria. Você receberá uma confirmação por e-mail ou WhatsApp.
               </p>
-              <p className="text-zinc-500 text-sm mb-8">
-                Guarde o seu e-mail informado para receber a confirmação.
-              </p>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 bg-brand-tinto text-white font-semibold px-7 py-3 rounded-full hover:bg-brand-tinto-light transition-all"
-              >
-                Voltar ao início
-              </Link>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 bg-white text-brand-ink border border-brand-border font-semibold px-7 py-3 rounded-full hover:bg-brand-cream transition-all w-full sm:w-auto justify-center"
+                >
+                  Voltar ao início
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">

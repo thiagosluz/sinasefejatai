@@ -1,11 +1,12 @@
-import { Edit2, PlusCircle, UserCheck,UserX } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 
 import AdminPageHeader from '@/components/layout/admin-page-header'
 import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
 import { createClient } from '@/lib/supabase/server'
 
-import { toggleAtivo } from './actions'
+import FiliadoActions from './components/filiado-actions'
+import ImportarPlanilhaButton from './components/importar-planilha-button'
 
 export default async function FiliadosPage() {
   const supabase = await createClient()
@@ -19,18 +20,22 @@ export default async function FiliadosPage() {
   return (
     <AdminPageWrapper>
       <AdminPageHeader titulo="Gestão de Filiados" subtitulo="Módulo de Cadastros e Fichas Sindicais">
-        <Link 
-          href="/admin/filiados/novo" 
-          className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
-        >
-          <PlusCircle size={15} />
-          <span>Cadastrar Filiado</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <ImportarPlanilhaButton />
+          
+          <Link 
+            href="/admin/filiados/novo" 
+            className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
+          >
+            <PlusCircle size={15} />
+            <span>Cadastrar Filiado</span>
+          </Link>
+        </div>
       </AdminPageHeader>
 
       {/* Tabela estilo Fichário Físico */}
       <div className="bg-brand-card border border-brand-border shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[300px]">
           <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
             <thead className="bg-brand-cream border-b border-brand-border text-brand-ink/70 text-xs font-bold uppercase tracking-wider">
               <tr>
@@ -63,39 +68,29 @@ export default async function FiliadosPage() {
                       <div className="text-[11px] text-brand-ink/60 font-semibold uppercase tracking-wider">{filiado.cargo || '-'}</div>
                     </td>
                     <td className="px-6 py-4 text-center border-r border-brand-border">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                        filiado.ativo 
-                          ? 'bg-brand-olive/10 text-brand-olive border-brand-olive/30' 
-                          : 'bg-brand-tinto/10 text-brand-tinto border-brand-tinto/30'
-                      }`}>
-                        {filiado.ativo ? 'Ativo' : 'Inativo'}
-                      </span>
+                      <div className="flex flex-col items-center gap-1.5">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                          filiado.ativo 
+                            ? 'bg-brand-olive/10 text-brand-olive border-brand-olive/30' 
+                            : 'bg-brand-tinto/10 text-brand-tinto border-brand-tinto/30'
+                        }`}>
+                          {filiado.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                        
+                        {filiado.status_filiacao === 'pendente' && (
+                          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200">
+                            Pendente
+                          </span>
+                        )}
+                        {filiado.status_filiacao === 'desfiliado' && (
+                          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-600 border border-zinc-200">
+                            Desfiliado
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-3.5">
-                        <Link 
-                          href={`/admin/filiados/${filiado.id}/editar`}
-                          className="p-1 hover:bg-brand-ink/10 text-brand-ink/70 hover:text-brand-ink transition-all"
-                          title="Editar Ficha"
-                        >
-                          <Edit2 size={15} />
-                        </Link>
-                        
-                        <form action={async () => {
-                          'use server'
-                          await toggleAtivo(filiado.id, filiado.ativo)
-                        }}>
-                          <button 
-                            type="submit"
-                            className={`p-1 hover:bg-brand-ink/10 transition-colors cursor-pointer ${
-                              filiado.ativo ? 'text-brand-tinto hover:text-brand-tinto-light' : 'text-brand-olive hover:text-brand-olive-light'
-                            }`}
-                            title={filiado.ativo ? 'Desativar Ficha' : 'Reativar Ficha'}
-                          >
-                            {filiado.ativo ? <UserX size={15} /> : <UserCheck size={15} />}
-                          </button>
-                        </form>
-                      </div>
+                      <FiliadoActions filiado={filiado} />
                     </td>
                   </tr>
                 ))
