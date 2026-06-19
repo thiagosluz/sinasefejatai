@@ -40,7 +40,14 @@ O banco de dados PostgreSQL roda sob políticas estritas de segurança em nível
 
 A validação de perfis (ex: `requireConselhoFiscal()`) é rigorosamente aplicada na camada **Server Actions (DAL)**, de forma que ações do Conselho Fiscal não podem ser disparadas pela Diretoria mesmo que o botão estivesse visível ou as rotas API fossem forçadas.
 
+### Autenticação de Dois Fatores (2FA / TOTP)
+O sistema implementa nativamente o MFA (Multi-Factor Authentication) do Supabase Auth. Administradores e operadores podem parear a conta com aplicativos autenticadores (Google Authenticator, Authy), ativando o Assurance Level 2 (AAL2). O fluxo de login (`/login`) intercepta o processo, validando a necessidade do token de 6 dígitos antes de conceder sessão válida para o dashboard.
+
 ## 4. Módulos do Sistema
+
+### 4.0. Meu Perfil & Segurança
+- **Escopo:** Central individual do usuário logado acessível via Header. Permite a troca do nome de exibição, senha de acesso e habilitação/desabilitação de MFA (2FA).
+- **Avatares:** Upload nativo de fotos de perfil conectadas ao Supabase Storage (bucket `avatars`), gerenciando fotos redimensionadas que acompanham toda a sessão do operador.
 
 ### 4.1. Painel de Controle (Dashboard)
 Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual operador está logado.

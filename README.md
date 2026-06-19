@@ -29,6 +29,7 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 O sistema foi desenhado com foco total em rastreabilidade e proteção de dados:
 - **DAL (Data Access Layer)**: Todas as Server Actions passam por uma verificação rigorosa `requireAdmin()` impedindo mutações não autorizadas (CSRF e manipulação via terminal).
 - **RBAC com Perfis**: 4 níveis de acesso (`superadmin`, `diretoria`, `conselho_fiscal`, `filiado`) com validação rigorosa na camada de Server Actions.
+- **Autenticação de Dois Fatores (MFA/TOTP)**: Suporte nativo ao Google Authenticator / Authy para administradores, exigindo Assurance Level 2 (AAL2) no login.
 - **Triggers Nativos**: Inserções, edições e exclusões nas tabelas críticas (`filiados`, `assembleias`, `financeiro`, etc) geram automaticamente um snapshot em JSON na tabela de `audit_logs` pelo próprio PostgreSQL, sem intervenção do backend.
 - **Hard Lock Financeiro**: Triggers que impedem qualquer alteração em transações de meses com prestação de contas já aprovada pelo Conselho Fiscal.
 - **Log Centralizado (`Pino`)**: Todos os erros de sistema e acessos sensíveis mascaram senhas e informações pessoais (PII) antes de serem impressos no console.

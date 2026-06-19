@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+
 import { LoginForm } from './login-form'
 
 async function getConfiguracoes() {

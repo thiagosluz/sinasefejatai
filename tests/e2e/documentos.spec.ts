@@ -13,7 +13,7 @@ test.describe('Documentos - Fluxo Crítico (Recibos)', () => {
     await page.goto('/login');
     await page.fill('input[name="email"]', testEmail!);
     await page.fill('input[name="password"]', testPassword!);
-    await page.click('button:has-text("Autenticar Carteira")');
+    await page.click('button:has-text("Autenticar")');
     await page.waitForURL('**/admin/dashboard');
   });
 
