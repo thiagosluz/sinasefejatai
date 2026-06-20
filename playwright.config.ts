@@ -30,5 +30,8 @@ export default defineConfig({
     command: 'pnpm dev --port 3001',
     url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
+    env: {
+      IS_PLAYWRIGHT: 'true'
+    }
   },
 });

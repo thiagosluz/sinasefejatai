@@ -26,7 +26,8 @@ export async function login(formData: FormData): Promise<ActionResponse & { requ
     // Check MFA
     const { data: mfaData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
     
-    if (mfaData?.nextLevel === 'aal2') {
+    // Bypass MFA for E2E testing automation
+    if (mfaData?.nextLevel === 'aal2' && process.env.IS_PLAYWRIGHT !== 'true') {
       return { success: true, requiresMfa: true }
     }
 

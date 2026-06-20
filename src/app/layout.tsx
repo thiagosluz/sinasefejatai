@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter,Lora } from "next/font/google";
 import { Toaster } from "sonner";
@@ -54,6 +56,8 @@ export default function RootLayout({
                 className: "font-sans",
               }}
             />
+            <Analytics />
+            <SpeedInsights />
           </ModalProvider>
         </ThemeProvider>
       </body>
