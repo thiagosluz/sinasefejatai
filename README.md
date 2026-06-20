@@ -14,12 +14,12 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 | Módulo | Descrição |
 |--------|-----------|
 | **Dashboard** | KPIs e links rápidos para os módulos vitais |
-| **Filiados** | Gestão da base sindical completa (SIAPE, dados pessoais/funcionais e endereço com BrasilAPI), upload de ficha assinada, e importação em lote via Excel (.xls) |
-| **Assembleias** | Agendamento, pautas, atas, lista de presença e portal público |
+| **Filiados** | Gestão da base sindical (SIAPE, dados pessoais/funcionais e endereço), upload de ficha assinada, e importação em lote via Excel (.xls) |
+| **Assembleias** | Agendamento, pautas, atas, lista de presença, disparos de edital em background (Edge Functions) e portal público |
 | **Financeiro** | Livro Caixa com categorias dinâmicas, importação OFX e comprovantes |
 | **Categorias Financeiras** | CRUD administrativo para categorias de entrada/saída |
 | **Conselho Fiscal** | Avaliação e aprovação mensal de prestação de contas |
-| **Documentos** | Emissão de Recibos, Ofícios, Memorandos, Portarias, Certificados, Declarações e Resoluções |
+| **Documentos** | Emissão de Recibos, Ofícios, Memorandos, Portarias, Certificados, Declarações e Resoluções com assinatura eletrônica e Lacre de Autenticidade |
 | **Publicações** | Portal de transparência para materiais públicos |
 | **Diretoria** | Histórico de gestões e membros com fotos |
 | **Auditoria** | Logs imutáveis via Triggers PostgreSQL com retenção de 1 ano |
@@ -59,19 +59,37 @@ Toda a documentação analítica e de arquitetura do sistema foi transferida par
 
 ## 🚀 Como Executar o Projeto Localmente
 
-Certifique-se de ter o Node.js e o `pnpm` instalados na sua máquina. O projeto depende de variáveis de ambiente do Supabase (`NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`) configuradas num arquivo `.env.local`.
+Certifique-se de ter o Node.js e o `pnpm` instalados na sua máquina. Você também vai precisar do [Supabase CLI](https://supabase.com/docs/guides/cli) para rodar ou fazer deploy de Edge Functions.
+
+### Variáveis de Ambiente
+O projeto depende de variáveis no arquivo `.env.local`:
+```env
+NEXT_PUBLIC_SUPABASE_URL=sua-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key
+SUPABASE_SERVICE_ROLE_KEY=sua-service-key # Opcional, para scripts administrativos
+
+# Para a Edge Function de disparo de emails
+RESEND_API_KEY=re_suachave...
+EDGE_FUNCTION_SECRET=chave_secreta_super_forte_32bytes
+```
 
 1. Instale as dependências:
 ```bash
 pnpm install
 ```
 
-2. Rode o servidor de desenvolvimento:
+2. (Opcional) Deploy das Edge Functions no Supabase:
+```bash
+npx supabase functions deploy --no-verify-jwt
+npx supabase secrets set RESEND_API_KEY=suachave EDGE_FUNCTION_SECRET=suachave
+```
+
+3. Rode o servidor de desenvolvimento:
 ```bash
 pnpm run dev
 ```
 
-3. Acesse no navegador:
+4. Acesse no navegador:
 Abra [http://localhost:3000](http://localhost:3000) para ver o Portal Público, ou navegue para [http://localhost:3000/login](http://localhost:3000/login) para acessar o Painel Administrativo.
 
 ## 📝 Licenciamento

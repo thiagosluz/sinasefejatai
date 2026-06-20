@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/server'
 
 import AnexoUploadBtn from '../../anexo-upload-btn'
 
+import EditalDisparoBtn from './edital-disparo-btn'
 import EditalRetificarBtn from './edital-retificar-btn'
 export default async function EditalPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -80,6 +81,9 @@ export default async function EditalPage(props: { params: Promise<{ id: string }
           />
 
           <EditalRetificarBtn id={assembleia.id} versaoAtual={assembleia.versao_edital || 1} status={assembleia.status} />
+          
+          <EditalDisparoBtn assembleiaId={assembleia.id} />
+
           <button
             type="button"
             className="bg-brand-ink hover:bg-brand-ink/90 text-white rounded-none px-4 py-2 font-bold uppercase tracking-wider transition-colors flex items-center gap-2 text-[10px] shadow-[1.5px_1.5px_0px_var(--brand-tinto)]"

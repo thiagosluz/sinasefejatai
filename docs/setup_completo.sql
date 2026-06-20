@@ -160,6 +160,7 @@ CREATE TABLE public.mensagens (
 -- 2.11 Configurações Globais (Timbres Oficiais)
 CREATE TABLE public.configuracoes (
     id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    cnpj TEXT NOT NULL DEFAULT '07.341.258/0001-90',
     titulo TEXT NOT NULL DEFAULT 'SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA',
     secao_sindical TEXT NOT NULL DEFAULT 'SINASEFE - SEÇÃO SINDICAL JATAÍ',
     endereco TEXT NOT NULL DEFAULT 'RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO',
@@ -276,6 +277,27 @@ CREATE TRIGGER set_boletins_updated_at
 BEFORE UPDATE ON public.boletins 
 FOR EACH ROW EXECUTE FUNCTION moddatetime(updated_at);
 
+-- 2.19 Assinaturas Eletrônicas e Autenticidade (Lacres)
+CREATE TABLE public.documento_verificacoes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tipo_documento TEXT NOT NULL,
+    documento_id UUID NOT NULL,
+    codigo_verificador TEXT UNIQUE NOT NULL,
+    codigo_autenticacao TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE (tipo_documento, documento_id)
+);
+
+CREATE TABLE public.documento_assinaturas (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    verificacao_id UUID REFERENCES public.documento_verificacoes(id) ON DELETE CASCADE NOT NULL,
+    usuario_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    nome_assinante TEXT NOT NULL,
+    cargo_assinante TEXT NOT NULL,
+    data_assinatura TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE (verificacao_id, usuario_id)
+);
+
 -- ==========================================
 -- 3. HABILITANDO SEGURANÇA DE LINHAS (RLS)
 -- ==========================================
@@ -299,6 +321,8 @@ ALTER TABLE public.documentos_administrativos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.publicacoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.perfis ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.boletins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documento_verificacoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documento_assinaturas ENABLE ROW LEVEL SECURITY;
 
 
 -- ==========================================
@@ -359,6 +383,12 @@ CREATE POLICY "Superadmin pode gerenciar perfis"
 -- 4.8 Boletins Semanais
 CREATE POLICY "Leitura publica de boletins" ON public.boletins FOR SELECT TO public USING (status = 'Publicado');
 CREATE POLICY "Admin pode gerenciar boletins" ON public.boletins FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- 4.9 Assinaturas Eletrônicas
+CREATE POLICY "Leitura anonima de verificacoes" ON public.documento_verificacoes FOR SELECT TO anon USING (true);
+CREATE POLICY "Leitura anonima de assinaturas" ON public.documento_assinaturas FOR SELECT TO anon USING (true);
+CREATE POLICY "Admins controlam verificacoes" ON public.documento_verificacoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admins controlam assinaturas" ON public.documento_assinaturas FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 
 -- ==========================================
@@ -471,6 +501,8 @@ CREATE TRIGGER audit_membros_gestao_trigger AFTER INSERT OR UPDATE OR DELETE ON 
 CREATE TRIGGER audit_configuracoes_trigger AFTER INSERT OR UPDATE OR DELETE ON configuracoes FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 CREATE TRIGGER audit_perfis_trigger AFTER INSERT OR UPDATE OR DELETE ON public.perfis FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 CREATE TRIGGER audit_boletins_trigger AFTER INSERT OR UPDATE OR DELETE ON public.boletins FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_verificacoes_trigger AFTER INSERT OR UPDATE OR DELETE ON public.documento_verificacoes FOR EACH ROW EXECUTE FUNCTION process_audit_log();
+CREATE TRIGGER audit_assinaturas_trigger AFTER INSERT OR UPDATE OR DELETE ON public.documento_assinaturas FOR EACH ROW EXECUTE FUNCTION process_audit_log();
 
 
 -- ==========================================

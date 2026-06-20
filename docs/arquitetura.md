@@ -26,6 +26,9 @@ Para evitar sobrecarga de estado no servidor e manter a performance, as interaç
 ### Server Actions & Segurança (DAL)
 A manipulação de dados (mutations como Create, Update, Delete) é feita unicamente via Server Actions (arquivos `actions.ts` dentro de cada módulo). Para garantir a integridade, o sistema usa o padrão **DAL (Data Access Layer)**: todo arquivo de mutação administrativa DEVE chamar validadores de permissão de acesso e autenticação para evitar ataques CSRF ou invasão de endpoint.
 
+### Processamento em Background (Edge Functions)
+Para operações demoradas que correm o risco de estourar o timeout (15s na Vercel Hobby / Free), o sistema emprega **Supabase Edge Functions** (`supabase/functions/`). Elas processam tarefas pesadas em background de forma assíncrona ("fire-and-forget") acionando requisições REST independentes sem travar a interface. Por exemplo, o disparo em lote de emails com anexos para centenas de filiados é orquestrado destas funções utilizando a API Rest do Resend.
+
 ### Logs e Auditoria
 - **Application Logger:** É TERMINANTEMENTE proibido o uso de `console.log` para depuração no backend em produção. O sistema utiliza a biblioteca Pino configurada em `src/lib/logger.ts`, que mascara automaticamente (Redaction) e-mails, tokens, e dados sensíveis de filiados para evitar vazamentos de logs de container.
 - **Triggers Passivos:** A auditoria de modificações em tabelas ("quem apagou", "quem editou") **não é** feita no código TypeScript para evitar falha humana. Nós utilizamos `Triggers` no PostgreSQL (`process_audit_log()`) que rodam em background, interceptam qualquer alteração e salvam os deltas completos em JSON na tabela `audit_logs`.
@@ -75,9 +78,9 @@ Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual o
 - **Fluxo:** O sistema compila automaticamente os saldos do mês, junta os comprovantes de despesas e cria um documento que transita por uma máquina de estados: `AGUARDANDO_ASSINATURAS` -> `COM_RESSALVAS` / `REJEITADO` / `APROVADO`. Cada conselheiro logado pode assinar digitalmente o parecer até o número total de conselheiros da gestão ser batido, bloqueando o mês.
 
 ### 4.6. Documentos Administrativos e Publicações
-- **Escopo:** Emissão e versionamento digital de Recibos, Ofícios, Memorandos, Portarias, Certificados, Declarações e Resoluções.
+- **Escopo:** Emissão e versionamento digital de Recibos, Ofícios, Memorandos, Portarias, Certificados, Declarações e Resoluções. Os documentos possuem ciclos de vida como "ativo", "cancelado" ou "revogado" (este último útil para resoluções normativas que substituem antigas).
 - **Publicações:** Todo e qualquer material público do sindicato que não for um documento interno vai para o portal transparência (Publicações). 
-- **Assinatura Eletrônica:** Utiliza o sistema interno nativo em tabelas vinculando UUIDs de `documento_verificacoes`.
+- **Assinatura Eletrônica:** Utiliza o sistema interno nativo com as tabelas `documento_verificacoes` e `documento_assinaturas`. Ele gera Lacres de Autenticidade únicos vinculando códigos numéricos e alfanuméricos a hashes criptografados de UUIDs (`/autenticar-documento`), recebendo digitalmente as assinaturas dos operadores e imprimindo-as visualmente no rodapé e margem dos documentos exportados em PDF.
 
 ### 4.7. Diretoria & Gestões (Histórico)
 - **Escopo:** Manter a transparência sobre quem compõe a atual e as passadas diretorias.

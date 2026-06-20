@@ -1,10 +1,12 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Instancia o cliente do Resend apenas se a chave da API existir
+export const resend = process.env.RESEND_API_KEY 
+  ? new Resend(process.env.RESEND_API_KEY) 
+  : null
 
-// Resend exige que o domínio de remetente seja verificado. 
-// Como ainda não foi verificado no painel da Resend, usamos o e-mail de teste padrão deles para não dar erro 403.
-const FROM_ADDRESS = 'onboarding@resend.dev'
+// Usamos o subdomínio validado no Resend
+const FROM_ADDRESS = 'SINASEFE Jataí <nao-responda@email.sinasefejatai.org.br>'
 import { EMAIL_SINDICATO } from '@/lib/constants'
 
 const DIRETORIA_EMAIL = EMAIL_SINDICATO
@@ -17,12 +19,17 @@ interface SendEmailOptions {
 }
 
 async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
+  if (!resend) {
+    console.warn('⚠️ RESEND_API_KEY não está definida. O e-mail NÃO foi enviado.', { to, subject })
+    return { id: 'simulated' }
+  }
+
   const { data, error } = await resend.emails.send({
     from: FROM_ADDRESS,
     to: Array.isArray(to) ? to : [to],
     subject,
     html,
-    ...(replyTo ? { replyTo } : {}),
+    replyTo: replyTo || DIRETORIA_EMAIL, // Fallback automático para o email do sindicato
   })
 
   if (error) {
