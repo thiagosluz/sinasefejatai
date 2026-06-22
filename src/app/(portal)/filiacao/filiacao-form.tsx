@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -31,6 +32,9 @@ export function FiliacaoForm() {
   const [erro, setErro] = useState<string | null>(null)
   const [renderTime] = useState(() => Date.now().toString())
   const [buscandoCep, setBuscandoCep] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string>('')
+  
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''
 
   const {
     register,
@@ -72,7 +76,7 @@ export function FiliacaoForm() {
 
   const onSubmit = async (data: FiliacaoFormData) => {
     setErro(null)
-    const res = await solicitarFiliacao(data)
+    const res = await solicitarFiliacao(data, turnstileToken)
 
     if (res?.success) {
       toast.success('Pedido enviado com sucesso!')
@@ -300,10 +304,14 @@ export function FiliacaoForm() {
         </fieldset>
 
         <div className="pt-2">
+          <div className="flex justify-center mb-6">
+            <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
+          </div>
+
           <button
             id="submit-filiacao"
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !turnstileToken}
             className="w-full bg-brand-tinto text-white font-bold py-4 rounded-xl hover:bg-brand-tinto-light transition-all shadow-md hover:shadow-lg active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Processando...' : 'Solicitar Filiação'}

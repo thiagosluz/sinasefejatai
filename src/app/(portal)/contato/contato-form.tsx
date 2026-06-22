@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -13,6 +14,9 @@ import { enviarMensagem } from './actions'
 export function ContatoForm() {
   const [erro, setErro] = useState<string | null>(null)
   const [renderTime] = useState(() => Date.now().toString())
+  const [turnstileToken, setTurnstileToken] = useState<string>('')
+  
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''
 
   const {
     register,
@@ -24,7 +28,7 @@ export function ContatoForm() {
 
   const onSubmit = async (data: ContatoFormData) => {
     setErro(null)
-    const res = await enviarMensagem(data)
+    const res = await enviarMensagem(data, turnstileToken)
 
     if (res?.success) {
       toast.success('Mensagem enviada com sucesso!')
@@ -112,10 +116,14 @@ export function ContatoForm() {
           {errors.mensagem && <p className="mt-1 text-xs text-brand-tinto">{errors.mensagem.message}</p>}
         </div>
 
+        <div className="flex justify-center my-6">
+          <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
+        </div>
+
         <button
           id="submit-contato"
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !turnstileToken}
           className="w-full bg-brand-tinto text-white font-bold py-3.5 rounded-xl hover:bg-brand-tinto-light transition-all shadow-md hover:shadow-lg active:scale-[0.99] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}

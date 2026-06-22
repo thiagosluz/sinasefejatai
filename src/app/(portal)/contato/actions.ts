@@ -7,9 +7,34 @@ import { notificarNovoContato } from '@/lib/email'
 import { createClient } from '@/lib/supabase/server'
 import { ContatoFormData, ContatoSchema } from '@/schemas/contato-schema'
 
-export async function enviarMensagem(dadosRaw: ContatoFormData): Promise<ActionResponse> {
+export async function enviarMensagem(dadosRaw: ContatoFormData, turnstileToken: string): Promise<ActionResponse> {
   try {
     const supabase = await createClient()
+
+    // 1. Validação do Cloudflare Turnstile
+    if (!turnstileToken) {
+      return { success: false, error: 'Verificação de segurança falhou. Atualize a página e tente novamente.' }
+    }
+
+    const secretKey = process.env.TURNSTILE_SECRET_KEY
+    if (!secretKey) {
+      console.error('[contato] TURNSTILE_SECRET_KEY não configurada no ambiente.')
+      return { success: false, error: 'Erro de configuração do servidor.' }
+    }
+
+    const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `secret=${secretKey}&response=${turnstileToken}`,
+    })
+
+    const verifyData = await verifyRes.json()
+    if (!verifyData.success) {
+      console.warn('[contato] Turnstile validation failed:', verifyData)
+      return { success: false, error: 'Falha na verificação de segurança (Anti-spam). Tente novamente.' }
+    }
 
     // 1. Validação com Zod no servidor
     const validacao = ContatoSchema.safeParse(dadosRaw)
