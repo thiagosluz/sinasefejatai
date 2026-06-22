@@ -139,6 +139,7 @@ export function MfaSetup({ enrolled, factorId }: MfaSetupProps) {
 
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="bg-white p-2 border-2 border-brand-ink shadow-[2px_2px_0px_#121214] flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={qrCodeSvg} 
                     alt="QR Code Autenticador"

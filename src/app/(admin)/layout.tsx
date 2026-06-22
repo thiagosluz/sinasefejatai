@@ -38,11 +38,14 @@ export default async function AdminLayout({
         {/* Avatar */}
         <div className="w-9 h-9 rounded-full bg-brand-card border-2 border-brand-ink flex items-center justify-center overflow-hidden">
           {user?.user_metadata?.avatar_url ? (
-            <img 
-              src={user.user_metadata.avatar_url} 
-              alt="Avatar" 
-              className="w-full h-full object-cover" 
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={user.user_metadata.avatar_url} 
+                alt="Avatar" 
+                className="w-full h-full object-cover" 
+              />
+            </>
           ) : (
             <span className="font-serif font-bold text-sm text-brand-tinto">
               {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}

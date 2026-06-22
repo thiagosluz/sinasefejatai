@@ -76,7 +76,10 @@ export function ProfileAvatarUpload({ currentAvatarUrl, userName }: ProfileAvata
       <div className="relative group">
         <div className="w-32 h-32 rounded-full border-4 border-brand-ink bg-brand-card flex items-center justify-center overflow-hidden">
           {currentAvatarUrl ? (
-            <img src={currentAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={currentAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            </>
           ) : (
             <span className="text-4xl font-serif font-bold text-brand-tinto">
               {userName.charAt(0).toUpperCase()}

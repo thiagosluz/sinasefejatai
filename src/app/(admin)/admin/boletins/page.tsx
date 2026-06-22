@@ -8,6 +8,7 @@ import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
 import DeleteBoletimButton from './components/delete-button'
+import DisparoBoletimBtn from './components/disparo-boletim-btn'
 
 export default async function BoletinsPage() {
   const supabase = await createClient()
@@ -85,6 +86,9 @@ export default async function BoletinsPage() {
                         >
                           <Edit size={16} />
                         </Link>
+                        {bol.status === 'Publicado' && (
+                          <DisparoBoletimBtn id={bol.id} titulo={bol.titulo} />
+                        )}
                         <DeleteBoletimButton id={bol.id} titulo={bol.titulo} />
                       </div>
                     </td>

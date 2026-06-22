@@ -268,7 +268,7 @@ export async function dispararEditalEmLote(assembleiaId: string): Promise<Action
       return { success: false, error: 'Configuração da Edge Function não encontrada no ambiente.' }
     }
 
-    const edgeFunctionUrl = `${supabaseUrl}/functions/v1/enviar-edital`
+    const edgeFunctionUrl = `${supabaseUrl}/functions/v1/disparo-emails`
 
     const payload = {
       filiados,

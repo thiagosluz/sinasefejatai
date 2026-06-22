@@ -170,3 +170,124 @@ export async function excluirBoletim(id: string): Promise<ActionResponse> {
     return handleError(err, 'Ocorreu um erro ao excluir o boletim.')
   }
 }
+
+export async function dispararBoletimEmLote(id: string): Promise<ActionResponse<{ enviados: number }>> {
+  try {
+    await requireAdmin()
+    const supabase = await createClient()
+
+    // 1. Buscar boletim
+    const { data: boletim } = await supabase
+      .from('boletins')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (!boletim) {
+      return { success: false, error: 'Boletim não encontrado.' }
+    }
+
+    if (boletim.status !== 'Publicado') {
+      return { success: false, error: 'Apenas boletins publicados podem ser disparados.' }
+    }
+
+    // 2. Buscar Filiados ATIVOS com e-mail
+    const { data: filiados } = await supabase
+      .from('filiados')
+      .select('nome, email')
+      .eq('ativo', true)
+      .eq('status_filiacao', 'aprovado')
+      .not('email', 'is', null)
+      .neq('email', '')
+
+    if (!filiados || filiados.length === 0) {
+      return { success: false, error: 'Nenhum filiado ativo com e-mail cadastrado foi encontrado para o envio.' }
+    }
+
+    // 3. Montar Corpo do E-mail HTML
+    const publicLink = `https://www.sinasefejatai.org.br/boletins/${boletim.id}`
+    const subjectTitle = `[Boletim SINASEFE Jataí] ${boletim.titulo}`
+
+    const htmlContent = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+        <div style="background: #991b1b; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 20px;">SINASEFE Jataí/GO</h1>
+        </div>
+        <div style="padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #111827; font-size: 18px; margin-top: 0; text-align: center;">
+            ${boletim.titulo}
+          </h2>
+
+          <div style="text-align: center; margin: 24px 0;">
+            <img src="${boletim.capa_url}" alt="Capa do Boletim" style="max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;" />
+          </div>
+
+          <div style="color: #374151; line-height: 1.6; text-align: justify;">
+            ${boletim.corpo_texto}
+          </div>
+
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${publicLink}" style="background-color: #991b1b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+              Acessar Boletim Completo no Portal
+            </a>
+          </div>
+
+          ${boletim.link_externo ? `
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="${boletim.link_externo}" style="color: #991b1b; text-decoration: underline;">
+              Link Externo Adicional
+            </a>
+          </div>
+          ` : ''}
+
+          <hr style="border-color: #e5e7eb; margin: 24px 0;" />
+          <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+            Você está recebendo este e-mail pois consta como filiado ativo na base do SINASEFE Jataí.<br/>
+            Se você não é mais filiado ou não deseja receber essas comunicações, entre em contato com a secretaria.
+          </p>
+        </div>
+      </div>
+    `
+
+    // 4. Disparar Edge Function em background (fire-and-forget)
+    const edgeFunctionSecret = process.env.EDGE_FUNCTION_SECRET
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
+    if (!edgeFunctionSecret || !supabaseUrl) {
+      return { success: false, error: 'Configuração da Edge Function não encontrada no ambiente.' }
+    }
+
+    const edgeFunctionUrl = `${supabaseUrl}/functions/v1/disparo-emails`
+
+    const payload = {
+      filiados,
+      subject: subjectTitle,
+      html: htmlContent,
+      attachment: boletim.arquivo_pdf_url
+        ? { filename: `Boletim_${boletim.titulo.replace(/\s+/g, '_')}.pdf`, url: boletim.arquivo_pdf_url }
+        : undefined,
+      replyTo: 'sinasefe.jatai.go@gmail.com'
+    }
+
+    // Fire-and-forget: não esperamos a resposta completa
+    fetch(edgeFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${edgeFunctionSecret}`,
+      },
+      body: JSON.stringify(payload),
+    }).catch(err => {
+      console.error('[dispararBoletimEmLote] Erro ao chamar Edge Function:', err)
+    })
+
+    return { 
+      success: true, 
+      data: { enviados: filiados.length }, 
+      message: `Envio iniciado! ${filiados.length} filiados serão notificados em breve.` 
+    }
+
+  } catch (err) {
+    return handleError(err, 'Falha ao processar disparo do boletim.')
+  }
+}

@@ -92,6 +92,10 @@ pnpm run dev
 4. Acesse no navegador:
 Abra [http://localhost:3000](http://localhost:3000) para ver o Portal Público, ou navegue para [http://localhost:3000/login](http://localhost:3000/login) para acessar o Painel Administrativo.
 
-## 📝 Licenciamento
+## 📝 Licenciamento e Contribuição
+
+Este é um projeto proprietário construído para o **SINASEFE JATAÍ/GO**.
+
+Para implementações futuras e débitos técnicos, consulte o [ROADMAP do Projeto](ROADMAP.md).
 
 Este projeto é open-source e está sob a [Licença MIT](./LICENSE). Isso significa que outros sindicatos e entidades podem usá-lo livremente, desde que mantenham os créditos originais.

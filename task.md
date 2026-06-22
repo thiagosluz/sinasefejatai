@@ -17,6 +17,12 @@
   - [x] Criar `src/app/(admin)/admin/usuarios/components/invite-user-modal.tsx` (Formulário de convite com busca de Filiado opcional).
   - [x] Adicionar botão "Usuários" no menu lateral (Sidebar) do Admin.
   - [x] Atualizar formulário de `gestao_membros` para ter o seletor opcional de `filiado_id`.
+  - [x] Renomear Edge Function `enviar-edital` para `disparo-emails`.
+  - [x] Atualizar `dispararEditalEmLote` em `src/app/(admin)/admin/assembleias/actions.ts`.
+  - [x] Criar Action `dispararBoletimEmLote` em `src/app/(admin)/admin/boletins/actions.ts`.
+  - [x] Criar component `DisparoBoletimBtn` em `src/app/(admin)/admin/boletins/components/disparo-boletim-btn.tsx`.
+  - [x] Adicionar botão na tabela de `src/app/(admin)/admin/boletins/page.tsx`.
+  - [x] Fazer deploy da Edge Function `disparo-emails`.
 
 - [x] 4. Verificação
   - [x] Verificar linting e tipagem.
