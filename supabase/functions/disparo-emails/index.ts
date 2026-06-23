@@ -1,3 +1,7 @@
+import * as aws from "npm:@aws-sdk/client-ses"
+const { SESClient } = aws
+import nodemailer from "npm:nodemailer"
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 const corsHeaders = {
@@ -45,17 +49,24 @@ Deno.serve(async (req) => {
       )
     }
 
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-    if (!RESEND_API_KEY) {
+    const AWS_ACCESS_KEY_ID = Deno.env.get('AWS_ACCESS_KEY_ID')
+    const AWS_SECRET_ACCESS_KEY = Deno.env.get('AWS_SECRET_ACCESS_KEY')
+    const AWS_REGION = Deno.env.get('AWS_REGION') || 'us-east-2'
+
+    if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
       return new Response(
-        JSON.stringify({ error: 'RESEND_API_KEY não configurada' }),
+        JSON.stringify({ error: 'Credenciais da AWS não configuradas' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // 3. Responder imediatamente que o processamento iniciou
     // O EdgeRuntime.waitUntil() permite continuar o processamento após a resposta
-    const responsePromise = processarEnvios(filiados, subject, html, attachment, replyTo, RESEND_API_KEY)
+    const responsePromise = processarEnvios(filiados, subject, html, attachment, replyTo, {
+      accessKeyId: AWS_ACCESS_KEY_ID,
+      secretAccessKey: AWS_SECRET_ACCESS_KEY,
+      region: AWS_REGION
+    })
 
     // Usar waitUntil para continuar processando após enviar a resposta
     // @ts-expect-error - EdgeRuntime is available in Supabase Edge Functions
@@ -93,52 +104,52 @@ async function processarEnvios(
   html: string,
   attachment: { filename: string; url: string } | undefined,
   replyTo: string,
-  apiKey: string
+  awsConfig: { accessKeyId: string; secretAccessKey: string; region: string }
 ) {
   let enviados = 0
   const erros: string[] = []
 
-  // Montar attachments para o Resend REST API
+  const sesClient = new SESClient({
+    region: awsConfig.region,
+    credentials: {
+      accessKeyId: awsConfig.accessKeyId,
+      secretAccessKey: awsConfig.secretAccessKey,
+    },
+  })
+
+  const transporter = nodemailer.createTransport({
+    SES: { ses: sesClient, aws },
+  })
+
+  // Montar attachments para o Nodemailer
   const attachments = attachment
-    ? [{ filename: attachment.filename, path: attachment.url }]
+    ? [{ filename: attachment.filename, href: attachment.url }]
     : undefined
 
   for (let i = 0; i < filiados.length; i++) {
     const filiado = filiados[i]
 
     try {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          from: 'SINASEFE Jataí <nao-responda@email.sinasefejatai.org.br>',
-          to: [filiado.email],
-          subject,
-          html,
-          attachments,
-          reply_to: replyTo,
-        }),
+      await transporter.sendMail({
+        from: 'SINASEFE Jataí <nao-responda@notifica.sinasefejatai.org.br>',
+        to: filiado.email,
+        subject,
+        html,
+        attachments,
+        replyTo,
       })
 
-      if (res.ok) {
-        enviados++
-        console.log(`[${i + 1}/${filiados.length}] ✅ Enviado para ${filiado.email}`)
-      } else {
-        const errorBody = await res.text()
-        console.error(`[${i + 1}/${filiados.length}] ❌ Falha para ${filiado.email}: ${res.status} - ${errorBody}`)
-        erros.push(filiado.email)
-      }
+      enviados++
+      console.log(`[${i + 1}/${filiados.length}] ✅ Enviado para ${filiado.email}`)
     } catch (err) {
       console.error(`[${i + 1}/${filiados.length}] ❌ Erro para ${filiado.email}:`, err)
       erros.push(filiado.email)
     }
 
-    // Rate limit: 250ms entre envios (4 req/s, dentro do limite de 5 do Resend)
+    // Rate limit AWS SES costuma ser de 14 req/s na Sandbox ou maior na produção.
+    // Vamos manter 100ms (10 req/s) para segurança.
     if (i < filiados.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 100))
     }
   }
 

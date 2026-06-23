@@ -191,6 +191,10 @@ export async function dispararBoletimEmLote(id: string): Promise<ActionResponse<
       return { success: false, error: 'Apenas boletins publicados podem ser disparados.' }
     }
 
+    if (boletim.enviado_email) {
+      return { success: false, error: 'Este boletim já foi disparado por e-mail.' }
+    }
+
     // 2. Buscar Filiados ATIVOS com e-mail
     const { data: filiados } = await supabase
       .from('filiados')
@@ -280,6 +284,14 @@ export async function dispararBoletimEmLote(id: string): Promise<ActionResponse<
     }).catch(err => {
       console.error('[dispararBoletimEmLote] Erro ao chamar Edge Function:', err)
     })
+
+    // 5. Atualizar no banco indicando que o e-mail foi enviado
+    await supabase
+      .from('boletins')
+      .update({ enviado_email: true })
+      .eq('id', id)
+
+    revalidatePath('/admin/boletins')
 
     return { 
       success: true, 

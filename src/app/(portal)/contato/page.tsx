@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Mail, MapPin } from 'lucide-react'
+import { CheckCircle2, Mail, MapPin } from 'lucide-react'
 
 import { EMAIL_SINDICATO } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
@@ -79,11 +79,6 @@ export default async function ContatoPage({ searchParams }: Props) {
                     </a>
                   ),
                 },
-                {
-                  icon: <Clock size={20} className="text-brand-tinto" />,
-                  title: 'Horário de Atendimento',
-                  content: 'Segunda a Sexta-feira, das 08h às 17h',
-                },
               ].map((item) => (
                 <div
                   key={item.title}
@@ -119,7 +114,7 @@ export default async function ContatoPage({ searchParams }: Props) {
                   </a>
                 </div>
               ) : (
-                  <ContatoForm />
+                <ContatoForm />
               )}
             </div>
           </div>

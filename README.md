@@ -14,8 +14,9 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 | Módulo | Descrição |
 |--------|-----------|
 | **Dashboard** | KPIs e links rápidos para os módulos vitais |
-| **Filiados** | Gestão da base sindical (SIAPE, dados pessoais/funcionais e endereço), upload de ficha assinada, e importação em lote via Excel (.xls) |
+| **Filiados** | Gestão da base sindical (SIAPE, etc.), Atualização Cadastral Autônoma por link seguro (Fluxo Maker-Checker), upload de ficha assinada e importação em lote |
 | **Assembleias** | Agendamento, pautas, atas, lista de presença, disparos de edital em background (Edge Functions) e portal público |
+| **Boletins** | Envio em lote assíncrono via AWS SES, filtros avançados com Server-Side Rendering e controle antiduplicação de disparos |
 | **Financeiro** | Livro Caixa com categorias dinâmicas, importação OFX e comprovantes |
 | **Categorias Financeiras** | CRUD administrativo para categorias de entrada/saída |
 | **Conselho Fiscal** | Avaliação e aprovação mensal de prestação de contas |
@@ -54,7 +55,6 @@ pnpm lint && pnpm test && pnpm test:e2e && pnpm tsc --noEmit && pnpm build
 Toda a documentação analítica e de arquitetura do sistema foi transferida para a pasta `docs/`. Lá você encontrará detalhes técnicos essenciais para desenvolvedores futuros:
 
 - [Visão da Arquitetura e Módulos](./docs/arquitetura.md)
-- [Roadmap de Implementações](./docs/roadmap.md)
 - [Script SQL Master (Setup Banco de Dados)](./docs/setup_completo.sql)
 
 ## 🚀 Como Executar o Projeto Localmente

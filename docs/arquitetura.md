@@ -19,9 +19,9 @@ O sistema é um portal web e aplicativo de gestão de retaguarda focado em centr
 
 ## 3. Padrões e Decisões de Código
 
-### Server Components vs Client Components
+### Server Components vs Client Components & Server-Side Filtering
 Por padrão, toda página de rota (`page.tsx`) é um Server Component que busca os dados no Supabase e gerencia autorização (redirects).
-Para evitar sobrecarga de estado no servidor e manter a performance, as interações ricas de UI (formulários, filtros, modais) são delegadas a componentes Client anexos (geralmente nomeados como `modulo-cliente.tsx`).
+Para filtros em listas (ex: telas de Boletins), adotamos o padrão de **Server-Side Filtering via `searchParams`** da URL. Dessa forma, as consultas ao banco rodam no servidor, permitindo *deep-linking* (links compartilháveis que preservam o estado da busca) e paginação otimizada. Interações ricas de UI (como debouncing em input e validação local) são delegadas a componentes Client anexos.
 
 ### Server Actions & Segurança (DAL)
 A manipulação de dados (mutations como Create, Update, Delete) é feita unicamente via Server Actions (arquivos `actions.ts` dentro de cada módulo). Para garantir a integridade, o sistema usa o padrão **DAL (Data Access Layer)**: todo arquivo de mutação administrativa DEVE chamar validadores de permissão de acesso e autenticação para evitar ataques CSRF ou invasão de endpoint.
@@ -58,6 +58,7 @@ Agregador de KPIs e links rápidos para os módulos vitais. Exibe também qual o
 ### 4.2. Gestão de Filiados
 - **Escopo:** Controle avançado da base sindical (dados pessoais, funcionais, SIAPE, contatos e endereços normalizados via BrasilAPI).
 - **Portal Público e Painel Administrativo:** Permite ao próprio usuário preencher a ficha de filiação online ou à secretaria adicionar o filiado, caindo em uma fila de aprovação.
+- **Atualização Cadastral (Fluxo Maker-Checker):** O sistema previne edições diretas sem supervisão. A secretaria dispara um Link Seguro (Token Temporário) ao filiado, que acessa um formulário público e sugere as alterações. Essas sugestões caem numa fila (`atualizacoes_cadastrais`). A diretoria aprova no painel administrativo via `createAdminClient` (bypass intencional do RLS validado na Server Action), aplicando permanentemente na tabela base.
 - **Importação em Lote:** Permite migrar a base a partir de planilhas `.xls`/`.xlsx`/`.csv` de sistemas externos, utilizando bibliotecas de client-side (XLSX) e inserção unificada.
 - **Armazenamento de Anexos:** Cada filiado tem capacidade de ter seu PDF/Imagem de ficha de filiação ou desfiliação assinado armazenado em nuvem (`documentos_filiados`), com acesso direto pela tabela.
 

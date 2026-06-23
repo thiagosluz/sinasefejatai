@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect,useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Edit2, FileCheck2,FileText, MoreVertical, Printer, Trash2, Upload, UserCheck, UserMinus } from 'lucide-react'
+import { Edit2, FileCheck2, FileText, Link as LinkIcon, Mail, MoreVertical, Printer, Send, Trash2, Upload, UserCheck, UserMinus } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
-import { aprovarPedido, deleteFicha,desfiliar, uploadFicha } from '../actions'
+import { aprovarPedido, deleteFicha, desfiliar, uploadFicha } from '../actions'
+import { enviarEmailAtualizacao,gerarLinkAtualizacao } from '../atualizacoes/actions'
 
 export default function FiliadoActions({ filiado }: { filiado: { id: string; nome: string; email?: string; telefone?: string; siape?: string; cargo?: string; ativo?: boolean; data_nascimento?: string; nome_pai?: string; nome_mae?: string; cpf?: string; rg?: string; sexo?: string; endereco_rua?: string; endereco_bairro?: string; endereco_cep?: string; endereco_cidade?: string; endereco_estado?: string; unidade_lotacao?: string; campus?: string; categoria?: string; situacao?: string; status_filiacao?: string; arquivo_ficha_filiacao?: string; arquivo_ficha_desfiliacao?: string } }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,6 +15,8 @@ export default function FiliadoActions({ filiado }: { filiado: { id: string; nom
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isDesfiliarOpen, setIsDesfiliarOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
+  const [generatedLink, setGeneratedLink] = useState('')
   const [uploadTipo, setUploadTipo] = useState<'filiacao' | 'desfiliacao'>('filiacao')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -99,6 +102,35 @@ export default function FiliadoActions({ filiado }: { filiado: { id: string; nom
     }
   }
 
+  const handleGerarLink = async () => {
+    setIsSubmitting(true)
+    const res = await gerarLinkAtualizacao(filiado.id)
+    setIsSubmitting(false)
+    if (res?.success && res.data?.link) {
+      setGeneratedLink(res.data.link)
+      setIsLinkModalOpen(true)
+      setIsOpen(false)
+    } else {
+      toast.error(!res?.success ? res?.error : 'Erro ao gerar link de atualização.')
+    }
+  }
+
+  const handleEnviarEmailLink = async () => {
+    setIsSubmitting(true)
+    const res = await enviarEmailAtualizacao(filiado.id, generatedLink)
+    setIsSubmitting(false)
+    if (res?.success) {
+      toast.success('E-mail enviado com sucesso!')
+    } else {
+      toast.error(!res?.success ? res?.error : 'Erro ao enviar e-mail.')
+    }
+  }
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedLink)
+    toast.success('Link copiado para a área de transferência!')
+  }
+
   return (
     <>
       <button 
@@ -125,6 +157,11 @@ export default function FiliadoActions({ filiado }: { filiado: { id: string; nom
               <UserCheck size={15} /> Aprovar Pedido
             </button>
           )}
+
+          {/* Solicitar Atualização Cadastral */}
+          <button onClick={handleGerarLink} disabled={isSubmitting} className="w-full text-left flex items-center gap-2 px-4 py-2 hover:bg-zinc-50 text-zinc-700 border-t border-zinc-100">
+            <LinkIcon size={15} /> Solicitar Atualização
+          </button>
 
           {/* Imprimir Ficha de Filiação */}
           <Link href={`/admin/filiados/${filiado.id}/ficha`} target="_blank" className="flex items-center gap-2 px-4 py-2 hover:bg-zinc-50 text-zinc-700 border-t border-zinc-100">
@@ -257,6 +294,50 @@ export default function FiliadoActions({ filiado }: { filiado: { id: string; nom
               <button type="button" onClick={() => setIsDeleteOpen(false)} className="px-4 py-2 text-sm text-zinc-600 border border-zinc-300 hover:bg-zinc-50">Cancelar</button>
               <button onClick={handleDeleteFile} disabled={isSubmitting} className="px-4 py-2 text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2">
                 <Trash2 size={16} /> {isSubmitting ? 'Removendo...' : 'Excluir Anexo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL LINK ATUALIZAÇÃO */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 whitespace-normal">
+          <div className="bg-white p-6 max-w-md w-full shadow-2xl relative">
+            <h3 className="text-lg font-bold font-serif mb-2 text-brand-ink">Link de Atualização</h3>
+            <p className="text-sm text-zinc-600 mb-4">
+              Um link único de atualização foi gerado para <strong>{filiado.nome}</strong>. 
+              Ele é válido por 7 dias.
+            </p>
+            
+            <div className="bg-zinc-50 border border-zinc-200 rounded p-3 mb-6 break-all text-sm text-zinc-800">
+              {generatedLink}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button onClick={copyToClipboard} className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-medium py-2 px-4 rounded border border-zinc-300 transition-colors flex items-center justify-center gap-2">
+                <LinkIcon size={16} /> Copiar Link
+              </button>
+              
+              <button 
+                onClick={handleEnviarEmailLink} 
+                disabled={isSubmitting || !filiado.email} 
+                className="w-full bg-brand-tinto hover:bg-brand-tinto-light text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Mail size={16} /> {isSubmitting ? 'Enviando...' : (filiado.email ? 'Enviar por E-mail' : 'Filiado sem E-mail')}
+              </button>
+              
+              <a 
+                href={`https://wa.me/?text=${encodeURIComponent(`Olá ${filiado.nome}, a diretoria do SINASEFE Jataí solicita que você atualize seus dados cadastrais. Acesse o link seguro (válido por 7 dias): ${generatedLink}`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-center gap-2"
+              >
+                <Send size={16} /> Enviar por WhatsApp
+              </a>
+
+              <button type="button" onClick={() => setIsLinkModalOpen(false)} className="mt-2 text-sm text-zinc-500 hover:underline">
+                Fechar
               </button>
             </div>
           </div>

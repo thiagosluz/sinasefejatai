@@ -12,6 +12,7 @@ import {
   Newspaper,
   ShieldCheck, 
   Sliders, 
+  UserCheck,
   Users, 
   UsersRound, 
   X 
@@ -42,6 +43,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
     {
       group: 'Administrativo',
       items: [
+        { href: '/admin/filiados/atualizacoes', label: 'Revisar Atualizações', icon: UserCheck },
         { href: '/admin/filiados', label: 'Filiados', icon: Users },
         { href: '/admin/diretoria', label: 'Diretoria', icon: UsersRound },
         { href: '/admin/conselho-fiscal', label: 'Conselho Fiscal', icon: ShieldCheck },

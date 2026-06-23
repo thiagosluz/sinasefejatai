@@ -7,10 +7,17 @@ import AdminPageWrapper from '@/components/layout/admin-page-wrapper'
 import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
+import { BoletinsFiltros } from './components/boletins-filtros'
 import DeleteBoletimButton from './components/delete-button'
 import DisparoBoletimBtn from './components/disparo-boletim-btn'
 
-export default async function BoletinsPage() {
+interface Props {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function BoletinsPage({ searchParams }: Props) {
+  const { q, status, sort } = await searchParams
+
   const supabase = await createClient()
 
   const {
@@ -21,10 +28,25 @@ export default async function BoletinsPage() {
     return redirect('/login')
   }
 
-  const { data: boletins } = await supabase
+  let query = supabase
     .from('boletins')
-    .select('id, titulo, data_publicacao, status')
-    .order('data_publicacao', { ascending: false })
+    .select('id, titulo, data_publicacao, status, enviado_email')
+
+  if (q && typeof q === 'string') {
+    query = query.ilike('titulo', `%${q}%`)
+  }
+
+  if (status && typeof status === 'string') {
+    query = query.eq('status', status)
+  }
+
+  if (sort === 'asc') {
+    query = query.order('data_publicacao', { ascending: true })
+  } else {
+    query = query.order('data_publicacao', { ascending: false })
+  }
+
+  const { data: boletins } = await query
 
   return (
     <AdminPageWrapper>
@@ -40,6 +62,8 @@ export default async function BoletinsPage() {
           <span>Novo Boletim</span>
         </Link>
       </AdminPageHeader>
+
+      <BoletinsFiltros />
 
       <div className="bg-white border border-brand-border p-6 shadow-[4px_4px_0px_var(--brand-ink)] mt-6">
         <div className="overflow-x-auto">
@@ -69,13 +93,21 @@ export default async function BoletinsPage() {
                       {bol.titulo}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${
-                        bol.status === 'Publicado' 
-                          ? 'bg-green-50 text-green-700 border-green-200' 
-                          : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                      }`}>
-                        {bol.status}
-                      </span>
+                      <div className="flex flex-col items-start gap-2">
+                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${
+                          bol.status === 'Publicado' 
+                            ? 'bg-green-50 text-green-700 border-green-200' 
+                            : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                        }`}>
+                          {bol.status}
+                        </span>
+                        
+                        {bol.enviado_email && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-brand-ink text-white">
+                            📩 Disparado
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -86,7 +118,7 @@ export default async function BoletinsPage() {
                         >
                           <Edit size={16} />
                         </Link>
-                        {bol.status === 'Publicado' && (
+                        {bol.status === 'Publicado' && !bol.enviado_email && (
                           <DisparoBoletimBtn id={bol.id} titulo={bol.titulo} />
                         )}
                         <DeleteBoletimButton id={bol.id} titulo={bol.titulo} />

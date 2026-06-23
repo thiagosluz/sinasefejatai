@@ -1,15 +1,30 @@
-import { Resend } from 'resend'
+import { SendRawEmailCommand,SESClient } from '@aws-sdk/client-ses'
+import MailComposer from 'nodemailer/lib/mail-composer'
 
-// Instancia o cliente do Resend apenas se a chave da API existir
-export const resend = process.env.RESEND_API_KEY 
-  ? new Resend(process.env.RESEND_API_KEY) 
-  : null
-
-// Usamos o subdomínio validado no Resend
-const FROM_ADDRESS = 'SINASEFE Jataí <nao-responda@email.sinasefejatai.org.br>'
 import { EMAIL_SINDICATO } from '@/lib/constants'
 
 const DIRETORIA_EMAIL = EMAIL_SINDICATO
+const FROM_ADDRESS = 'SINASEFE Jataí <nao-responda@notifica.sinasefejatai.org.br>'
+
+let _sesClient: SESClient | null = null
+
+function getSESClient() {
+  if (_sesClient) return _sesClient
+
+  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+    return null
+  }
+
+  _sesClient = new SESClient({
+    region: process.env.AWS_REGION || 'us-east-2',
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  })
+
+  return _sesClient
+}
 
 interface SendEmailOptions {
   to: string | string[]
@@ -18,26 +33,39 @@ interface SendEmailOptions {
   replyTo?: string
 }
 
-async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
-  if (!resend) {
-    console.warn('⚠️ RESEND_API_KEY não está definida. O e-mail NÃO foi enviado.', { to, subject })
+export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
+  const ses = getSESClient()
+  if (!ses) {
+    console.warn('⚠️ Credenciais AWS não definidas. O e-mail NÃO foi enviado.', { to, subject })
     return { id: 'simulated' }
   }
 
-  const { data, error } = await resend.emails.send({
-    from: FROM_ADDRESS,
-    to: Array.isArray(to) ? to : [to],
-    subject,
-    html,
-    replyTo: replyTo || DIRETORIA_EMAIL, // Fallback automático para o email do sindicato
-  })
+  try {
+    const mailOptions = {
+      from: FROM_ADDRESS,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html,
+      replyTo: replyTo || DIRETORIA_EMAIL,
+    }
 
-  if (error) {
+    const mail = new MailComposer(mailOptions)
+    const messageBuffer = await mail.compile().build()
+
+    const command = new SendRawEmailCommand({
+      RawMessage: { Data: messageBuffer },
+    })
+
+    const response = await ses.send(command)
+
+    return { id: response.MessageId }
+  } catch (error: unknown) {
     console.error('[sendEmail] Erro ao enviar e-mail:', error)
-    throw new Error(`Falha ao enviar e-mail: ${error.message}`)
+    if (error instanceof Error) {
+      throw new Error(`Falha ao enviar e-mail: ${error.message}`)
+    }
+    throw new Error('Falha ao enviar e-mail: Erro desconhecido')
   }
-
-  return data
 }
 
 // Templates reutilizáveis
