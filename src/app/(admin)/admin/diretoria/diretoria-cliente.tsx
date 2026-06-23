@@ -1,16 +1,16 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { Check, Star, Trash2, Users } from 'lucide-react'
+import { Check, Edit2, Star, Trash2, Users } from 'lucide-react'
 import Link from 'next/link'
 
 import { useModal } from '@/providers/modal-provider'
 
-import { definirGestaoAtual, deletarGestao } from './actions'
+import { definirGestaoAtual, deletarGestao, renomearGestao } from './actions'
 import { Gestao } from './types'
 
 export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais: Gestao[] }) {
-  const { alert, confirm } = useModal()
+  const { alert, confirm, prompt } = useModal()
   const [loading, setLoading] = useState(false)
 
   const handleExcluir = useCallback(async (id: string, is_atual: boolean) => {
@@ -32,6 +32,21 @@ export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais:
       setLoading(false)
     }
   }, [alert, confirm])
+
+  const handleRenomear = useCallback(async (id: string, nomeAtual: string) => {
+    const novoNome = await prompt('Digite o novo nome para esta gestão:', nomeAtual)
+    if (!novoNome || novoNome.trim() === '' || novoNome === nomeAtual) return
+
+    try {
+      setLoading(true)
+      await renomearGestao(id, novoNome)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao renomear.'
+      await alert(msg)
+    } finally {
+      setLoading(false)
+    }
+  }, [prompt, alert])
 
   const handleDefinirAtual = useCallback(async (id: string) => {
     const isConfirmed = await confirm('Tem certeza que deseja definir esta como a gestão ATUAL? Isso mudará a página pública imediatamente.')
@@ -107,6 +122,15 @@ export default function DiretoriaCliente({ gestoesIniciais }: { gestoesIniciais:
                     <span className="hidden sm:inline">Definir Atual</span>
                   </button>
                 )}
+
+                <button
+                  onClick={() => handleRenomear(gestao.id, gestao.nome)}
+                  disabled={loading}
+                  className="px-3 py-1.5 text-xs font-bold border border-zinc-300 text-zinc-600 hover:bg-zinc-100 transition-colors flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Renomear Gestão"
+                >
+                  <Edit2 size={16} />
+                </button>
 
                 <button
                   onClick={() => handleExcluir(gestao.id, gestao.is_atual)}

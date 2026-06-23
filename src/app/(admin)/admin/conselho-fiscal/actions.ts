@@ -149,6 +149,30 @@ export async function deletarGestao(id: string): Promise<ActionResponse> {
   }
 }
 
+export async function renomearGestao(id: string, novoNome: string): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
+    
+    if (!novoNome || novoNome.trim() === '') {
+      throw new Error('O nome da gestão não pode ser vazio.')
+    }
+
+    const { error } = await supabase
+      .from('conselho_fiscal_gestoes')
+      .update({ nome: novoNome.trim() })
+      .eq('id', id)
+
+    if (error) throw new Error('Erro ao renomear gestão no banco.')
+
+    revalidatePath('/admin/conselho-fiscal')
+    revalidatePath('/conselho-fiscal/historico')
+    revalidatePath('/conselho-fiscal')
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Falha ao renomear gestão.')
+  }
+}
+
 export async function definirGestaoAtual(id: string): Promise<ActionResponse> {
   try {
     const supabase = await createClient()

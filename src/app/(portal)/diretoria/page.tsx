@@ -18,8 +18,12 @@ type Membro = {
 }
 
 export default async function DiretoriaPublicaPage() {
-  const gestao = await getDiretoriaAtual()
-  const conselho = await getConselhoAtual()
+  const gestaoRaw = await getDiretoriaAtual()
+  const conselhoRaw = await getConselhoAtual()
+
+  // Filtra cadeiras vagas (sem nome preenchido)
+  const gestao = gestaoRaw ? { ...gestaoRaw, membros: gestaoRaw.membros.filter((m: Membro) => m.nome && m.nome.trim().length > 0) } : null
+  const conselho = conselhoRaw ? { ...conselhoRaw, membros: conselhoRaw.membros.filter((m: Membro) => m.nome && m.nome.trim().length > 0) } : null
 
   return (
     <>
@@ -42,7 +46,7 @@ export default async function DiretoriaPublicaPage() {
           <h1 className="text-4xl sm:text-5xl font-bold text-white font-serif mb-4">Atual Direção</h1>
           <p className="text-white/75 text-lg max-w-2xl">
             {gestao
-              ? `Conheça os representantes da ${gestao.nome}, eleitos para defender os direitos da nossa categoria.`
+              ? `Conheça os representantes da gestão ${gestao.nome}, eleitos para defender os direitos da nossa categoria.`
               : 'As informações da diretoria estão sendo atualizadas.'
             }
           </p>
@@ -68,37 +72,39 @@ export default async function DiretoriaPublicaPage() {
             <div className="space-y-16">
 
               {/* Cadeiras Fixas */}
-              <div>
-                <div className="text-center mb-10">
-                  <p className="text-brand-tinto font-semibold text-sm uppercase tracking-widest mb-2">Gestão Executiva</p>
-                  <h2 className="text-3xl font-bold text-brand-ink font-serif">Coordenação e Secretaria</h2>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {gestao.membros.filter((m: Membro) => m.is_cargo_fixo).map((membro: Membro) => (
-                    <div key={membro.id} className="bg-white rounded-2xl border border-brand-border-muted p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-all">
-                      <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-brand-cream relative">
-                        {membro.foto_url ? (
-                          <Image
-                            src={membro.foto_url}
-                            alt={membro.nome || membro.cargo_nome}
-                            fill
-                            className="object-cover"
-                            sizes="128px"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-300">
-                            <UserCircle2 size={64} strokeWidth={1} />
-                          </div>
-                        )}
+              {gestao.membros.some((m: Membro) => m.is_cargo_fixo) && (
+                <div>
+                  <div className="text-center mb-10">
+                    <p className="text-brand-tinto font-semibold text-sm uppercase tracking-widest mb-2">Gestão Executiva</p>
+                    <h2 className="text-3xl font-bold text-brand-ink font-serif">Coordenação e Secretaria</h2>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {gestao.membros.filter((m: Membro) => m.is_cargo_fixo).map((membro: Membro) => (
+                      <div key={membro.id} className="bg-white rounded-2xl border border-brand-border-muted p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-all">
+                        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-brand-cream relative">
+                          {membro.foto_url ? (
+                            <Image
+                              src={membro.foto_url}
+                              alt={membro.nome || membro.cargo_nome}
+                              fill
+                              className="object-cover"
+                              sizes="128px"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-300">
+                              <UserCircle2 size={64} strokeWidth={1} />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold font-serif text-brand-ink">{membro.nome || 'Cadeira Vaga'}</h3>
+                          <p className="text-sm font-bold uppercase tracking-widest text-brand-tinto mt-2">{membro.cargo_nome}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold font-serif text-brand-ink">{membro.nome || 'Cadeira Vaga'}</h3>
-                        <p className="text-sm font-bold uppercase tracking-widest text-brand-tinto mt-2">{membro.cargo_nome}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Cargos Extras */}
               {gestao.membros.some((m: Membro) => !m.is_cargo_fixo) && (

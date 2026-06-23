@@ -1,21 +1,20 @@
 'use client'
 
-import { 
-  CalendarRange, 
-  ChevronLeft, 
-  ChevronRight, 
-  FileText, 
+import {
+  CalendarRange,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
   Globe,
-  Home, 
-  Landmark, 
-  MapPin, 
+  Home,
+  Landmark,
+  MapPin,
   Newspaper,
-  ShieldCheck, 
-  Sliders, 
-  UserCheck,
-  Users, 
-  UsersRound, 
-  X 
+  ShieldCheck,
+  Sliders,
+  Users,
+  UsersRound,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -43,7 +42,6 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
     {
       group: 'Administrativo',
       items: [
-        { href: '/admin/filiados/atualizacoes', label: 'Revisar Atualizações', icon: UserCheck },
         { href: '/admin/filiados', label: 'Filiados', icon: Users },
         { href: '/admin/diretoria', label: 'Diretoria', icon: UsersRound },
         { href: '/admin/conselho-fiscal', label: 'Conselho Fiscal', icon: ShieldCheck },
@@ -93,7 +91,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
     <>
       {/* Overlay for mobile */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-brand-ink/50 z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
@@ -105,7 +103,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         ${isCollapsed ? 'w-64 lg:w-20' : 'w-64'}
       `}>
-        
+
         {/* Header/Logo */}
         <div className={`h-14 flex items-center border-b-2 border-brand-ink flex-shrink-0 transition-all ${isCollapsed ? 'justify-center px-0 lg:px-0' : 'justify-between px-6'}`}>
           {!isCollapsed && (
@@ -118,7 +116,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
               SJ
             </Link>
           )}
-          <button 
+          <button
             className="lg:hidden text-brand-ink hover:text-brand-tinto absolute right-4"
             onClick={() => setIsOpen(false)}
           >
@@ -141,7 +139,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
                 )}
                 <nav className="space-y-1">
                   {section.items.map((item) => {
-                    const isActive = pathname.startsWith(item.href) && 
+                    const isActive = pathname.startsWith(item.href) &&
                       (item.href === '/admin/dashboard' ? pathname === '/admin/dashboard' : true)
 
                     return (
@@ -150,17 +148,15 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
                         href={item.href}
                         title={isCollapsed ? item.label : undefined}
                         onClick={() => setIsOpen(false)}
-                        className={`flex items-center transition-colors ${
-                          isCollapsed 
-                            ? 'justify-start lg:justify-center px-3 py-3 lg:px-0 lg:mx-2 rounded-sm' 
+                        className={`flex items-center transition-colors ${isCollapsed
+                            ? 'justify-start lg:justify-center px-3 py-3 lg:px-0 lg:mx-2 rounded-sm'
                             : 'gap-3 px-3 py-2'
-                        } text-xs font-bold uppercase tracking-wider ${
-                          isActive 
+                          } text-xs font-bold uppercase tracking-wider ${isActive
                             ? isCollapsed
                               ? 'bg-brand-ink text-brand-cream shadow-[2px_2px_0px_var(--brand-tinto)] lg:shadow-none lg:border-l-4 lg:border-brand-tinto lg:bg-brand-card lg:text-brand-ink'
                               : 'bg-brand-ink text-brand-cream shadow-[2px_2px_0px_var(--brand-tinto)]'
                             : 'text-brand-ink hover:bg-brand-card hover:translate-x-1'
-                        }`}
+                          }`}
                       >
                         <item.icon size={18} className={isActive ? 'text-brand-tinto flex-shrink-0' : 'text-brand-tinto flex-shrink-0'} />
                         <span className={`whitespace-nowrap ${isCollapsed ? 'inline lg:hidden ml-3' : ''}`}>
@@ -180,13 +176,13 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
           {!isCollapsed && (
             <div className="p-4">
               <div className="text-[9px] text-center uppercase tracking-widest text-brand-ink/50 leading-relaxed">
-                Seção Sindical<br/>Retro-Editorial
+                Seção Sindical<br />Retro-Editorial
               </div>
             </div>
           )}
-          
+
           {/* Collapse Toggle Button (Desktop only) */}
-          <button 
+          <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={`hidden lg:flex w-full items-center ${isCollapsed ? 'justify-center py-4' : 'justify-between px-4 py-3'} text-brand-ink hover:bg-brand-card hover:text-brand-tinto transition-colors border-t border-brand-ink/10`}
             title={isCollapsed ? "Expandir menu" : "Recolher menu"}

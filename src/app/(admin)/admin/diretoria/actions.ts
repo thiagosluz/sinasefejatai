@@ -173,6 +173,33 @@ export async function deletarGestao(id: string): Promise<ActionResponse> {
 }
 
 /**
+ * Renomeia uma gestão existente
+ */
+export async function renomearGestao(id: string, novoNome: string): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
+    
+    if (!novoNome || novoNome.trim() === '') {
+      throw new Error('O nome da gestão não pode ser vazio.')
+    }
+
+    const { error } = await supabase
+      .from('gestoes')
+      .update({ nome: novoNome.trim() })
+      .eq('id', id)
+
+    if (error) throw new Error('Erro ao renomear gestão no banco.')
+
+    revalidatePath('/admin/diretoria')
+    revalidatePath('/diretoria/historico')
+    revalidatePath('/diretoria')
+    return { success: true }
+  } catch (err) {
+    return handleError(err, 'Falha ao renomear gestão.')
+  }
+}
+
+/**
  * Define qual é a gestão atual
  */
 export async function definirGestaoAtual(id: string): Promise<ActionResponse> {

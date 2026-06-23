@@ -1,4 +1,4 @@
-import { PlusCircle } from 'lucide-react'
+import { PlusCircle, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 
 import AdminPageHeader from '@/components/layout/admin-page-header'
@@ -17,10 +17,31 @@ export default async function FiliadosPage() {
     .select('*')
     .order('nome', { ascending: true })
 
+  // Contar atualizações cadastrais pendentes
+  const { count: pendentes } = await supabase
+    .from('atualizacoes_cadastrais')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pendente')
+
   return (
     <AdminPageWrapper>
       <AdminPageHeader titulo="Gestão de Filiados" subtitulo="Módulo de Cadastros e Fichas Sindicais">
         <div className="flex items-center gap-3">
+          <Link
+            href="/admin/filiados/atualizacoes"
+            className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer relative"
+          >
+            <UserCheck size={15} />
+            <span className="hidden sm:inline">Revisar Atualizações</span>
+            <span className="inline sm:hidden">Revisar</span>
+            
+            {(pendentes && pendentes > 0) ? (
+              <span className="absolute -top-2 -right-2 bg-brand-tinto text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-sm">
+                {pendentes > 99 ? '99+' : pendentes}
+              </span>
+            ) : null}
+          </Link>
+
           <ImportarPlanilhaButton />
           
           <Link 
