@@ -1,29 +1,30 @@
-import { SendRawEmailCommand,SESClient } from '@aws-sdk/client-ses'
-import MailComposer from 'nodemailer/lib/mail-composer'
+import nodemailer from 'nodemailer'
 
 import { EMAIL_SINDICATO } from '@/lib/constants'
 
 const DIRETORIA_EMAIL = EMAIL_SINDICATO
 const FROM_ADDRESS = 'SINASEFE Jataí <nao-responda@notifica.sinasefejatai.org.br>'
 
-let _sesClient: SESClient | null = null
+let _transporter: nodemailer.Transporter | null = null
 
-function getSESClient() {
-  if (_sesClient) return _sesClient
+function getTransporter() {
+  if (_transporter) return _transporter
 
-  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
     return null
   }
 
-  _sesClient = new SESClient({
-    region: process.env.AWS_REGION || 'us-east-2',
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  _transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
     },
   })
 
-  return _sesClient
+  return _transporter
 }
 
 interface SendEmailOptions {
@@ -34,9 +35,9 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
-  const ses = getSESClient()
-  if (!ses) {
-    console.warn('⚠️ Credenciais AWS não definidas. O e-mail NÃO foi enviado.', { to, subject })
+  const transporter = getTransporter()
+  if (!transporter) {
+    console.warn('⚠️ Credenciais SMTP não definidas. O e-mail NÃO foi enviado.', { to, subject })
     return { id: 'simulated' }
   }
 
@@ -49,16 +50,9 @@ export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions
       replyTo: replyTo || DIRETORIA_EMAIL,
     }
 
-    const mail = new MailComposer(mailOptions)
-    const messageBuffer = await mail.compile().build()
+    const info = await transporter.sendMail(mailOptions)
 
-    const command = new SendRawEmailCommand({
-      RawMessage: { Data: messageBuffer },
-    })
-
-    const response = await ses.send(command)
-
-    return { id: response.MessageId }
+    return { id: info.messageId }
   } catch (error: unknown) {
     console.error('[sendEmail] Erro ao enviar e-mail:', error)
     if (error instanceof Error) {
