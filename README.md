@@ -16,7 +16,7 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 | **Dashboard** | KPIs e links rápidos para os módulos vitais |
 | **Filiados** | Gestão da base sindical (SIAPE, etc.), Atualização Cadastral Autônoma por link seguro (Fluxo Maker-Checker), upload de ficha assinada e importação em lote |
 | **Assembleias** | Agendamento, pautas, atas, lista de presença, disparos de edital em background (Edge Functions) e portal público |
-| **Boletins** | Envio em lote assíncrono via AWS SES, filtros avançados com Server-Side Rendering e controle antiduplicação de disparos |
+| **Boletins** | Envio em lote assíncrono via Brevo (SMTP), filtros avançados com Server-Side Rendering e controle antiduplicação de disparos |
 | **Financeiro** | Livro Caixa com categorias dinâmicas, importação OFX e comprovantes |
 | **Categorias Financeiras** | CRUD administrativo para categorias de entrada/saída |
 | **Conselho Fiscal** | Avaliação e aprovação mensal de prestação de contas |
@@ -24,6 +24,12 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 | **Publicações** | Portal de transparência para materiais públicos |
 | **Diretoria** | Histórico de gestões e membros com fotos |
 | **Auditoria** | Logs imutáveis via Triggers PostgreSQL com retenção de 1 ano |
+
+## 🎨 UI e Dependências de Ícones
+
+O sistema utiliza o `lucide-react` para a maioria dos ícones de interface.
+**Regra Importante:** O Lucide removeu o suporte a ícones de marcas (como Instagram, Facebook, Twitter) para evitar problemas de licenciamento.
+Para adicionar ícones de redes sociais ou marcas (ex: Portal Público e Contato), **utilize componentes SVG customizados** na própria página ou em `/components`, não os importe de bibliotecas externas para evitar dependências quebradas.
 
 ## 🛡️ Segurança e Auditoria
 
@@ -68,9 +74,11 @@ NEXT_PUBLIC_SUPABASE_URL=sua-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key
 SUPABASE_SERVICE_ROLE_KEY=sua-service-key # Opcional, para scripts administrativos
 
-# Para a Edge Function de disparo de emails
-RESEND_API_KEY=re_suachave...
-EDGE_FUNCTION_SECRET=chave_secreta_super_forte_32bytes
+# Para o envio de e-mails via Brevo SMTP
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=seu-usuario-brevo
+SMTP_PASS=sua-senha-brevo
 ```
 
 1. Instale as dependências:

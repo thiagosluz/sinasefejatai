@@ -9,7 +9,6 @@ const beneficios = [
   'Representação jurídica em questões trabalhistas',
   'Participação nas assembleias deliberativas',
   'Acesso a convênios e parcerias do sindicato',
-  'Informações sobre concursos e promoções',
   'Defesa da carreira e condições de trabalho',
   'Solidariedade e suporte à categoria',
 ]

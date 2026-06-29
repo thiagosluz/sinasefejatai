@@ -5,6 +5,16 @@ import { EMAIL_SINDICATO } from '@/lib/constants'
 import { formatarDataPtBR } from '@/lib/date-utils'
 import { createClient } from '@/lib/supabase/server'
 
+function InstagramIcon({ size = 24, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 async function getBoletinsRecentes() {
   const supabase = await createClient()
   const { data } = await supabase
@@ -292,12 +302,17 @@ export default async function PortalHomePage() {
             </div>
             <div className="bg-white rounded-2xl p-6 border border-brand-border-muted text-center hover:shadow-md transition-all">
               <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
-                <svg className="w-5 h-5 text-brand-tinto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <InstagramIcon size={22} className="text-brand-tinto" />
               </div>
-              <h3 className="font-bold text-brand-ink text-sm mb-1">Atendimento</h3>
-              <p className="text-zinc-500 text-xs">Segunda a Sexta<br />08h às 17h</p>
+              <h3 className="font-bold text-brand-ink text-sm mb-1">Instagram</h3>
+              <a
+                href="https://instagram.com/sinasefejatai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-tinto text-xs hover:underline"
+              >
+                @sinasefejatai
+              </a>
             </div>
           </div>
           <div className="text-center mt-8">

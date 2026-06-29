@@ -1,9 +1,19 @@
 import { CheckCircle2, Mail, MapPin } from 'lucide-react'
 
-import { EMAIL_SINDICATO } from '@/lib/constants'
+import { EMAIL_SINDICATO, INSTAGRAM_SINDICATO } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
 
 import { ContatoForm } from './contato-form'
+
+function InstagramIcon({ size = 20, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
 
 async function getConfiguracoes() {
   const supabase = await createClient()
@@ -76,6 +86,20 @@ export default async function ContatoPage({ searchParams }: Props) {
                       className="text-brand-tinto hover:text-brand-tinto-light hover:underline font-medium"
                     >
                       {EMAIL_SINDICATO}
+                    </a>
+                  ),
+                },
+                {
+                  icon: <InstagramIcon size={20} className="text-brand-tinto" />,
+                  title: 'Instagram',
+                  content: (
+                    <a
+                      href={INSTAGRAM_SINDICATO}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-tinto hover:text-brand-tinto-light hover:underline font-medium"
+                    >
+                      @sinasefejatai
                     </a>
                   ),
                 },
