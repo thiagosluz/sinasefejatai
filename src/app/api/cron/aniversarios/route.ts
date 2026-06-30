@@ -2,12 +2,12 @@ import { verifySignatureAppRouter } from '@upstash/qstash/dist/nextjs'
 import { NextResponse } from 'next/server'
 
 import { enviarEmailAniversario } from '@/lib/email'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Função interna que executa a lógica
 async function handler() {
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // 1. Verifica se a automação está realmente ativa
     const { data: configData } = await supabase
