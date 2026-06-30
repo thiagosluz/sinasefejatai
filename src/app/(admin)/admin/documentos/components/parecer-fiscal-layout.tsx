@@ -1,5 +1,7 @@
 'use client'
 
+import DOMPurify from 'isomorphic-dompurify'
+
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 import { DocumentSignatureFooter } from '@/components/layout/document-signature-footer'
 import { DocumentoVerificacao } from '@/lib/actions-assinaturas'
@@ -35,7 +37,7 @@ export function ParecerFiscalLayout({ dados, config, verificacao, status = 'ativ
         {dados.conteudo_html ? (
           <div 
             className="text-base leading-relaxed mb-12 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:tracking-[0.2em] [&_h2]:uppercase [&_h2]:mb-8 [&_h2]:text-center [&_hr]:my-6 [&_hr]:border-zinc-300 [&_p:first-of-type]:text-center [&_p:first-of-type]:mb-8 [&_p:first-of-type]:text-sm [&_p:first-of-type]:text-zinc-600"
-            dangerouslySetInnerHTML={{ __html: dados.conteudo_html }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(dados.conteudo_html) }}
           />
         ) : (
           <div className="text-center italic text-zinc-400 my-12">

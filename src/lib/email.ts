@@ -258,11 +258,6 @@ export async function enviarEmailAniversario({
             <strong>Diretoria do SINASEFE Jataí</strong>
           </p>
         </div>
-        <div style="background: #f9fafb; padding: 24px; text-align: center; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-          <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-            Mensagem automática de felicitações enviada pelo sistema do sindicato.
-          </p>
-        </div>
       </div>
     `,
   })

@@ -1,3 +1,5 @@
+import DOMPurify from 'isomorphic-dompurify'
+
 import DocumentHeader, { DocumentHeaderConfig } from '@/components/document-header'
 import { DocumentSignatureFooter } from '@/components/layout/document-signature-footer'
 import { DocumentoVerificacao } from '@/lib/actions-assinaturas'
@@ -32,7 +34,7 @@ export function AtaPrintLayout({
       </div>
       <div
         className="print-document-content text-justify"
-        dangerouslySetInnerHTML={{ __html: conteudoRich }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(conteudoRich) }}
         style={{ textAlign: 'justify', textJustify: 'inter-word', lineHeight: '1.8', fontSize: '13px' }}
       />
       {presidente && redator && presidente !== redator ? (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useReducer, useRef } from 'react'
+import DOMPurify from 'isomorphic-dompurify'
 import {
   Bold,
   Check,
@@ -96,7 +97,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
   // Sincronizar o editor físico com o estado inicial ou rascunhos salvos
   useEffect(() => {
     if (editorRef.current && ataInicial?.conteudo_rich) {
-      editorRef.current.innerHTML = ataInicial.conteudo_rich
+      editorRef.current.innerHTML = DOMPurify.sanitize(ataInicial.conteudo_rich)
     }
   }, [ataInicial])
 
@@ -151,7 +152,7 @@ export default function AtaEditorCliente({ assembleia, ataInicial, config, docum
         const confirmado = await confirm('A geração de esboço substituirá todo o conteúdo atual do editor. Deseja continuar?')
         if (!confirmado) return
       }
-      editorRef.current.innerHTML = template
+      editorRef.current.innerHTML = DOMPurify.sanitize(template)
       dispatch({ type: 'SET_CONTEUDO_RICH', payload: template })
     }
   }

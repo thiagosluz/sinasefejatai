@@ -5,6 +5,7 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 ![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)
 ![Supabase](https://img.shields.io/badge/Supabase-DB_&_Auth-3ECF8E?logo=supabase)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)
+![Upstash QStash](https://img.shields.io/badge/Upstash_QStash-Cron_Jobs-00E9A3?logo=upstash)
 ![Vitest](https://img.shields.io/badge/Vitest-Tests-6E9F18?logo=vitest)
 ![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright)
 ![Licença](https://img.shields.io/badge/License-MIT-blue.svg)
@@ -14,7 +15,7 @@ Portal Público e Painel Administrativo ("Retaguarda") desenvolvidos para a Seç
 | Módulo | Descrição |
 |--------|-----------|
 | **Dashboard** | KPIs e links rápidos para os módulos vitais |
-| **Filiados** | Gestão da base sindical (SIAPE, etc.), Atualização Cadastral Autônoma por link seguro (Fluxo Maker-Checker), upload de ficha assinada e importação em lote |
+| **Filiados** | Gestão da base sindical (SIAPE, etc.), Atualização Cadastral Autônoma por link seguro (Fluxo Maker-Checker), Automação de envio de E-mails de Aniversário (via QStash), upload de ficha assinada e importação em lote |
 | **Assembleias** | Agendamento, pautas, atas, lista de presença, disparos de edital em background (Edge Functions) e portal público |
 | **Boletins** | Envio em lote assíncrono via Brevo (SMTP), filtros avançados com Server-Side Rendering e controle antiduplicação de disparos |
 | **Financeiro** | Livro Caixa com categorias dinâmicas, importação OFX e comprovantes |
@@ -79,6 +80,12 @@ SMTP_HOST=smtp-relay.brevo.com
 SMTP_PORT=587
 SMTP_USER=seu-usuario-brevo
 SMTP_PASS=sua-senha-brevo
+
+# Para a automação de Cron Jobs (Upstash QStash)
+QSTASH_URL=https://qstash.upstash.io/api/v1
+QSTASH_TOKEN=seu_token_aqui
+QSTASH_CURRENT_SIGNING_KEY=sua_chave_atual
+QSTASH_NEXT_SIGNING_KEY=sua_proxima_chave
 ```
 
 1. Instale as dependências:
