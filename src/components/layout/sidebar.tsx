@@ -56,7 +56,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
         { href: '/admin/boletins', label: 'Boletins', icon: Newspaper },
         { href: '/admin/documentos', label: 'Documentos', icon: FileText },
         { href: '/admin/publicacoes', label: 'Portal Público', icon: Globe },
-        { href: '/admin/configuracoes', label: 'Identidade Visual', icon: Sliders },
+        { href: '/admin/configuracoes', label: 'Cabeçalho/Timbre', icon: Sliders },
       ]
     },
     {
@@ -149,8 +149,8 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
                         title={isCollapsed ? item.label : undefined}
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center transition-colors ${isCollapsed
-                            ? 'justify-start lg:justify-center px-3 py-3 lg:px-0 lg:mx-2 rounded-sm'
-                            : 'gap-3 px-3 py-2'
+                          ? 'justify-start lg:justify-center px-3 py-3 lg:px-0 lg:mx-2 rounded-sm'
+                          : 'gap-3 px-3 py-2'
                           } text-xs font-bold uppercase tracking-wider ${isActive
                             ? isCollapsed
                               ? 'bg-brand-ink text-brand-cream shadow-[2px_2px_0px_var(--brand-tinto)] lg:shadow-none lg:border-l-4 lg:border-brand-tinto lg:bg-brand-card lg:text-brand-ink'

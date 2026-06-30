@@ -45,6 +45,13 @@ export default async function FiliadosPage() {
           <ImportarPlanilhaButton />
           
           <Link 
+            href="/admin/filiados/aniversarios" 
+            className="bg-zinc-100 hover:bg-zinc-200 text-brand-ink text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer border border-brand-border-muted"
+          >
+            <span className="hidden sm:inline">Automação de Aniversários</span>
+            <span className="inline sm:hidden">Aniversários</span>
+          </Link>
+          <Link 
             href="/admin/filiados/novo" 
             className="bg-brand-tinto hover:bg-brand-tinto-light text-white text-xs font-serif font-bold uppercase tracking-wider py-2.5 px-4 transition-all shadow-[2px_2px_0px_var(--brand-ink)] hover:shadow-[0px_0px_0px_var(--brand-ink)] hover:translate-x-[2px] hover:translate-y-[2px] flex items-center gap-2 cursor-pointer"
           >

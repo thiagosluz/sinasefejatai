@@ -225,3 +225,45 @@ export async function enviarEditalAssembleia({
   })
 }
 
+export async function enviarEmailAniversario({
+  to,
+  nome,
+}: {
+  to: string | string[]
+  nome: string
+}) {
+  const primeiroNome = nome.split(' ')[0]
+  
+  return sendEmail({
+    to,
+    subject: `Feliz Aniversário, ${primeiroNome}! 🎉`,
+    tag: 'Aniversario',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #991b1b; padding: 40px 24px; border-radius: 8px 8px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">Feliz Aniversário! 🎂</h1>
+        </div>
+        <div style="background: #ffffff; padding: 40px 32px; border: 1px solid #e5e7eb; border-top: none;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+            Olá, <strong>${primeiroNome}</strong>!
+          </p>
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+            Neste dia tão especial, a Seção Sindical Jataí do SINASEFE vem lhe desejar muitas felicidades, saúde e sucesso.
+          </p>
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+            Que seu novo ciclo seja repleto de realizações e que possamos continuar juntos na luta por uma educação pública, gratuita e de qualidade!
+          </p>
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-top: 32px;">
+            Um grande abraço,<br/>
+            <strong>Diretoria do SINASEFE Jataí</strong>
+          </p>
+        </div>
+        <div style="background: #f9fafb; padding: 24px; text-align: center; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+            Mensagem automática de felicitações enviada pelo sistema do sindicato.
+          </p>
+        </div>
+      </div>
+    `,
+  })
+}

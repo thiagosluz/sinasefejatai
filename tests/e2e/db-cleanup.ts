@@ -74,13 +74,14 @@ export async function cleanTestData(caller: string) {
   const { error: errConf } = await supabase
     .from('configuracoes')
     .update({
-      titulo: 'SINDICATO NACIONAL DOS SERVIDORES FEDERAIS',
-      secao_sindical: 'SEÇÃO SINDICAL JATAÍ',
+      titulo: 'SINDICATO NACIONAL DOS SERVIDORES FEDERAIS DA EDUCAÇÃO BÁSICA, PROFISSIONAL E TECNOLÓGICA',
+      secao_sindical: 'SINASEFE - SEÇÃO SINDICAL JATAÍ',
       endereco: 'RUA RIACHUELO, 2090 – SETOR SAMUEL GRAHAM – JATAÍ/GO',
       cep: 'CEP: 75804-020',
-      filiacao: 'Filiado à CUT – Filiado à Condsef',
-      fundacao: 'Fundado em 11 de novembro de 1988',
-      logo_url: '' // Ou valor default original
+      filiacao: 'FILIADO À CEA',
+      fundacao: 'FUNDADO EM 16 de maio de 2005',
+      cnpj: 'CNPJ: 08.236.344/0001-06',
+      logo_url: 'https://lwnrctksvlzhlzldelit.supabase.co/storage/v1/object/public/sistema/logo-1782837436226.png' // Ou valor default original
     })
     .eq('id', 1);
   if (errConf) console.error('Erro ao restaurar config:', errConf.message);
