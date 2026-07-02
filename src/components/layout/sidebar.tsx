@@ -56,7 +56,6 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
         { href: '/admin/boletins', label: 'Boletins', icon: Newspaper },
         { href: '/admin/documentos', label: 'Documentos', icon: FileText },
         { href: '/admin/publicacoes', label: 'Portal Público', icon: Globe },
-        { href: '/admin/configuracoes', label: 'Cabeçalho/Timbre', icon: Sliders },
       ]
     },
     {
@@ -65,6 +64,13 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
         { href: '/admin/financeiro', label: 'Livro Caixa', icon: Landmark },
         { href: '/admin/parecer-fiscal', label: 'Parecer Fiscal', icon: ShieldCheck },
         { href: '/admin/auditoria', label: 'Auditoria', icon: ShieldCheck },
+      ]
+    },
+    {
+      group: 'Sistema',
+      items: [
+        { href: '/admin/configuracoes', label: 'Cabeçalho/Timbre', icon: Sliders },
+        { href: '/admin/configuracoes-gerais', label: 'Configurações Gerais', icon: Sliders },
       ]
     }
   ]
@@ -139,8 +145,7 @@ export function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed, role =
                 )}
                 <nav className="space-y-1">
                   {section.items.map((item) => {
-                    const isActive = pathname.startsWith(item.href) &&
-                      (item.href === '/admin/dashboard' ? pathname === '/admin/dashboard' : true)
+                    const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
 
                     return (
                       <Link
