@@ -3,7 +3,12 @@
 Este documento centraliza as ideias e sugestões de melhorias futuras para o sistema, servindo como um guia de visão de longo prazo para os módulos existentes e novos.
 
 ## 🚀 Infraestrutura & Back-end
-*(Nenhuma pendência técnica urgente mapeada no momento)*
+
+### 1. Refatoração Arquitetural e Aplicação do Princípio DRY
+- **Formulários de Documentos:** Extração do *boilerplate* de controle de estado (`salvando`, `carregando`) e buscas de edição presentes em 7 formulários distintos para um *Custom Hook* genérico `useDocumentoForm<T>`.
+- **Layouts de Impressão:** Unificação dos templates de impressão (`ata-print-layout`, `parecer-fiscal-layout`, etc.) por meio de um componente encapsulador `<DocumentPrintWrapper>`.
+- **Dashboard RPC:** Consolidação dos 10 `fetchs` sequenciais no painel inicial em uma única requisição ao banco através de uma RPC / Materialized View PostgreSQL `get_dashboard_stats()`, melhorando o tempo de carregamento e o peso na API.
+- **Server Actions HOF:** Padronização global de tratamento de erros das Server Actions com uma função construtora `withActionHandler` para enxugar as chamadas `try/catch`.
 
 ## 🏛️ Módulo: Assembleias
 O módulo atual gerencia pautas, locais dinâmicos e gera documentos (Ata, Lista de Presença). Ideias para evolução:
