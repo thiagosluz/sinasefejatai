@@ -1,7 +1,9 @@
 import { formatarTipo } from '@/app/(admin)/admin/documentos/lib/tipos-documento'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { DocumentosCliente } from './documentos-cliente'
+
+export const dynamic = 'force-dynamic'
 
 type DocumentoItem = {
   id: string
@@ -13,7 +15,7 @@ type DocumentoItem = {
 }
 
 async function getDocumentosPublicos(): Promise<DocumentoItem[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const items: DocumentoItem[] = []
 
   // 1. Buscar Publicações Externas

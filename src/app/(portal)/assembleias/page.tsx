@@ -1,9 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { AssembleiasCliente } from './assembleias-cliente'
 
+export const dynamic = 'force-dynamic'
+
 async function getAssembleias() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from('assembleias')
     .select('id, numero, tipo, data_realizacao, horario_1a_convocacao, local, status, pautas, publico_alvo')

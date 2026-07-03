@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 import { EMAIL_SINDICATO } from '@/lib/constants'
 import { formatarDataPtBR } from '@/lib/date-utils'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 function InstagramIcon({ size = 24, className }: { size?: number; className?: string }) {
   return (
@@ -15,8 +15,10 @@ function InstagramIcon({ size = 24, className }: { size?: number; className?: st
   )
 }
 
+export const dynamic = 'force-dynamic'
+
 async function getBoletinsRecentes() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from('boletins')
     .select('id, titulo, data_publicacao, capa_url')
@@ -27,7 +29,7 @@ async function getBoletinsRecentes() {
 }
 
 async function getConfiguracoes() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from('configuracoes')
     .select('titulo, secao_sindical, endereco, cep, fundacao')

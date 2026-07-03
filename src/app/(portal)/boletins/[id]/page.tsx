@@ -3,11 +3,13 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { formatarDataPtBR } from '@/lib/date-utils'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+export const dynamic = 'force-dynamic'
 
 export default async function BoletimDetalhesPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: boletim, error } = await supabase
     .from('boletins')

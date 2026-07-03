@@ -20,6 +20,7 @@ interface Assembleia {
 
 const statusConfig: Record<string, { label: string; classes: string; dot: string }> = {
   Agendada: { label: 'Agendada', classes: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
+  Concluída: { label: 'Concluída', classes: 'bg-green-50 text-green-700 border-green-200', dot: 'bg-green-500' },
   Realizada: { label: 'Realizada', classes: 'bg-green-50 text-green-700 border-green-200', dot: 'bg-green-500' },
   Cancelada: { label: 'Cancelada', classes: 'bg-zinc-50 text-zinc-500 border-zinc-200', dot: 'bg-zinc-400' },
 }

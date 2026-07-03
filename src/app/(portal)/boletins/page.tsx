@@ -1,6 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { BoletinsCliente } from './boletins-cliente'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Boletim Semanal | SINASEFE JATAÍ',
@@ -8,7 +10,7 @@ export const metadata = {
 }
 
 export default async function BoletinsPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Buscar todos os boletins publicados
   const { data: boletins } = await supabase

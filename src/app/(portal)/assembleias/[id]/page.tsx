@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { formatarDataPtBR, formatarHora } from '@/lib/date-utils'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+export const dynamic = 'force-dynamic'
 
 interface DocumentoPublico {
   id: string
@@ -39,7 +41,7 @@ function formatDocType(tipo: string) {
 
 export default async function AssembleiaDetalhesPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: assembleia } = await supabase
     .from('assembleias')

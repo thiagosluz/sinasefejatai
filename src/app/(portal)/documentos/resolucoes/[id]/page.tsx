@@ -5,11 +5,13 @@ import { notFound } from 'next/navigation'
 import { PrintButton } from '@/app/(admin)/admin/documentos/components/print-button'
 import { ResolucaoLayout } from '@/app/(admin)/admin/documentos/components/resolucao-layout'
 import { getDocumentoVerificacao } from '@/lib/actions-assinaturas'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+export const dynamic = 'force-dynamic'
 
 export default async function VisualizarResolucaoPublicaPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Buscar o documento e verificar se ele é público
   const { data: doc } = await supabase

@@ -1,9 +1,11 @@
 import { CheckCircle2, Mail, MapPin } from 'lucide-react'
 
 import { EMAIL_SINDICATO, INSTAGRAM_SINDICATO } from '@/lib/constants'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { ContatoForm } from './contato-form'
+
+export const dynamic = 'force-dynamic'
 
 function InstagramIcon({ size = 20, className }: { size?: number; className?: string }) {
   return (
@@ -16,7 +18,7 @@ function InstagramIcon({ size = 20, className }: { size?: number; className?: st
 }
 
 async function getConfiguracoes() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from('configuracoes')
     .select('secao_sindical, endereco, cep')
