@@ -2,7 +2,7 @@ import { Calendar, FileText, ShieldAlert, ShieldCheck, UserCheck } from 'lucide-
 import Link from 'next/link'
 
 import { Assinatura,DocumentoVerificacao } from '@/lib/actions-assinaturas'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +24,7 @@ export default async function AutenticarDocumentoPage({
   let revogadoPorTitulo = ''
 
   if (hasParams) {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Busca a verificação pelos códigos exatos
     const { data: verif } = await supabase
