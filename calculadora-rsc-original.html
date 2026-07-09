@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora RSC-TAE — Reconhecimento de Saberes e Competências</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg-sec: #f5f5f3; --bg-ter: #eeede8;
+    --text: #1a1a18; --text-sec: #5f5e5a; --text-ter: #888780;
+    --border: rgba(0,0,0,0.12); --border-sec: rgba(0,0,0,0.22);
+    --green: #1D9E75; --green-light: #E1F5EE; --green-dark: #0F6E56;
+    --red: #D85A30; --red-light: #FAECE7; --red-dark: #993C1D;
+    --blue: #1a6fbf; --blue-light: #e8f1fb; --blue-dark: #0f4a88;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg-sec: #252523; --bg-ter: #2e2e2b;
+      --text: #f0efe9; --text-sec: #b4b2a9; --text-ter: #888780;
+      --border: rgba(255,255,255,0.12); --border-sec: rgba(255,255,255,0.22);
+      --green-light: #085041; --green-dark: #9FE1CB;
+      --red-light: #4A1B0C; --red-dark: #F0997B;
+      --blue-light: #0d2e50; --blue-dark: #7eb8f7;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-ter); color: var(--text); line-height: 1.6; min-height: 100vh; }
+  .page-wrap { max-width: 820px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  .logo-bar { margin-bottom: 1.25rem; }
+  .logo-bar img { height: 56px; width: auto; display: block; }
+  .header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--border); }
+  .header h1 { font-size: 24px; font-weight: 500; color: var(--text); }
+  .header p { font-size: 14px; color: var(--text-sec); margin-top: 4px; }
+  .card { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 1.25rem; margin-bottom: 1rem; }
+  .section-label { font-size: 13px; color: var(--text-sec); margin-bottom: 10px; }
+  .nivel-select { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 500px) { .nivel-select { grid-template-columns: 1fr; } }
+  .nivel-btn { padding: 10px 14px; border: 0.5px solid var(--border-sec); border-radius: var(--radius); background: var(--bg); cursor: pointer; text-align: left; transition: background .15s, border .15s; }
+  .nivel-btn:hover { background: var(--bg-sec); }
+  .nivel-btn.active { border: 2px solid var(--green); background: var(--green-light); }
+  .nivel-btn .nivel-nome { font-size: 13px; font-weight: 500; color: var(--text); }
+  .nivel-btn.active .nivel-nome { color: var(--green-dark); }
+  .nivel-btn .nivel-desc { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+  /* Barra de progresso dentro do botão de nível */
+  .nivel-progress { height: 4px; border-radius: 2px; background: var(--border); margin-top: 6px; overflow: hidden; }
+  .nivel-progress-fill { height: 100%; border-radius: 2px; background: var(--green); transition: width .3s; }
+  .nivel-btn.active .nivel-progress { background: rgba(255,255,255,0.3); }
+  .nivel-progress-fill.danger { background: var(--red); }
+  .nivel-progress-fill.warn   { background: #f59e0b; }
+  .nivel-summary { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 11px; }
+  .nivel-summary .ns-pts { font-weight: 600; }
+  .nivel-summary .ns-status { border-radius: 10px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
+  .nivel-summary .ns-ok   { background: var(--green); color: #fff; }
+  .nivel-summary .ns-warn { background: #f59e0b; color: #fff; }
+  .nivel-summary .ns-no   { background: var(--red); color: #fff; }
+  /* Qualit badge nos req-title — estilos herdados do req-title verde */
+  /* Critérios mínimos por nível no painel da calculadora */
+  .crit-panel { background: var(--bg-sec); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 1rem; border: 0.5px solid var(--border); }
+  .crit-panel-title { font-size: 11px; font-weight: 600; color: var(--text-sec); margin-bottom: 8px; letter-spacing:.3px; text-transform: uppercase; }
+  .crit-nivel-row { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 0.5px solid var(--border); }
+  .crit-nivel-row:last-child { border-bottom: none; }
+  .crit-nivel-row .cn-nome { font-size: 12px; font-weight: 600; color: var(--text); }
+  .crit-nivel-row .cn-track { height: 6px; background: var(--bg-ter); border-radius: 3px; overflow: hidden; }
+  .crit-nivel-row .cn-fill  { height: 100%; border-radius: 3px; }
+  .crit-nivel-row .cn-info  { font-size: 11px; color: var(--text-sec); text-align: right; white-space: nowrap; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
+  @media (max-width: 500px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card { background: var(--bg-sec); border-radius: var(--radius); padding: 10px 12px; }
+  .stat-card .slabel { font-size: 11px; color: var(--text-sec); margin-bottom: 2px; }
+  .stat-card .sval { font-size: 22px; font-weight: 500; color: var(--text); }
+  .stat-card.ok .sval { color: var(--green); }
+  .stat-card.nok .sval { color: var(--red); }
+  .progress-bar { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; margin-bottom: 1rem; }
+  .progress-fill { height: 100%; border-radius: 4px; background: var(--green); transition: width .3s, background .3s; }
+  .progress-fill.danger { background: var(--red); }
+  .status-bar { padding: 12px 16px; border-radius: var(--radius); margin-bottom: 1rem; font-size: 13px; font-weight: 500; }
+  .status-ok { background: var(--green-light); color: var(--green-dark); }
+  .status-nok { background: var(--red-light); color: var(--red-dark); }
+  .status-sel { background: var(--bg-sec); color: var(--text-sec); }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .req-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .req-tab { padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--border-sec); background: var(--bg); cursor: pointer; font-size: 12px; color: var(--text-sec); transition: background .15s; }
+  .req-tab:hover { background: var(--bg-sec); }
+  .req-tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+  .reset-btn { font-size: 12px; color: var(--text-sec); cursor: pointer; padding: 5px 10px; border: 0.5px solid var(--border-sec); border-radius: var(--radius); background: var(--bg); }
+  .reset-btn:hover { background: var(--bg-sec); }
+  .req-section { margin-bottom: 0.5rem; }
+  .req-title {
+    font-size: 14px; font-weight: 700; color: #fff;
+    padding: 10px 14px; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: #005B2F;
+    border-radius: var(--radius);
+    border-left: 5px solid #003d1f;
+  }
+  .req-title .req-badge { background: rgba(255,255,255,0.18); color: #d4f0e2; border-radius: 4px; padding: 2px 8px; font-size: 11px; }
+  .req-qualit { font-size: 10px; background: rgba(255,255,255,0.15); color: #d4f0e2; border-radius: 4px; padding: 2px 7px; border: 0.5px solid rgba(255,255,255,0.3); }
+  /* req-badge agora definido dentro de .req-title acima */
+  .item-row { display: grid; grid-template-columns: 1fr auto auto; align-items: start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .item-row:last-child { border-bottom: none; }
+  .item-num { font-size: 11px; font-weight: 500; color: var(--text-ter); margin-bottom: 2px; }
+  .item-desc { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .item-sub { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+  .item-pts { font-size: 12px; font-weight: 500; color: var(--text-sec); min-width: 54px; text-align: right; white-space: nowrap; padding-top: 2px; }
+  .item-pts.active { color: var(--green); }
+  .item-qty { display: flex; align-items: center; gap: 6px; padding-top: 2px; }
+  /* Painéis de ocorrência */
+  .ocorrencias { margin: 8px 0 4px 0; display: flex; flex-direction: column; gap: 8px; }
+  .ocorrencia-card {
+    background: var(--bg-sec); border-radius: var(--radius);
+    border: 0.5px solid var(--border); padding: 10px 12px;
+    border-left: 3px solid var(--blue);
+  }
+
+  /* Painel especial para itens "por ano" */
+  .periodo-card {
+    background: var(--bg-sec); border-radius: var(--radius);
+    border: 0.5px solid var(--border); padding: 10px 12px;
+    border-left: 3px solid #7c3aed;
+    margin-top: 8px;
+  }
+  .periodo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .periodo-titulo { font-size: 11px; font-weight: 700; color: #4c1d95; }
+  .periodo-resultado { font-size: 12px; font-weight: 600; color: var(--green); }
+  .periodo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  @media (max-width:480px) { .periodo-grid { grid-template-columns: 1fr; } }
+  .periodo-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-sec); margin-bottom: 4px; }
+  .periodo-field input[type=date] {
+    width: 100%; padding: 7px 10px;
+    border: 0.5px solid var(--border-sec); border-radius: var(--radius);
+    background: var(--bg); color: var(--text); font-size: 13px;
+    font-family: inherit; transition: border .15s;
+  }
+  .periodo-field input[type=date]:focus { outline: none; border-color: #7c3aed; }
+  .periodo-calc { font-size: 11px; color: var(--text-sec); margin-bottom: 8px; padding: 7px 10px; background: var(--bg); border-radius: 5px; border: 0.5px solid var(--border); line-height: 1.6; }
+  .periodo-calc strong { color: var(--text); }
+  .ocorrencia-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .ocorrencia-num { font-size: 11px; font-weight: 700; color: var(--blue-dark); }
+  .ocorrencia-pts { font-size: 11px; font-weight: 600; color: var(--green); }
+  .ocorrencia-label { font-size: 11px; font-weight: 500; color: var(--text-sec); margin-bottom: 4px; display: block; }
+  .ocorrencia-textarea {
+    width: 100%; padding: 7px 9px; border: 0.5px solid var(--border-sec);
+    border-radius: var(--radius); background: var(--bg); color: var(--text);
+    font-size: 12px; font-family: inherit; resize: vertical; min-height: 60px;
+    transition: border .15s; line-height: 1.5;
+  }
+  .ocorrencia-textarea:focus { outline: none; border-color: var(--blue); }
+  .ocorrencia-textarea::placeholder { color: var(--text-ter); }
+  .upload-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .upload-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: var(--radius);
+    border: 0.5px solid var(--border-sec); background: var(--bg);
+    cursor: pointer; font-size: 11px; color: var(--text-sec);
+    transition: background .15s; white-space: nowrap;
+  }
+  .upload-btn:hover { background: var(--bg-ter); }
+  .upload-btn svg { flex-shrink: 0; }
+  .upload-files { display: flex; flex-wrap: wrap; gap: 6px; }
+  .upload-file-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--green-light); color: var(--green-dark);
+    border-radius: 4px; padding: 3px 8px; font-size: 11px;
+    border: 0.5px solid var(--green);
+  }
+  .upload-file-tag button {
+    background: none; border: none; cursor: pointer; color: var(--green-dark);
+    font-size: 13px; line-height: 1; padding: 0; margin-left: 2px;
+  }
+  .upload-file-tag button:hover { color: var(--red); }
+  .upload-input { display: none; }
+  .item-qty button { width: 26px; height: 26px; border-radius: 50%; border: 0.5px solid var(--border-sec); background: var(--bg); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--text); transition: background .1s; line-height: 1; }
+  .item-qty button:hover { background: var(--bg-sec); }
+  .qty-val { font-size: 13px; font-weight: 500; min-width: 18px; text-align: center; color: var(--text); }
+  .note { font-size: 11px; color: var(--text-ter); padding-top: 1rem; border-top: 0.5px solid var(--border); margin-top: 0.5rem; line-height: 1.5; }
+
+  /* ── MEMORIAL ── */
+  /* ── ACTION BUTTONS (acima da seleção de nível) ── */
+  .action-btns { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+  /* Salvar sessão */
+  .save-btn { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 150px; padding: 10px 14px; border-radius: var(--radius); border: 1.5px solid var(--green); background: var(--green-light); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--green-dark); transition: background .15s; }
+  .save-btn:hover { background: #c6edd8; }
+  .save-btn svg { flex-shrink: 0; }
+  .save-indicator { display: none; font-size: 11px; color: var(--text-ter); align-items: center; gap: 5px; white-space: nowrap; }
+  .save-indicator.visible { display: flex; }
+  .save-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  /* Toast de notificação */
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(60px); background: #1a1a18; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 200; transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s; opacity: 0; pointer-events: none; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .memorial-btn { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 180px; padding: 10px 14px; border-radius: var(--radius); border: 1.5px solid var(--blue); background: var(--blue-light); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--blue-dark); transition: background .15s; }
+  .memorial-btn:hover { background: #d0e4f8; }
+  .memorial-btn svg { flex-shrink: 0; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-start; justify-content: center; padding: 1.5rem 1rem; overflow-y: auto; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg); border-radius: var(--radius-lg); width: 100%; max-width: 720px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); margin: auto; }
+  .modal-header { padding: 1.25rem 1.5rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h2 { font-size: 16px; font-weight: 500; color: var(--text); }
+  .modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text-sec); line-height: 1; padding: 4px; }
+  .modal-body { padding: 1.5rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 12px; font-weight: 500; color: var(--text-sec); }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 8px 10px; border: 0.5px solid var(--border-sec); border-radius: var(--radius);
+    background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit;
+    transition: border .15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--blue); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .modal-footer { padding: 1rem 1.5rem; border-top: 0.5px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .btn { padding: 9px 18px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: opacity .15s; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { opacity: .88; }
+  .btn-secondary { background: var(--bg-sec); color: var(--text); border: 0.5px solid var(--border-sec); }
+  .btn-secondary:hover { background: var(--bg-ter); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { opacity: .88; }
+
+  /* Preview do memorial */
+  .memorial-preview { display: none; background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); margin-bottom: 1rem; overflow: hidden; }
+  .memorial-preview.open { display: block; }
+  .preview-toolbar { padding: 10px 14px; background: var(--bg-sec); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .preview-toolbar span { font-size: 13px; font-weight: 500; color: var(--text-sec); }
+  .preview-actions { display: flex; gap: 6px; }
+  .preview-content { padding: 2rem; font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; font-family: 'Georgia', serif; max-height: 600px; overflow-y: auto; }
+  .preview-content h2 { font-size: 15px; text-align: center; margin-bottom: 0.5rem; font-family: inherit; }
+  .preview-content h3 { font-size: 13px; margin: 1.2rem 0 0.4rem; font-family: inherit; }
+  .preview-content .center { text-align: center; }
+  .preview-content .divider { border: none; border-top: 0.5px solid var(--border); margin: 1rem 0; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  /* ── BARRA DE SESSÃO ── */
+  .session-bar { background: var(--blue-dark, #0C326F); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 7px 20px; font-size: 12px; flex-wrap: wrap; gap: 6px; }
+  .session-bar .s-user { display: flex; align-items: center; gap: 8px; }
+  .session-bar .s-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .session-bar .s-name { font-weight: 500; }
+  .session-bar .s-role { background: rgba(255,255,255,.15); border-radius: 4px; padding: 1px 7px; font-size: 10px; }
+  .session-bar .s-actions { display: flex; align-items: center; gap: 10px; }
+  .session-bar a, .session-bar button { color: rgba(255,255,255,.85); background: none; border: none; cursor: pointer; font-size: 12px; text-decoration: none; padding: 0; }
+  .session-bar a:hover, .session-bar button:hover { color: #fff; text-decoration: underline; }
+
+  /* ── DASHBOARD ── */
+  .dash-btn { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 180px; padding: 10px 14px; border-radius: var(--radius); border: 1.5px solid #7c3aed; background: #f3eeff; cursor: pointer; font-size: 13px; font-weight: 500; color: #4c1d95; transition: background .15s; }
+  .dash-btn:hover { background: #e9d8fd; }
+  @media (prefers-color-scheme: dark) { .dash-btn { background: #2d1b4e; color: #c4b5fd; border-color: #7c3aed; } .dash-btn:hover { background: #3b2063; } }
+  .dash-btn svg { flex-shrink: 0; }
+
+  .dashboard { display: none; background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); margin-bottom: 1rem; overflow: hidden; }
+  .dashboard.open { display: block; }
+  .dash-header { padding: 12px 16px; background: linear-gradient(135deg, #4c1d95, #6d28d9); color: #fff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .dash-header h2 { font-size: 15px; font-weight: 500; }
+  .dash-close { background: rgba(255,255,255,0.2); border: none; color: #fff; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-size: 12px; }
+  .dash-close:hover { background: rgba(255,255,255,0.35); }
+
+  .dash-body { padding: 1.25rem; }
+
+  /* KPI row */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media (max-width: 550px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+  .kpi { background: var(--bg-sec); border-radius: var(--radius); padding: 12px 14px; border-left: 3px solid var(--border-sec); }
+  .kpi.ok { border-left-color: var(--green); }
+  .kpi.warn { border-left-color: #f59e0b; }
+  .kpi.bad { border-left-color: var(--red); }
+  .kpi .kpi-label { font-size: 11px; color: var(--text-sec); margin-bottom: 3px; }
+  .kpi .kpi-val { font-size: 24px; font-weight: 600; color: var(--text); line-height: 1.1; }
+  .kpi .kpi-sub { font-size: 11px; color: var(--text-ter); margin-top: 2px; }
+  .kpi.ok .kpi-val { color: var(--green); }
+  .kpi.bad .kpi-val { color: var(--red); }
+  .kpi.warn .kpi-val { color: #b45309; }
+
+  /* Charts grid */
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.25rem; }
+  @media (max-width: 600px) { .charts-grid { grid-template-columns: 1fr; } }
+  .chart-card { background: var(--bg-sec); border-radius: var(--radius); padding: 14px; }
+  .chart-title { font-size: 12px; font-weight: 500; color: var(--text-sec); margin-bottom: 10px; }
+
+  /* Bar chart */
+  .bar-list { display: flex; flex-direction: column; gap: 8px; }
+  .bar-item { display: grid; grid-template-columns: 60px 1fr 44px; align-items: center; gap: 8px; }
+  .bar-label { font-size: 11px; color: var(--text-sec); text-align: right; }
+  .bar-track { height: 18px; background: var(--bg-ter); border-radius: 4px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width .5s cubic-bezier(.4,0,.2,1); display: flex; align-items: center; justify-content: flex-end; padding-right: 4px; }
+  .bar-fill span { font-size: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+  .bar-pts { font-size: 11px; color: var(--text-sec); text-align: right; }
+
+  /* Radar / donut via SVG */
+  .svg-wrap { display: flex; align-items: center; justify-content: center; }
+  .donut-legend { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .donut-leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-sec); }
+  .donut-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Radar chart */
+  .radar-wrap { display: flex; flex-direction: column; align-items: center; }
+
+  /* Level roadmap */
+  .roadmap { display: flex; flex-direction: column; gap: 6px; }
+  .roadmap-item { display: grid; grid-template-columns: 72px 1fr 54px; align-items: center; gap: 8px; padding: 6px 10px; border-radius: var(--radius); background: var(--bg); border: 0.5px solid var(--border); }
+  .roadmap-item.current { border-color: #7c3aed; background: #f3eeff; }
+  .roadmap-item.done { border-color: var(--green); background: var(--green-light); }
+  @media (prefers-color-scheme: dark) { .roadmap-item.current { background: #2d1b4e; } .roadmap-item.done { background: var(--green-light); } }
+  .roadmap-nivel { font-size: 12px; font-weight: 600; color: var(--text); }
+  .roadmap-track { height: 8px; background: var(--bg-ter); border-radius: 4px; overflow: hidden; }
+  .roadmap-fill { height: 100%; border-radius: 4px; }
+  .roadmap-pct { font-size: 11px; color: var(--text-sec); text-align: right; }
+  .roadmap-item.done .roadmap-nivel { color: var(--green-dark); }
+  .roadmap-item.current .roadmap-nivel { color: #4c1d95; }
+
+  /* Insights */
+  .insights { display: flex; flex-direction: column; gap: 8px; }
+  .insight { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: var(--bg); border-radius: var(--radius); border: 0.5px solid var(--border); font-size: 12px; color: var(--text); line-height: 1.5; }
+  .insight-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  .dash-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-ter); font-size: 13px; }
+
+  /* ── STICKY BAR ── */
+  .sticky-bar {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    padding: 8px 16px;
+    align-items: center; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .sticky-bar.visible { display: flex; }
+  .sticky-nivel { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .sticky-badge {
+    background: #6d28d9; color: #fff;
+    border-radius: 6px; padding: 3px 10px;
+    font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .sticky-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sticky-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .sticky-pts { font-size: 13px; font-weight: 600; }
+  .sticky-pts.ok  { color: var(--green); }
+  .sticky-pts.nok { color: var(--red); }
+  .sticky-pts.warn { color: #b45309; }
+  .sticky-prog-wrap { width: 120px; }
+  .sticky-prog-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .sticky-prog-fill  { height: 100%; border-radius: 3px; background: var(--green); transition: width .3s; }
+  .sticky-prog-fill.danger { background: var(--red); }
+  .sticky-prog-fill.warn   { background: #f59e0b; }
+  .sticky-status { font-size: 11px; color: var(--text-sec); margin-top: 2px; text-align: right; }
+  @media (max-width: 500px) {
+    .sticky-prog-wrap { display: none; }
+    .sticky-name { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<!-- Barra de sessão do usuário -->
+<div class="session-bar" id="session-bar" style="display:none">
+  <div class="s-user">
+    <div class="s-avatar">👤</div>
+    <span class="s-name" id="s-name">—</span>
+    <span class="s-role" id="s-role">Servidor</span>
+  </div>
+  <div class="s-actions">
+    <span id="s-siape" style="opacity:.65"></span>
+    <span>|</span>
+    <button onclick="fazerLogout()">Sair ↩</button>
+  </div>
+</div>
+<!-- Barra fixa de nível selecionado (aparece ao rolar) -->
+<div class="sticky-bar" id="sticky-bar">
+  <div class="sticky-nivel">
+    <span class="sticky-badge" id="sticky-badge">RSC-I</span>
+    <span class="sticky-name" id="sticky-name">Ens. Fundamental Completo</span>
+  </div>
+  <div class="sticky-right">
+    <div class="sticky-prog-wrap">
+      <div class="sticky-prog-track"><div class="sticky-prog-fill" id="sticky-fill" style="width:0%"></div></div>
+      <div class="sticky-status" id="sticky-status">0 / 10 pts</div>
+    </div>
+    <span class="sticky-pts" id="sticky-pts">0 pts</span>
+  </div>
+</div>
+<div class="page-wrap">
+  <h2 class="sr-only">Calculadora RSC-TAE</h2>
+  <div class="logo-bar"><img src="data:image/png;base64,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" alt="SINASEFE Rio Pomba"></div>
+
+  <div class="header">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <h1>Calculadora RSC-TAE</h1>
+        <p>Estime sua pontuação · Decreto nº 13.048, de 3 de julho de 2026</p>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:11px;font-weight:600;color:var(--text-sec)">Versão 2.0</div>
+        <div style="font-size:10px;color:var(--text-ter)">03/07/2026</div>
+        <div style="font-size:10px;color:var(--text-ter);margin-top:3px;line-height:1.4">Desenvolvimento: Wildson J. Pinto<br>por meio da IA Claude</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botões de ação — acima da seleção de nível -->
+  <div class="action-btns">
+    <button class="memorial-btn" onclick="abrirModal()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Gerar Memorial Automático
+    </button>
+    <button class="dash-btn" onclick="toggleDashboard()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard de Resultados
+    </button>
+    <button class="save-btn" onclick="salvarSessao()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Salvar sessão
+    </button>
+    <button class="save-btn" style="border-color:#f59e0b;background:#fefce8;color:#92400e" onclick="carregarSessao()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Carregar sessão
+    </button>
+  </div>
+
+  <!-- Indicador de sessão salva -->
+  <div class="save-indicator" id="save-indicator">
+    <span class="save-dot"></span>
+    <span id="save-indicator-txt">Sessão salva</span>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Seleção de nível -->
+  <div class="card" id="nivel-card">
+    <p class="section-label">Selecione o nível RSC pretendido:</p>
+    <div class="nivel-select" id="nivel-select"></div>
+  </div>
+
+  <!-- Status -->
+  <div id="status-bar" class="status-bar status-sel">Selecione um nível RSC acima para começar.</div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card"><div class="slabel">Pontuação total</div><div class="sval" id="pts-total">0</div></div>
+    <div class="stat-card"><div class="slabel">Mínimo necessário</div><div class="sval" id="pts-min">—</div></div>
+    <div class="stat-card"><div class="slabel">Critérios ativos</div><div class="sval" id="crit-total">0</div></div>
+    <div class="stat-card"><div class="slabel">Critérios mínimos</div><div class="sval" id="crit-min">—</div></div>
+  </div>
+
+  <!-- Progresso -->
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+    <div class="dash-header">
+      <h2>📊 Dashboard — Análise da Pontuação RSC-TAE</h2>
+      <button class="dash-close" onclick="toggleDashboard()">Fechar ✕</button>
+    </div>
+    <div class="dash-body" id="dash-body">
+      <div class="dash-empty">Lance critérios na calculadora para visualizar o dashboard.</div>
+    </div>
+  </div>
+
+  <!-- Preview do memorial gerado -->
+  <div class="memorial-preview" id="memorial-preview">
+    <div class="preview-toolbar">
+      <span>📄 Memorial gerado — revise antes de usar</span>
+      <div class="preview-actions">
+        <button class="btn btn-secondary" onclick="copiarMemorial()">Copiar texto</button>
+        <button class="btn btn-green" onclick="imprimirMemorial()">Imprimir / Salvar PDF</button>
+        <button class="btn" style="background:#7c3aed;color:#fff" onclick="gerarPDFCompleto()">📎 PDF com comprovantes</button>
+        <button class="btn btn-secondary" onclick="fecharPreview()">Fechar</button>
+      </div>
+    </div>
+    <div class="preview-content" id="memorial-text"></div>
+  </div>
+
+  <!-- Painel de somatório e critérios mínimos por nível -->
+  <div class="crit-panel" id="crit-panel" style="display:none">
+    <div class="crit-panel-title">Somatório e critérios mínimos — todos os níveis RSC (Art. 5º)</div>
+    <div id="crit-panel-body"></div>
+  </div>
+
+  <!-- Itens da calculadora -->
+  <div class="card">
+    <div class="toolbar">
+      <div class="req-tabs">
+        <button class="req-tab active" onclick="filtrar('todos',this)">Todos</button>
+        <button class="req-tab" onclick="filtrar('I',this)">Req. I</button>
+        <button class="req-tab" onclick="filtrar('II',this)">Req. II</button>
+        <button class="req-tab" onclick="filtrar('III',this)">Req. III</button>
+        <button class="req-tab" onclick="filtrar('IV',this)">Req. IV</button>
+        <button class="req-tab" onclick="filtrar('V',this)">Req. V</button>
+        <button class="req-tab" onclick="filtrar('VI',this)">Req. VI</button>
+      </div>
+      <button class="reset-btn" onclick="resetTudo()">Limpar tudo</button>
+    <div id="itens-container"></div>
+    <div class="note">⚠️ Esta calculadora tem caráter informativo e não substitui o processo oficial de avaliação conduzido pela CRSC-PCCTAE. Critérios conforme Decreto nº 13.048, de 3 de julho de 2026 (DOU, Edição Extra nº 123-B). Nenhum dado é enviado a servidores externos.</div>
+  </div>
+</div>
+
+<!-- Modal de dados do servidor -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📋 Dados para o Memorial — Art. 13 do Decreto</h2>
+      <button class="modal-close" onclick="fecharModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-sec);margin-bottom:1rem;">Preencha os dados funcionais. O memorial será gerado automaticamente com base nos critérios já lançados na calculadora.</p>
+      <div class="form-grid">
+        <div class="form-group full"><label>Nome completo do servidor *</label><input type="text" id="f-nome" placeholder="Ex.: João da Silva Santos"></div>
+        <div class="form-group"><label>Matrícula SIAPE *</label><input type="text" id="f-siape" placeholder="Ex.: 1234567"></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="f-cpf" placeholder="Ex.: 000.000.000-00"></div>
+        <div class="form-group full"><label>Cargo *</label><input type="text" id="f-cargo" placeholder="Ex.: Assistente em Administração"></div>
+        <div class="form-group full"><label>Instituição Federal de Ensino *</label><input type="text" id="f-ies" placeholder="Ex.: Instituto Federal do Sudeste de Minas Gerais – Campus Rio Pomba"></div>
+        <div class="form-group"><label>Unidade / Setor de lotação</label><input type="text" id="f-setor" placeholder="Ex.: Coordenação de Administração"></div>
+        <div class="form-group"><label>Nível de classificação do cargo</label><input type="text" id="f-nivel" placeholder="Ex.: Nível D – Classe C – Padrão IV"></div>
+        <div class="form-group"><label>Data de ingresso na instituição</label><input type="text" id="f-ingresso" placeholder="Ex.: 15/03/2010"></div>
+        <div class="form-group"><label>Última concessão RSC (se houver)</label><input type="text" id="f-ultima" placeholder="Ex.: RSC-II em 10/05/2021"></div>
+        <div class="form-group"><label>Saldo de pontos anterior (se houver)</label><input type="text" id="f-saldo" placeholder="Ex.: 8,5 pontos"></div>
+        <div class="form-group full"><label>Breve apresentação / trajetória profissional *</label>
+          <textarea id="f-trajetoria" placeholder="Descreva brevemente sua trajetória profissional, área de atuação, principais contribuições institucionais e motivação para o pedido de RSC. Este texto será inserido na introdução do memorial."></textarea>
+        </div>
+        <div class="form-group full"><label>Considerações finais (opcional)</label>
+          <textarea id="f-consideracoes" placeholder="Texto adicional para encerramento do memorial (opcional). Se deixar em branco, será gerado automaticamente."></textarea>
+        </div>
+        <div class="form-group"><label>Local e data</label><input type="text" id="f-local" placeholder="Ex.: Rio Pomba (MG), abril de 2026"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="gerarMemorial()">Gerar Memorial</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const NIVEIS = [
+  {id:'I',   nome:'RSC-PCCTAE I',   pontos:10, criterios:1, qualit:null,
+   eq:'Ens. Fundamental Completo',
+   desc:'Mínimo de 10 pontos e 1 critério específico.',
+   qualitDesc: null},
+  {id:'II',  nome:'RSC-PCCTAE II',  pontos:15, criterios:2, qualit:null,
+   eq:'Ensino Médio',
+   desc:'Mínimo de 15 pontos e 2 critérios específicos.',
+   qualitDesc: null},
+  {id:'III', nome:'RSC-PCCTAE III', pontos:25, criterios:2, qualit:null,
+   eq:'Graduação',
+   desc:'Mínimo de 25 pontos e 2 critérios específicos.',
+   qualitDesc: null},
+  {id:'IV',  nome:'RSC-PCCTAE IV',  pontos:30, criterios:3, qualit:['II','IV','V','VI'],
+   eq:'Especialização',
+   desc:'Mínimo de 30 pontos e 3 critérios específicos.',
+   qualitDesc:'≥1 critério dos Req. II, IV, V ou VI (Art. 3º, incisos II, IV, V ou VI)'},
+  {id:'V',   nome:'RSC-PCCTAE V',   pontos:52, criterios:5, qualit:['IV','V','VI'],
+   eq:'Mestrado',
+   desc:'Mínimo de 52 pontos e 5 critérios específicos.',
+   qualitDesc:'≥1 critério dos Req. IV, V ou VI (Art. 3º, incisos IV, V ou VI)'},
+  {id:'VI',  nome:'RSC-PCCTAE VI',  pontos:75, criterios:7, qualit:['VI'],
+   eq:'Doutorado',
+   desc:'Mínimo de 75 pontos e 7 critérios específicos.',
+   qualitDesc:'≥1 critério do Req. VI (Art. 3º, inciso VI)'},
+];
+
+const ITENS = [
+  // ── REQUISITO I ──
+  {req:'I', num:1,   pts:3,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício do mandato como membro de conselhos superiores e conselhos de unidades e órgãos colegiados das instituições federais de ensino.',
+   exemplo:'Ex.: Membro do Conselho Superior (CONSU) — mandato: mar/2021 a mar/2023 — Portaria nº 012/2021 — IFSudeste MG Campus Rio Pomba'},
+  {req:'I', num:2,   pts:4.5, unidade:'Por designação',
+   desc:'Coordenação ou presidência de núcleos, representações, grupos de trabalho ou similares, comissões ou comitês previstos no âmbito da administração pública, regularmente instituídos, ou reconhecidos pelo órgão ou pela entidade.',
+   exemplo:'Ex.: Coordenador da Comissão Permanente de Avaliação de Documentos (CPAD) — Portaria nº 045/2022 — período: jan/2022 a dez/2022'},
+  {req:'I', num:3,   pts:3,   unidade:'Por designação',
+   desc:'Participação como membro de núcleos, representações, grupos de trabalho ou similares, comissões ou comitês previstos no âmbito da administração pública, regularmente instituídos.',
+   exemplo:'Ex.: Membro da Comissão de Elaboração do PDI 2023-2027 — Portaria nº 078/2022 — IFSudeste MG Campus Rio Pomba'},
+  {req:'I', num:4,   pts:3,   unidade:'Por designação',
+   desc:'Participação como defensor dativo ou como membro de equipe designada em processos de apuração de materialidade e responsabilidade, como sindicância, processo administrativo disciplinar e tomada de contas especial.',
+   exemplo:'Ex.: Membro de comissão de Processo Administrativo Disciplinar (PAD nº 001/2021) — Portaria nº 033/2021 — conclusão em jun/2021'},
+  {req:'I', num:5,   pts:4.5, unidade:'Por designação',
+   desc:'Atuação em atividades de organização, fiscalização, execução de exame de seleção, vestibular ou concursos.',
+   exemplo:'Ex.: Fiscal de sala no Processo Seletivo 2022/1 — Portaria nº 110/2022 — data: 22/01/2022 — Campus Rio Pomba'},
+  {req:'I', num:6,   pts:3,   unidade:'Por designação',
+   desc:'Atuação em atividades de elaboração, revisão ou correção de provas de exame de seleção, vestibular ou concursos.',
+   exemplo:'Ex.: Elaboração de questões para o Concurso Público Edital nº 02/2021 — Portaria nº 089/2021 — área: Administração'},
+  {req:'I', num:7,   pts:1.5, unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de mandato em entidade sindical representativa da categoria.',
+   exemplo:'Ex.: Diretor do SINASEFE — Seção Sindical Rio Pomba — mandato: jan/2021 a dez/2022 — Ata de Eleição de 15/01/2021'},
+  {req:'I', num:8,   pts:3,   unidade:'Por designação',
+   desc:'Participação como membro em programas ou projetos de políticas públicas externas à Instituição Federal de Ensino, desde que comprovada a obtenção de resultados institucionais relevantes.',
+   exemplo:'Ex.: Membro do Comitê Regional de Empregabilidade do MTE — Portaria Ministerial nº 234/2020 — período: 2020-2021 — relatório de resultados anexo'},
+  {req:'I', num:9,   pts:7.5, unidade:'Por designação',
+   desc:'Representação legal da Instituição Federal de Ensino junto a órgãos e entidades do Poder Público ou responsabilidade técnica junto a órgãos de fiscalização, controle e regulação.',
+   exemplo:'Ex.: Representante institucional junto ao CREA-MG — Portaria nº 015/2021 — período: mar/2021 a mar/2023'},
+  {req:'I', num:10,  pts:4.5, unidade:'Por produto',
+   desc:'Atuação técnica externa, formalmente autorizada ou reconhecida pela Instituição Federal de Ensino de lotação, em órgãos estatais ou paraestatais, escolas de governo, agências reguladoras ou organismos internacionais, com contribuição ou repercussão institucional.',
+   exemplo:'Ex.: Elaboração de relatório técnico para a ANVISA, mediante autorização institucional — Processo nº 25351.000123/2022 — entregue em ago/2022'},
+
+  // ── REQUISITO II ──
+  {req:'II', num:1,  pts:7.5, unidade:'Por projeto',
+   desc:'Coordenação de projetos institucionais (ensino, pesquisa, extensão, gestão e inovação).',
+   exemplo:'Ex.: Coordenador do Projeto de Extensão "Inclusão Digital Rural" — Edital PROEXT nº 01/2021 — período: mar/2021 a mar/2022'},
+  {req:'II', num:2,  pts:4.5, unidade:'Por projeto',
+   desc:'Participação em atividades técnicas ou especializadas em projetos, incluindo a elaboração de projetos pedagógicos, programas ou ações institucionais (ensino, pesquisa, extensão, gestão e inovação).',
+   exemplo:'Ex.: Membro da equipe técnica do Projeto "Agricultura Sustentável" — Edital PIBEX 2022 — IFSudeste MG Campus Rio Pomba'},
+  {req:'II', num:3,  pts:7.5, unidade:'Por mandato',
+   desc:'Participação em comissão/conselho editorial de livros, revistas, publicações científicas ou outras publicações acadêmicas.',
+   exemplo:'Ex.: Membro do Conselho Editorial da Revista Conexão IFSudeste MG — mandato: jan/2022 a dez/2023 — Portaria nº 056/2022'},
+  {req:'II', num:4,  pts:3,   unidade:'Por projeto',
+   desc:'Participação em atividade de cooperação técnica interinstitucional em projetos institucionais.',
+   exemplo:'Ex.: Participação no projeto de cooperação técnica IFSudeste MG/UFV "Gestão Ambiental em IFEs" — Acordo de Cooperação nº 01/2022'},
+  {req:'II', num:5,  pts:3,   unidade:'Por designação',
+   desc:'Participação em atividades de orientação, tutoria, preceptoria ou supervisão.',
+   exemplo:'Ex.: Tutor do Programa de Acolhimento e Incentivo à Permanência (PAIP) — Portaria nº 143/2022 — semestre 2022/2'},
+  {req:'II', num:6,  pts:3,   unidade:'Por produto',
+   desc:'Participação em atividades de produção/reformulação de material acessível, técnico de referência (manuais, roteiros técnicos).',
+   exemplo:'Ex.: Elaboração do Manual de Procedimentos Administrativos — aprovado pela Direção em 10/05/2022 — 48 páginas'},
+  {req:'II', num:7,  pts:3,   unidade:'Por evento',
+   desc:'Participação em atividade de avaliação de trabalho ou atuação como jurado em eventos acadêmicos, científicos, culturais, esportivos e técnicos.',
+   exemplo:'Ex.: Avaliador de trabalhos na Semana de Ciência e Tecnologia 2022 — IFSudeste MG Campus Rio Pomba — out/2022'},
+  {req:'II', num:8,  pts:3,   unidade:'Por projeto',
+   desc:'Participação em atividade institucional de produção audiovisual, artística, exposição, podcast ou outras formas de apresentação.',
+   exemplo:'Ex.: Produção do podcast "Gestão em Pauta" — episódios 1-5 — Canal YouTube IFSudeste MG Rio Pomba — 2022'},
+  {req:'II', num:9,  pts:1,   unidade:'Por capacitação',
+   desc:'Participação em programas de formação continuada e/ou ações de desenvolvimento de competências, desde que não utilizada para fins de aceleração da promoção na carreira, com carga horária mínima de dez horas.',
+   exemplo:'Ex.: Curso "Gestão de Contratos Administrativos" — ENAP — 40h — certificado em 15/06/2022 — não utilizado para IQ'},
+  {req:'II', num:10, pts:1,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Desempenho de atividade técnica de natureza especializada, com contribuição institucional relevante na área de atuação.',
+   exemplo:'Ex.: Analista de TI responsável pelo sistema SUAP — período: jan/2022 a dez/2022 — Portaria de designação nº 022/2022'},
+  {req:'II', num:11, pts:1,   unidade:'Por evento',
+   desc:'Participação em capacitação, fórum, oficina, workshop e congresso, com carga horária mínima de dez horas, vinculada aos interesses da Instituição Federal de Ensino.',
+   exemplo:'Ex.: Participação no CBTI 2022 — Congresso Brasileiro de Tecnologia da Informação — Belo Horizonte — 20 a 22/09/2022 — 24h'},
+
+  // ── REQUISITO III ──
+  {req:'III', num:1, pts:20,  unidade:'Por prêmio',
+   desc:'Recebimento de premiação de âmbito internacional por projeto implementado na administração pública.',
+   exemplo:'Ex.: Prêmio ONU de Serviço Público — categoria Inovação na Gestão Pública — projeto "Digitalização de Processos Acadêmicos" implementado no Campus Rio Pomba — mai/2022'},
+  {req:'III', num:2, pts:15,  unidade:'Por prêmio',
+   desc:'Recebimento de premiação de âmbito nacional por projeto implementado na administração pública.',
+   exemplo:'Ex.: Prêmio Innovare / Prêmio ENAP de Boas Práticas — projeto "Gestão Eletrônica de Contratos" implementado no Campus Rio Pomba — Portaria MEC nº 456/2022'},
+  {req:'III', num:3, pts:7.5, unidade:'Por prêmio',
+   desc:'Recebimento de premiação de âmbito local ou institucional, formalmente instituído, por projeto implementado na administração pública.',
+   exemplo:'Ex.: Prêmio Destaque Institucional IFSudeste MG 2022 — projeto "Simplificação de Fluxos do Protocolo" — Resolução CONSU nº 018/2022'},
+
+  // ── REQUISITO IV ──
+  {req:'IV', num:1,  pts:4.5, unidade:'Por sistema',
+   desc:'Atuação diferenciada em atividades de execução/operação, desenvolvimento, colaboração nos sistemas estruturantes da administração pública.',
+   exemplo:'Ex.: Administrador do sistema SIAFI — operação e parametrização de módulos — período: jan/2021 a dez/2022 — Portaria nº 011/2021'},
+  {req:'IV', num:2,  pts:3,   unidade:'Por designação',
+   desc:'Elaboração de projeto básico ou de termo de referência, ou participação como membro da equipe de planejamento da contratação.',
+   exemplo:'Ex.: Elaboração do Termo de Referência nº 005/2022 — contratação de serviços de limpeza — Processo nº 23000.001/2022'},
+  {req:'IV', num:3,  pts:4.5, unidade:'Por designação',
+   desc:'Exercício de atividades de gestão ou fiscalização de contratos de aquisição, serviços, convênios e acordos ou instrumentos correlatos.',
+   exemplo:'Ex.: Fiscal do Contrato nº 012/2022 — empresa X Serviços Ltda — Portaria de designação nº 098/2022 — valor: R$ 180.000,00'},
+  {req:'IV', num:4,  pts:3,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de atividades relacionadas a licitação e a respectivas excepcionalidades.',
+   exemplo:'Ex.: Pregoeiro Oficial — Portaria nº 007/2022 — período: jan/2022 a dez/2022 — condução de 18 pregões eletrônicos'},
+  {req:'IV', num:5,  pts:3,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Participação em atividades de apoio técnico especializado em políticas, programas e ações de promoção na área de saúde humana, animal e ambiente, de acessibilidade ou diversidade.',
+   exemplo:'Ex.: Técnico de referência no Núcleo de Apoio às Pessoas com Necessidades Específicas (NAPNE) — período: 2022 — Portaria nº 034/2022'},
+  {req:'IV', num:6,  pts:3,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Atuação tecnicamente qualificada em ambientes ou processos que demandem condições especiais de segurança, cuidado ou conformidade com requisitos legais e regulatórios, desde que não receba adicional de periculosidade ou insalubridade em razão das mesmas condições.',
+   exemplo:'Ex.: Técnico de laboratório de química com manuseio de substâncias controladas, sem percepção de adicional de insalubridade — período: jan/2022 a dez/2022'},
+  {req:'IV', num:7,  pts:3,   unidade:'Por designação',
+   desc:'Atuação em sistemas e/ou processos de trabalho institucionais em ensino, pesquisa, extensão, gestão e inovação, desde que não constitua atividade habitual do cargo.',
+   exemplo:'Ex.: Responsável pela implantação do módulo de Biblioteca no SUAP — Portaria nº 055/2021 — concluído em dez/2021 — fora das atribuições habituais do cargo'},
+  {req:'IV', num:8,  pts:4.5, unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Atuação como responsável por setor ou por unidade, formalmente designado, desde que a designação não gere pagamento de remuneração.',
+   exemplo:'Ex.: Chefe do Setor de Protocolo e Arquivo, designação sem FG/CD — Portaria nº 003/2022 — período: jan/2022 a dez/2022'},
+
+  // ── REQUISITO V ──
+  {req:'V', num:1,   pts:9,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Cargo de Direção (CD-02) ou equivalente — como titular.',
+   exemplo:'Ex.: Diretor-Geral do Campus Rio Pomba (CD-02) — titular — Portaria MEC nº 789/2020 — período: jan/2021 a dez/2022'},
+  {req:'V', num:'1s',pts:4.5, unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Cargo de Direção (CD-02) ou equivalente — como substituto.',
+   exemplo:'Ex.: Diretor-Geral Substituto do Campus Rio Pomba (CD-02) — Portaria nº 102/2021 — período de substituição: jul/2021 a ago/2021'},
+  {req:'V', num:2,   pts:7.5, unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Cargo de Direção (CD-03 e 04) ou equivalente — como titular.',
+   exemplo:'Ex.: Diretor de Ensino (CD-03) — titular — Portaria nº 201/2021 — período: mar/2021 a mar/2023'},
+  {req:'V', num:'2s',pts:3,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Cargo de Direção (CD-03 e 04) ou equivalente — como substituto.',
+   exemplo:'Ex.: Diretor de Administração Substituto (CD-04) — Portaria nº 310/2022 — período de substituição: jan/2022 a fev/2022'},
+  {req:'V', num:3,   pts:4.5, unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Função Gratificada (FG-01 e 02) ou equivalente — como titular.',
+   exemplo:'Ex.: Coordenador de Contratos (FG-01) — titular — Portaria nº 045/2021 — período: jan/2021 a dez/2022'},
+  {req:'V', num:'3s',pts:1.5, unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Função Gratificada (FG-01 e 02) ou equivalente — como substituto.',
+   exemplo:'Ex.: Substituto do Coordenador de Registro Acadêmico (FG-02) — Portaria nº 078/2022 — período: jul/2022 a ago/2022'},
+  {req:'V', num:4,   pts:3,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Função Gratificada (a partir da FG-03) ou equivalente — como titular.',
+   exemplo:'Ex.: Chefe do Setor de Compras (FG-03) — titular — Portaria nº 019/2022 — período: jan/2022 a dez/2022'},
+  {req:'V', num:'4s',pts:1,   unidade:'Por ano ou fração acima de 6 meses',
+   desc:'Exercício de Função Gratificada (a partir da FG-03) ou equivalente — como substituto.',
+   exemplo:'Ex.: Substituto do Chefe do Setor de Patrimônio (FG-04) — Portaria nº 091/2022 — período de substituição: out/2022 a nov/2022'},
+
+  // ── REQUISITO VI ──
+  {req:'VI', num:1,  pts:30,  unidade:'Por patente',
+   desc:'Carta patente relacionada aos interesses institucionais.',
+   exemplo:'Ex.: Patente de invenção "Sistema de irrigação automatizado por sensores" — INPI nº BR1020220123456 — concedida em 10/03/2022'},
+  {req:'VI', num:2,  pts:25,  unidade:'Por projeto',
+   desc:'Participação relevante no desenvolvimento de protótipos, depósitos e/ou registros de propriedade intelectual ou privilégio de invenção relacionada aos interesses institucionais.',
+   exemplo:'Ex.: Coautor do depósito de patente "Dispositivo de monitoramento de solo" — INPI protocolo nº 018170002345 — depositado em mai/2022'},
+  {req:'VI', num:3,  pts:20,  unidade:'Por produto',
+   desc:'Participação em transferência de tecnologia, licenciamento ou exploração de ativo tecnológico, como autor ou inventor relacionada aos interesses institucionais.',
+   exemplo:'Ex.: Licenciamento do software "AgroGestão" para empresa ABC Tecnologia Ltda — Contrato IFSudeste MG/TT nº 001/2022 — mai/2022'},
+  {req:'VI', num:4,  pts:15,  unidade:'Por curso',
+   desc:'Conclusão de curso de educação formal superior ao exigido para o ingresso no cargo de que é titular e que não seja utilizado para percepção de Incentivo à Qualificação – IQ.',
+   exemplo:'Ex.: Mestrado em Administração Pública — UFOP — concluído em fev/2022 — diploma nº 000123 — não utilizado para IQ'},
+  {req:'VI', num:5,  pts:15,  unidade:'Por produto',
+   desc:'Participação relevante na implantação ou desenvolvimento de produto, projeto, processo, técnica ou tecnologia de interesse institucional.',
+   exemplo:'Ex.: Desenvolvimento e implantação do sistema de gestão de almoxarifado — Portaria nº 067/2021 — implantado em dez/2021'},
+  {req:'VI', num:6,  pts:7.5, unidade:'Por grupo de pesquisa',
+   desc:'Atuação em atividade de liderança ou vice-liderança do grupo de pesquisa ou extensão registrado em órgão ou sistema oficial de reconhecimento institucional.',
+   exemplo:'Ex.: Líder do Grupo de Pesquisa "Gestão e Inovação no Serviço Público" — registrado no CNPq — Diretório nº 0123456789 — desde 2021'},
+  {req:'VI', num:7,  pts:3,   unidade:'Por projeto',
+   desc:'Participação como membro em grupo de pesquisa devidamente registrado em órgão ou sistema oficial de reconhecimento institucional.',
+   exemplo:'Ex.: Membro do Grupo de Pesquisa "Tecnologias Educacionais" — CNPq — Diretório nº 9876543210 — período: 2021-2022'},
+  {req:'VI', num:8,  pts:7.5, unidade:'Por projeto',
+   desc:'Aprovação de projeto para a captação de recursos para a Instituição Federal de Ensino.',
+   exemplo:'Ex.: Projeto "Inovação na Gestão Escolar" aprovado pelo CNPq — Edital Universal 2022 — processo nº 409123/2022-5 — R$ 50.000,00'},
+  {req:'VI', num:9,  pts:20,  unidade:'Por produto',
+   desc:'Publicação ou organização de livro relacionado aos interesses institucionais (com ISBN e Conselho Editorial).',
+   exemplo:'Ex.: "Gestão Pública no Século XXI" — Editora IFSudeste MG — ISBN 978-85-99999-00-0 — Conselho Editorial aprovado — publicado em 2022'},
+  {req:'VI', num:10, pts:7.5, unidade:'Por publicação',
+   desc:'Autoria ou coautoria de capítulo de livro, de artigo publicado em revista especializada, jornal científico ou periódico, relacionado aos interesses institucionais.',
+   exemplo:'Ex.: Artigo "Transparência na administração pública federal" — Revista de Administração Pública — v.56, n.2, 2022 — DOI: 10.1590/xxx'},
+  {req:'VI', num:11, pts:4.5, unidade:'Por produto',
+   desc:'Apresentação de trabalho de interesse institucional em congresso, seminário ou outros eventos.',
+   exemplo:'Ex.: Apresentação oral "Inovação na gestão de contratos" — CONGEAD 2022 — Porto Alegre — set/2022 — certificado de apresentação'},
+  {req:'VI', num:12, pts:4.5, unidade:'Por produto',
+   desc:'Produção de material técnico, científico, metodológico ou administrativo estruturado que visa à difusão do conhecimento.',
+   exemplo:'Ex.: Produção do Guia de Orientação para Elaboração de TCC — aprovado pela Coordenação Acadêmica em 15/03/2022 — 32 páginas'},
+  {req:'VI', num:13, pts:4.5, unidade:'Por projeto',
+   desc:'Avaliação do projeto de ensino e/ou pesquisa e/ou extensão e/ou inovação.',
+   exemplo:'Ex.: Avaliador ad hoc de projetos de extensão — Edital PROEXT/IFSudeste MG 2022 — Portaria Reitoria nº 234/2022'},
+  {req:'VI', num:14, pts:3,   unidade:'Por evento',
+   desc:'Participação em atividade de difusão ou apoio à formação institucional (expositor, facilitador, colaborador).',
+   exemplo:'Ex.: Expositor na Semana do Servidor IFSudeste MG 2022 — tema: Gestão de Documentos — 40 participantes — 14/10/2022'},
+  {req:'VI', num:15, pts:4.5, unidade:'Por curso',
+   desc:'Atuação formalmente autorizada como instrutor, tutor, palestrante, autor de conteúdo técnico ou orientador em ação formativa estruturada de interesse institucional, prevista em plano ou programa de desenvolvimento de pessoas.',
+   exemplo:'Ex.: Instrutor do curso "Licitações e Contratos" — ENAP/IFSudeste MG — 40h — 30 servidores capacitados — jan/2022 — Portaria nº 012/2022 — previsto no PDP institucional'},
+  {req:'VI', num:16, pts:3.5, unidade:'Por evento',
+   desc:'Atuação na coordenação de congresso, simpósio ou seminário de interesse institucional.',
+   exemplo:'Ex.: Coordenador do I Simpósio de Gestão e Inovação IFSudeste MG Rio Pomba — 120 participantes — out/2022 — Portaria nº 189/2022'},
+  {req:'VI', num:17, pts:4.5, unidade:'Por evento',
+   desc:'Exercício de atividade de coorientação de trabalho de conclusão de curso em diferentes modalidades de ensino.',
+   exemplo:'Ex.: Coorientador de TCC — aluno: João Silva — tema: "Gestão de Resíduos no Campus" — aprovado em 15/11/2022 — nota 9,5'},
+  {req:'VI', num:18, pts:3,   unidade:'Por produto',
+   desc:'Autoria de obra artística ou cultural registrada com contribuição ou repercussão institucional comprovada.',
+   exemplo:'Ex.: Composição musical "Hino do Campus Rio Pomba" — registro ECAD nº 000123456 — homologado em abr/2022 — uso institucional comprovado'},
+  {req:'VI', num:19, pts:1,   unidade:'Por mês',
+   desc:'Atuação institucional no enfrentamento de situações de surto, epidemia e pandemia.',
+   exemplo:'Ex.: Membro do Comitê de Enfrentamento à COVID-19 do Campus — Portaria nº 001/2020 — período: mar/2020 a dez/2021 — 22 meses'},
+];
+
+const NOMES_REQ = {
+  'I':  'Req. I — Grupos de trabalho, comissões, comitês, núcleos e representações (Anexo I)',
+  'II': 'Req. II — Projetos institucionais, gestão, ensino, pesquisa, extensão e inovação (Anexo II)',
+  'III':'Req. III — Premiação em evento de reconhecimento público por projetos na administração pública (Anexo III)',
+  'IV': 'Req. IV — Responsabilidades técnico-administrativas ou especializadas (Anexo IV)',
+  'V':  'Req. V — Funções, cargos de direção e de assessoramento institucionais (Anexo V)',
+  'VI': 'Req. VI — Produção, prospecção e difusão de conhecimento científico ou técnico (Anexo VI)',
+};
+
+const NOMES_REQ_CURTO = {
+  'I':'Requisito I', 'II':'Requisito II', 'III':'Requisito III',
+  'IV':'Requisito IV', 'V':'Requisito V', 'VI':'Requisito VI'
+};
+
+let qtds = new Array(ITENS.length).fill(0);
+let nivelAtivo = null;
+let filtroAtivo = 'todos';
+// detalhes[itemIdx][ocorrenciaIdx] = { descricao: '', arquivos: [{name, size, dataUrl}] }
+let detalhes = Array.from({length: ITENS.length}, () => []);
+// Para itens "por ano": um único período por item
+// periodos[itemIdx] = { inicio: 'YYYY-MM', fim: 'YYYY-MM', descricao: '', arquivos: [] }
+let periodos = Array.from({length: ITENS.length}, () => ({inicio:'', fim:'', descricao:'', arquivos:[]}));
+
+function isPorAno(it) {
+  return it.unidade.toLowerCase().includes('por ano');
+}
+
+// Calcula quantos anos/frações (>=6 meses conta como 1) num período
+function calcFracoes(inicioStr, fimStr) {
+  if (!inicioStr || !fimStr) return 0;
+  const inicio = new Date(inicioStr);
+  const fim    = new Date(fimStr);
+  if (isNaN(inicio) || isNaN(fim) || fim <= inicio) return 0;
+
+  let totalMeses = (fim.getFullYear() - inicio.getFullYear()) * 12
+                 + (fim.getMonth() - inicio.getMonth());
+  // Ajuste: se o dia do fim for menor que o do início, descontar 1 mês parcial
+  if (fim.getDate() < inicio.getDate()) totalMeses--;
+
+  const anosInteiros  = Math.floor(totalMeses / 12);
+  const mesesRestantes = totalMeses % 12;
+  return anosInteiros + (mesesRestantes > 6 ? 1 : 0);
+}
+
+function salvarPeriodo(idx, campo, valor) {
+  periodos[idx] = { ...periodos[idx], [campo]: valor };
+  const p = periodos[idx];
+  const fracoes = calcFracoes(p.inicio, p.fim);
+  // Atualizar qtds sem chamar changeQty (para não resetar detalhes)
+  qtds[idx] = fracoes;
+  // Garantir que detalhes[idx] tenha apenas 1 slot para "por ano"
+  if (detalhes[idx].length === 0) detalhes[idx] = [{descricao:'', arquivos:[]}];
+  atualizar();
+}
+
+function salvarPeriodoDesc(idx, val) {
+  periodos[idx].descricao = val;
+  if (!detalhes[idx][0]) detalhes[idx][0] = {descricao:'', arquivos:[]};
+  detalhes[idx][0].descricao = val;
+}
+
+function removerArquivoPeriodo(idx, fIdx) {
+  if (periodos[idx].arquivos) periodos[idx].arquivos.splice(fIdx, 1);
+  if (detalhes[idx][0]) detalhes[idx][0].arquivos = periodos[idx].arquivos;
+  renderItens();
+}
+
+function triggerUploadPeriodo(idx) {
+  const input = document.getElementById(`upload-periodo-${idx}`);
+  if (input) input.click();
+}
+
+function handleUploadPeriodo(idx, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  files.forEach(file => {
+    if (file.size > 10 * 1024 * 1024) { alert(`Arquivo "${file.name}" maior que 10 MB.`); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (!periodos[idx].arquivos) periodos[idx].arquivos = [];
+      periodos[idx].arquivos.push({name: file.name, size: file.size, dataUrl: e.target.result});
+      if (!detalhes[idx][0]) detalhes[idx][0] = {descricao:'', arquivos:[]};
+      detalhes[idx][0].arquivos = periodos[idx].arquivos;
+      renderItens();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function fmtPts(v) { return Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.',','); }
+
+// ── CALCULADORA ──────────────────────────────────────────────
+function renderNiveis() {
+  const total = calcTotal();
+  const crit  = calcCriterios();
+  document.getElementById('nivel-select').innerHTML = NIVEIS.map((n,i) => {
+    const pct      = Math.min(100, Math.round(total / n.pontos * 100));
+    const ptsOk    = total >= n.pontos;
+    const critOk   = crit  >= n.criterios;
+    const qualitOk = !n.qualit || calcCriteriosReq(n.qualit) >= 1;
+    const ok       = ptsOk && critOk && qualitOk;
+    const fillCls  = ok ? '' : pct >= 60 ? ' warn' : ' danger';
+    const isActive = nivelAtivo === i;
+
+    let statusLabel, statusCls;
+    if (ok) {
+      statusLabel = '✓ Atingido'; statusCls = 'ns-ok';
+    } else if (total === 0) {
+      statusLabel = `${fmtPts(n.pontos)} pts mín.`; statusCls = 'ns-no';
+    } else {
+      const falta = fmtPts(Math.max(0, n.pontos - total));
+      statusLabel = `−${falta} pts`; statusCls = pct >= 60 ? 'ns-warn' : 'ns-no';
+    }
+
+    // Linha de critérios mínimos conforme Art. 5º
+    const critFalta   = Math.max(0, n.criterios - crit);
+    const critStatusTxt = critOk
+      ? `${n.criterios} critério(s) mín. ✓`
+      : `${n.criterios} critério(s) mín. — faltam ${critFalta}`;
+
+    // Linha de requisito qualitativo
+    let qualitLine = '';
+    if (n.qualitDesc) {
+      const qualitAtendido = calcCriteriosReq(n.qualit) >= 1;
+      qualitLine = `<div style="font-size:10px;margin-top:3px;color:${qualitAtendido?'var(--green-dark)':'#92400e'}">
+        ${qualitAtendido ? '✔' : '⚠'} ${n.qualitDesc}
+      </div>`;
+    }
+
+    return `<button class="nivel-btn${isActive?' active':''}" onclick="selectNivel(${i})">
+      <div class="nivel-nome">${n.nome} — ${n.eq}</div>
+      <div style="font-size:10px;color:var(--text-ter);margin-top:2px">${n.desc}</div>
+      <div class="nivel-summary">
+        <span class="ns-pts" style="color:${ok?'var(--green-dark)':pct>=60?'#b45309':'var(--red-dark)'}">${fmtPts(total)} / ${fmtPts(n.pontos)} pts</span>
+        <span class="ns-status ${statusCls}">${statusLabel}</span>
+      </div>
+      <div class="nivel-progress">
+        <div class="nivel-progress-fill${fillCls}" style="width:${pct}%"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text-ter);margin-top:3px">${critStatusTxt}</div>
+      ${qualitLine}
+    </button>`;
+  }).join('');
+}
+
+function renderCritPanel() {
+  const total = calcTotal();
+  const crit  = calcCriterios();
+  const panel = document.getElementById('crit-panel');
+  const body  = document.getElementById('crit-panel-body');
+  if (total === 0 && crit === 0) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+
+  const qualitReqTexto = { 'II':'II', 'IV':'IV', 'V':'V', 'VI':'VI' };
+
+  body.innerHTML = NIVEIS.map(n => {
+    const pct      = Math.min(100, Math.round(total / n.pontos * 100));
+    const ptsOk    = total >= n.pontos;
+    const critOk   = crit  >= n.criterios;
+    const qualitOk = !n.qualit || calcCriteriosReq(n.qualit) >= 1;
+    const ok       = ptsOk && critOk && qualitOk;
+    const fillColor = ok ? 'var(--green)' : pct >= 60 ? '#f59e0b' : 'var(--red)';
+
+    let infoText = '';
+    const parts = [];
+    if (!ptsOk)    parts.push(`faltam ${fmtPts(n.pontos - total)} pts`);
+    if (!critOk)   parts.push(`faltam ${n.criterios - crit} critério(s)`);
+    if (!qualitOk && n.qualit) parts.push(`req. qualit. pendente`);
+    infoText = ok ? '✓ Atingido' : parts.join(' · ');
+
+    const qualitLine = n.qualitDesc
+      ? `<div style="font-size:10px;color:${qualitOk?'var(--green-dark)':'#92400e'};margin-top:2px;grid-column:1/-1">
+           ${qualitOk?'✔':'⚠'} ${n.qualitDesc}
+         </div>`
+      : '';
+
+    return `<div class="crit-nivel-row" style="flex-wrap:wrap">
+      <span class="cn-nome" style="color:${ok?'var(--green-dark)':''}">${n.nome}</span>
+      <div class="cn-track"><div class="cn-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+      <span class="cn-info" style="color:${ok?'var(--green-dark)':''}">${pct}% — ${infoText}</span>
+      ${qualitLine}
+    </div>`;
+  }).join('');
+}
+
+function selectNivel(i) { nivelAtivo = i; renderNiveis(); atualizar(); }
+
+function filtrar(req, el) {
+  filtroAtivo = req;
+  document.querySelectorAll('.req-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderItens();
+}
+
+function changeQty(idx, delta) {
+  if (isPorAno(ITENS[idx])) return; // controlado pelo período
+  const prev = qtds[idx];
+  qtds[idx] = Math.max(0, qtds[idx] + delta);
+  const next = qtds[idx];
+  while (detalhes[idx].length < next) detalhes[idx].push({descricao:'', arquivos:[]});
+  if (next < prev) detalhes[idx].splice(next);
+  atualizar();
+}
+
+function calcTotal()  { return ITENS.reduce((s,it,i) => s + qtds[i]*it.pts, 0); }
+function calcCriterios() { return ITENS.reduce((s,it,i) => s + (qtds[i]>0?1:0), 0); }
+function calcCriteriosReq(reqs) { return ITENS.reduce((s,it,i) => s + (qtds[i]>0 && reqs.includes(it.req)?1:0), 0); }
+
+function atualizar() {
+  const total = calcTotal(), crit = calcCriterios();
+  document.getElementById('pts-total').textContent  = fmtPts(total);
+  document.getElementById('crit-total').textContent = crit;
+
+  if (nivelAtivo === null) {
+    document.getElementById('pts-min').textContent  = '—';
+    document.getElementById('crit-min').textContent = '—';
+    document.getElementById('status-bar').className   = 'status-bar status-sel';
+    document.getElementById('status-bar').textContent = 'Selecione um nível RSC acima para começar.';
+    document.getElementById('prog').style.width = '0%';
+    document.getElementById('prog').className   = 'progress-fill';
+    atualizarCards(false, false, total, crit, null);
+    renderCritPanel();
+    renderItens(); return;
+  }
+
+  const n = NIVEIS[nivelAtivo];
+  document.getElementById('pts-min').textContent  = fmtPts(n.pontos);
+  document.getElementById('crit-min').textContent = n.criterios;
+
+  const pct = Math.min(100, Math.round(total / n.pontos * 100));
+  document.getElementById('prog').style.width = pct + '%';
+
+  const ptsOk = total >= n.pontos, critOk = crit >= n.criterios;
+  let qualitOk = true, qualitMsg = '';
+  if (n.qualit) {
+    qualitOk = calcCriteriosReq(n.qualit) >= 1;
+    if (!qualitOk) qualitMsg = ` · Falta: ${n.qualitDesc}`;
+  }
+
+  const ok = ptsOk && critOk && qualitOk;
+  document.getElementById('prog').className = 'progress-fill' + (ok ? '' : ' danger');
+
+  const sb = document.getElementById('status-bar');
+  if (ok) {
+    sb.className   = 'status-bar status-ok';
+    sb.textContent = `✓ Você atingiu os requisitos para ${n.nome} (${n.eq}) — ${fmtPts(total)} pontos em ${crit} critérios.`;
+  } else {
+    sb.className = 'status-bar status-nok';
+    let msg = '';
+    if (!ptsOk)  msg += `Faltam ${fmtPts(n.pontos - total)} pontos`;
+    if (!critOk) msg += (msg ? ' e ' : '') + `${n.criterios - crit} critério(s)`;
+    sb.textContent = (msg || 'Verifique os requisitos') + qualitMsg + ` para ${n.nome}.`;
+  }
+  atualizarCards(ptsOk, critOk, total, crit, n);
+  renderCritPanel();
+  renderItens();
+}
+
+function atualizarCards(ptsOk, critOk, total, crit, n) {
+  const cards = document.querySelectorAll('.stat-card');
+  cards.forEach(c => c.className = 'stat-card');
+  if (n) {
+    if (total > 0 &&  ptsOk)  cards[0].classList.add('ok');
+    if (total > 0 && !ptsOk)  cards[0].classList.add('nok');
+    if (crit  > 0 &&  critOk) cards[2].classList.add('ok');
+    if (crit  > 0 && !critOk) cards[2].classList.add('nok');
+  }
+}
+
+function salvarDescricao(idx, oIdx, val) {
+  if (detalhes[idx] && detalhes[idx][oIdx] !== undefined)
+    detalhes[idx][oIdx].descricao = val;
+}
+
+function removerArquivo(idx, oIdx, fIdx) {
+  detalhes[idx][oIdx].arquivos.splice(fIdx, 1);
+  renderItens();
+}
+
+function triggerUpload(idx, oIdx) {
+  const input = document.getElementById(`upload-${idx}-${oIdx}`);
+  if (input) input.click();
+}
+
+function handleUpload(idx, oIdx, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  files.forEach(file => {
+    if (file.size > 10 * 1024 * 1024) {
+      alert(`Arquivo "${file.name}" maior que 10 MB — não adicionado.`); return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      detalhes[idx][oIdx].arquivos.push({name: file.name, size: file.size, dataUrl: e.target.result});
+      renderItens();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+function renderItens() {
+  const grupos = ['I','II','III','IV','V','VI'];
+  const qualitReqs = (nivelAtivo !== null && NIVEIS[nivelAtivo].qualit) ? NIVEIS[nivelAtivo].qualit : [];
+
+  const reqPtsMap = {};
+  grupos.forEach(r => { reqPtsMap[r] = 0; });
+  ITENS.forEach((it,i) => { if (qtds[i]>0) reqPtsMap[it.req] += qtds[i]*it.pts; });
+
+  let html = '';
+  grupos.forEach(req => {
+    if (filtroAtivo !== 'todos' && filtroAtivo !== req) return;
+    const itensReq = ITENS.map((it,i) => ({...it, idx:i})).filter(it => it.req === req);
+    const ptsReq   = reqPtsMap[req];
+    const hasReq   = itensReq.some(it => qtds[it.idx] > 0);
+    const isQualit = qualitReqs.includes(req);
+    const qualitOk = hasReq;
+
+    const qualitBadge = isQualit
+      ? `<span class="req-qualit">${qualitOk ? '✔ qualit. atendido' : '⚠ obrigatório p/ ' + (nivelAtivo!==null?NIVEIS[nivelAtivo].nome:'')}</span>`
+      : '';
+
+    html += `<div class="req-section">
+      <div class="req-title">
+        ${NOMES_REQ[req]}
+        <span class="req-badge">${fmtPts(ptsReq)} pts acumulados</span>
+        ${qualitBadge}
+      </div>`;
+
+    itensReq.forEach(it => {
+      const qty    = qtds[it.idx];
+      const pts    = qty * it.pts;
+      const porAno = isPorAno(it);
+
+      let painelHtml = '';
+
+      if (porAno) {
+        // ── PAINEL DE PERÍODO ────────────────────────────────────────
+        const p = periodos[it.idx];
+        const fracoes = calcFracoes(p.inicio, p.fim);
+        const totalMeses = p.inicio && p.fim
+          ? (() => {
+              const inicio = new Date(p.inicio);
+              const fim    = new Date(p.fim);
+              if (isNaN(inicio) || isNaN(fim) || fim <= inicio) return 0;
+              let m = (fim.getFullYear() - inicio.getFullYear()) * 12
+                    + (fim.getMonth() - inicio.getMonth());
+              if (fim.getDate() < inicio.getDate()) m--;
+              return m;
+            })() : 0;
+        const anosInt  = Math.floor(totalMeses/12);
+        const mesesRest= totalMeses % 12;
+
+        let detalheCalc = 'Preencha início e fim para calcular automaticamente.';
+        if (p.inicio && p.fim && totalMeses > 0) {
+          const restoTxt = mesesRest > 0
+            ? ` + ${mesesRest} mês(es) restante(s) ${mesesRest > 6 ? '→ conta como +1 (>6 meses)' : '→ não conta (≤6 meses)'}`
+            : '';
+          detalheCalc = `<strong>${totalMeses} mês(es) = ${anosInt} ano(s) inteiro(s)${restoTxt} → <span style="color:var(--green)">${fracoes} unidade(s) = ${fmtPts(fracoes*it.pts)} pts</span></strong>`;
+        } else if (p.inicio && p.fim && totalMeses <= 0) {
+          detalheCalc = '<strong style="color:var(--red-dark)">⚠ Data de fim deve ser posterior ao início.</strong>';
+        }
+
+        const arqsHtml = (p.arquivos||[]).map((f,fi) => `
+          <div class="upload-file-tag">
+            📎 ${f.name} <span style="opacity:.6">(${fmtSize(f.size)})</span>
+            <button onclick="removerArquivoPeriodo(${it.idx},${fi})" title="Remover">×</button>
+          </div>`).join('');
+
+        const descVal = (p.descricao||'').replace(/"/g,'&quot;');
+
+        painelHtml = `<div class="periodo-card">
+          <div class="periodo-header">
+            <span class="periodo-titulo">📅 Período de exercício</span>
+            ${fracoes > 0 ? `<span class="periodo-resultado">+${fmtPts(fracoes*it.pts)} pts (${fracoes} unidade${fracoes>1?'s':''})</span>` : ''}
+          </div>
+          <div class="periodo-grid">
+            <div class="periodo-field">
+              <label>Data de início (dia/mês/ano)</label>
+              <input type="date" value="${p.inicio}"
+                onchange="salvarPeriodo(${it.idx},'inicio',this.value)"
+                max="${new Date().toISOString().slice(0,10)}">
+            </div>
+            <div class="periodo-field">
+              <label>Data de fim (dia/mês/ano)</label>
+              <input type="date" value="${p.fim}"
+                onchange="salvarPeriodo(${it.idx},'fim',this.value)"
+                max="${new Date().toISOString().slice(0,10)}">
+            </div>
+          </div>
+          <div class="periodo-calc">${detalheCalc}</div>
+          <label class="ocorrencia-label">Descrição / identificação (portaria, cargo, período):</label>
+          <textarea class="ocorrencia-textarea"
+            placeholder="${it.exemplo}"
+            onchange="salvarPeriodoDesc(${it.idx},this.value)"
+            oninput="salvarPeriodoDesc(${it.idx},this.value)"
+          >${descVal}</textarea>
+          <div class="upload-row" style="margin-top:8px">
+            <button class="upload-btn" onclick="triggerUploadPeriodo(${it.idx})">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Anexar comprovante
+            </button>
+            <input class="upload-input" type="file" id="upload-periodo-${it.idx}" multiple
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+              onchange="handleUploadPeriodo(${it.idx},this)">
+            <div class="upload-files">${arqsHtml}</div>
+          </div>
+        </div>`;
+
+      } else {
+        // ── PAINEL DE OCORRÊNCIAS ──────────────────────────────────
+        if (qty > 0) {
+          let cards = '';
+          for (let o = 0; o < qty; o++) {
+            const d = detalhes[it.idx][o] || {descricao:'', arquivos:[]};
+            const arqsHtml = d.arquivos.map((f,fi) => `
+              <div class="upload-file-tag">
+                📎 ${f.name} <span style="opacity:.6">(${fmtSize(f.size)})</span>
+                <button onclick="removerArquivo(${it.idx},${o},${fi})" title="Remover">×</button>
+              </div>`).join('');
+            cards += `<div class="ocorrencia-card">
+              <div class="ocorrencia-header">
+                <span class="ocorrencia-num">Ocorrência ${o+1} de ${qty}</span>
+                <span class="ocorrencia-pts">+${fmtPts(it.pts)} pts</span>
+              </div>
+              <label class="ocorrencia-label">Descrição do comprovante / identificação da atividade:</label>
+              <textarea class="ocorrencia-textarea" id="desc-${it.idx}-${o}"
+                placeholder="${it.exemplo}"
+                onchange="salvarDescricao(${it.idx},${o},this.value)"
+                oninput="salvarDescricao(${it.idx},${o},this.value)"
+              >${d.descricao}</textarea>
+              <div class="upload-row">
+                <button class="upload-btn" onclick="triggerUpload(${it.idx},${o})">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Anexar comprovante
+                </button>
+                <input class="upload-input" type="file" id="upload-${it.idx}-${o}" multiple
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                  onchange="handleUpload(${it.idx},${o},this)">
+                <div class="upload-files">${arqsHtml}</div>
+              </div>
+            </div>`;
+          }
+          painelHtml = `<div class="ocorrencias">${cards}</div>`;
+        }
+      }
+
+      // Controles
+      const controlesHtml = porAno
+        ? `<div style="font-size:11px;color:var(--text-ter);text-align:right;min-width:60px">
+             ${qty > 0 ? `<span style="color:var(--green);font-weight:600">${qty} un.</span>` : '<span style="color:var(--text-ter)">período →</span>'}
+           </div>`
+        : `<div class="item-qty">
+             <button onclick="changeQty(${it.idx},-1)">−</button>
+             <span class="qty-val">${qty}</span>
+             <button onclick="changeQty(${it.idx},1)">+</button>
+           </div>`;
+
+      html += `<div class="item-row">
+        <div style="grid-column:1/-1;display:grid;grid-template-columns:1fr auto auto;align-items:start;gap:10px">
+          <div>
+            <div class="item-num">Item ${it.num}</div>
+            <div class="item-desc">${it.desc}</div>
+            <div class="item-sub">${it.unidade} · <strong>${fmtPts(it.pts)} pts</strong> cada</div>
+          </div>
+          <div class="item-pts${pts>0?' active':''}">${fmtPts(pts)} pts</div>
+          ${controlesHtml}
+        </div>
+        ${painelHtml ? `<div style="grid-column:1/-1">${painelHtml}</div>` : ''}
+      </div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('itens-container').innerHTML = html;
+}
+
+function resetTudo() {
+  qtds = new Array(ITENS.length).fill(0);
+  detalhes = Array.from({length: ITENS.length}, () => []);
+  periodos = Array.from({length: ITENS.length}, () => ({inicio:'', fim:'', descricao:'', arquivos:[]}));
+  nivelAtivo = null; filtroAtivo = 'todos';
+  document.querySelectorAll('.req-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.getElementById('memorial-preview').classList.remove('open');
+  renderNiveis(); atualizar();
+}
+
+// ── MODAL ──────────────────────────────────────────────────────
+function abrirModal() {
+  const ativos = ITENS.filter((it,i) => qtds[i] > 0);
+  if (ativos.length === 0) {
+    alert('Lance ao menos um critério na calculadora antes de gerar o memorial.');
+    return;
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function fecharModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) fecharModal();
+});
+
+// ── GERAÇÃO DO MEMORIAL ────────────────────────────────────────
+function gerarMemorial() {
+  const nome     = document.getElementById('f-nome').value.trim();
+  const siape    = document.getElementById('f-siape').value.trim();
+  const cpf      = document.getElementById('f-cpf').value.trim();
+  const cargo    = document.getElementById('f-cargo').value.trim();
+  const ies      = document.getElementById('f-ies').value.trim();
+  const setor    = document.getElementById('f-setor').value.trim();
+  const nivel    = document.getElementById('f-nivel').value.trim();
+  const ingresso = document.getElementById('f-ingresso').value.trim();
+  const ultima   = document.getElementById('f-ultima').value.trim();
+  const saldo    = document.getElementById('f-saldo').value.trim();
+  const traj     = document.getElementById('f-trajetoria').value.trim();
+  const consid   = document.getElementById('f-consideracoes').value.trim();
+  const local    = document.getElementById('f-local').value.trim();
+
+  if (!nome || !siape || !cargo || !ies || !traj) {
+    alert('Preencha os campos obrigatórios: Nome, SIAPE, Cargo, Instituição e Trajetória profissional.');
+    return;
+  }
+
+  const nivelObj = nivelAtivo !== null ? NIVEIS[nivelAtivo] : null;
+  const total    = calcTotal();
+  const crit     = calcCriterios();
+
+  // Agrupar itens ativos por requisito
+  const grupos = {};
+  ITENS.forEach((it, i) => {
+    if (qtds[i] > 0) {
+      if (!grupos[it.req]) grupos[it.req] = [];
+      grupos[it.req].push({...it, qtd: qtds[i], subtotal: qtds[i] * it.pts, detalhes: detalhes[i]});
+    }
+  });
+
+  const ordemReqs = ['I','II','III','IV','V','VI'];
+  const nomeReqTexto = {
+    'I':  'Participação em Grupos de Trabalho, Comissões, Comitês, Núcleos, Representações ou Similares (Art. 3º, inciso I)',
+    'II': 'Participação e Atuação em Projetos Institucionais, na Gestão e no Apoio ao Ensino, à Pesquisa, à Extensão, à Inovação e à Assistência Especializada (Art. 3º, inciso II)',
+    'III':'Recebimento de Premiação em Evento de Reconhecimento Público por Projetos Implementados na Administração Pública (Art. 3º, inciso III)',
+    'IV': 'Designação para Assunção de Responsabilidades Técnico-Administrativas ou Especializadas (Art. 3º, inciso IV)',
+    'V':  'Exercício de Funções, Cargo de Direção, ou de Assessoramento Institucionais (Art. 3º, inciso V)',
+    'VI': 'Produção, Prospecção e Difusão de Conhecimento Científico ou Técnico (Art. 3º, inciso VI)',
+  };
+
+  let linhas = [];
+
+  // Cabeçalho
+  linhas.push('MEMORIAL DESCRITIVO');
+  linhas.push('Reconhecimento de Saberes e Competências – RSC-PCCTAE');
+  linhas.push('(Art. 13 do Decreto regulamentador da Lei nº 11.091/2005)');
+  linhas.push('');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('I. IDENTIFICAÇÃO FUNCIONAL DO SERVIDOR');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('');
+  linhas.push(`Nome completo:         ${nome}`);
+  if (siape)    linhas.push(`Matrícula SIAPE:       ${siape}`);
+  if (cpf)      linhas.push(`CPF:                   ${cpf}`);
+  linhas.push(`Cargo:                 ${cargo}`);
+  linhas.push(`Instituição:           ${ies}`);
+  if (setor)    linhas.push(`Unidade/Setor:         ${setor}`);
+  if (nivel)    linhas.push(`Nível de classificação: ${nivel}`);
+  if (ingresso) linhas.push(`Data de ingresso:      ${ingresso}`);
+  linhas.push('');
+  linhas.push(`Nível RSC pleiteado:   ${nivelObj ? nivelObj.nome + ' (' + nivelObj.eq + ')' : '[não selecionado]'}`);
+  if (ultima)   linhas.push(`Última concessão RSC:  ${ultima}`);
+  if (saldo)    linhas.push(`Saldo de pontos anterior: ${saldo}`);
+  linhas.push('');
+
+  // Declaração de conformidade (Art. 13, I, c)
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('II. DECLARAÇÃO DE CONFORMIDADE (Art. 13, inciso I, alínea "c")');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('');
+  linhas.push(`Eu, ${nome}, portador(a) da matrícula SIAPE nº ${siape}, declaro, para os fins do`);
+  linhas.push('disposto no art. 13, inciso I, alínea "c" do Decreto regulamentador do RSC-PCCTAE,');
+  linhas.push('que todas as atividades, experiências e produções descritas neste memorial são');
+  linhas.push('verdadeiras, ocorreram durante o exercício do cargo na instituição federal de ensino,');
+  linhas.push('e não foram utilizadas em concessões anteriores de RSC-PCCTAE.');
+  linhas.push('');
+
+  // Trajetória profissional (Art. 13, II)
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('III. TRAJETÓRIA PROFISSIONAL E INDIVIDUAL (Art. 13, inciso II)');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('');
+  linhas.push(traj);
+  linhas.push('');
+
+  // Critérios e pontuações (Art. 13, III — Documentação comprobatória referenciada)
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('IV. DESCRIÇÃO DAS ATIVIDADES E EXPERIÊNCIAS PROFISSIONAIS');
+  linhas.push('    (Art. 13, §1º, inciso I — Requisitos do Art. 3º, incisos I a VI)');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('');
+
+  ordemReqs.forEach(req => {
+    if (!grupos[req]) return;
+    linhas.push(`▶ ${nomeReqTexto[req]}`);
+    linhas.push('');
+    grupos[req].forEach((it, idx) => {
+      linhas.push(`  ${idx+1}. ${it.desc}`);
+      linhas.push(`     Quantidade declarada: ${it.qtd} × ${fmtPts(it.pts)} pts (${it.unidade.toLowerCase()}) = ${fmtPts(it.subtotal)} pts`);
+      // Show per-occurrence descriptions if filled
+      const dets = it.detalhes || [];
+      for (let o = 0; o < it.qtd; o++) {
+        const descr = dets[o] && dets[o].descricao ? dets[o].descricao.trim() : '';
+        const nArq  = dets[o] && dets[o].arquivos ? dets[o].arquivos.length : 0;
+        if (descr || nArq > 0) {
+          linhas.push(`     Ocorrência ${o+1}: ${descr || '[sem descrição]'}${nArq > 0 ? ` (${nArq} comprovante(s) anexado(s))` : ''}`);
+        } else {
+          linhas.push(`     Ocorrência ${o+1}: [descreva o comprovante — portaria, período, projeto, etc.]`);
+        }
+      }
+      linhas.push('');
+    });
+    const totalReq = grupos[req].reduce((s,it) => s + it.subtotal, 0);
+    linhas.push(`  Subtotal ${NOMES_REQ_CURTO[req]}: ${fmtPts(totalReq)} pontos`);
+    linhas.push('  ─────────────────────────────────────────────────────────');
+    linhas.push('');
+  });
+
+  // Tabela resumo de pontuação
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('V. RESUMO DA PONTUAÇÃO (Art. 5º — Anexos I a VI)');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('');
+  ordemReqs.forEach(req => {
+    if (!grupos[req]) return;
+    const totalReq = grupos[req].reduce((s,it) => s + it.subtotal, 0);
+    const nCrit    = grupos[req].length;
+    linhas.push(`  ${NOMES_REQ_CURTO[req]}: ${fmtPts(totalReq)} pts  (${nCrit} critério(s))`);
+  });
+  linhas.push('');
+  linhas.push(`  TOTAL GERAL: ${fmtPts(total)} pontos  |  Critérios distintos: ${crit}`);
+  if (nivelObj) {
+    linhas.push(`  Nível pleiteado: ${nivelObj.nome} (mín. ${fmtPts(nivelObj.pontos)} pts e ${nivelObj.criterios} critério(s))`);
+    const atingiu = total >= nivelObj.pontos && crit >= nivelObj.criterios;
+    linhas.push(`  Situação: ${atingiu ? '✓ PONTUAÇÃO ATINGIDA' : '✗ Pontuação insuficiente para o nível pleiteado'}`);
+  }
+  linhas.push('');
+
+  // Alinhamento ao nível (Art. 13, §1º, II)
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('VI. ALINHAMENTO AO PADRÃO DE CONHECIMENTOS E COMPETÊNCIAS');
+  linhas.push('    (Art. 13, §1º, inciso II)');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('');
+  if (nivelObj) {
+    linhas.push(`O conjunto das atividades e experiências descritas neste memorial demonstra que`);
+    linhas.push(`${nome} acumulou, ao longo de sua trajetória profissional no exercício do cargo`);
+    linhas.push(`de ${cargo} na ${ies}, saberes e competências diferenciados que se alinham`);
+    linhas.push(`ao padrão de reconhecimento exigido para o ${nivelObj.nome} (${nivelObj.eq}),`);
+    linhas.push('conforme previsto no art. 15 do Decreto regulamentador do RSC-PCCTAE,');
+    linhas.push('contribuindo de maneira singular para o aprimoramento das atribuições do cargo');
+    linhas.push('e para a consecução dos resultados institucionais.');
+  }
+  linhas.push('');
+
+  // Considerações finais
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('VII. CONSIDERAÇÕES FINAIS');
+  linhas.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  linhas.push('');
+  if (consid) {
+    linhas.push(consid);
+  } else {
+    linhas.push(`Pelo exposto, ${nome} requer à Comissão para Reconhecimento de Saberes e`);
+    linhas.push(`Competências do Plano de Carreira dos Cargos Técnico-Administrativos em Educação`);
+    linhas.push(`– CRSC-PCCTAE da ${ies}, a concessão do`);
+    linhas.push(`${nivelObj ? nivelObj.nome : 'RSC-PCCTAE'}, com fundamento nos arts. 12-B a 12-I da`);
+    linhas.push('Lei nº 11.091, de 12 de janeiro de 2005, e no respectivo Decreto regulamentador.');
+    linhas.push('');
+    linhas.push('A documentação comprobatória referente a cada critério declarado neste memorial');
+    linhas.push('encontra-se anexa ao processo, nos termos do art. 4º e do art. 13, inciso III do');
+    linhas.push('referido Decreto.');
+  }
+  linhas.push('');
+  linhas.push('');
+  if (local) linhas.push(local);
+  linhas.push('');
+  linhas.push('');
+  linhas.push('_____________________________________________________________');
+  linhas.push(nome);
+  linhas.push(`SIAPE: ${siape}${cpf ? '  |  CPF: ' + cpf : ''}`);
+  linhas.push(cargo);
+  linhas.push(ies);
+
+  const texto = linhas.join('\n');
+
+  document.getElementById('memorial-text').textContent = texto;
+  document.getElementById('memorial-preview').classList.add('open');
+  fecharModal();
+  document.getElementById('memorial-preview').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function copiarMemorial() {
+  const txt = document.getElementById('memorial-text').textContent;
+  navigator.clipboard.writeText(txt).then(() => alert('Texto copiado para a área de transferência!')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('Texto copiado!');
+  });
+}
+
+function imprimirMemorial() {
+  const nome = document.getElementById('f-nome').value.trim() || 'Servidor';
+  const txt  = document.getElementById('memorial-text').textContent;
+  const win  = window.open('', '_blank');
+  win.document.write(paginaMemorialHTML(nome, txt));
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 600);
+}
+
+function paginaMemorialHTML(nome, txt) {
+  const nivel = nivelAtivo !== null ? NIVEIS[nivelAtivo].nome : 'RSC-PCCTAE';
+  const ies   = document.getElementById('f-ies') ? document.getElementById('f-ies').value.trim() : '';
+  return `<!DOCTYPE html><html lang="pt-BR"><head>
+    <meta charset="UTF-8">
+    <title>Memorial RSC-TAE — ${nome}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.8; color: #000; }
+      pre  { white-space: pre-wrap; font-family: inherit; font-size: inherit; }
+      @page { size: A4; margin: 3cm 2.5cm 2cm 3cm; }
+      .page { page-break-after: always; padding: 3cm 2.5cm 2cm 3cm; min-height: 29.7cm; }
+      .page:last-child { page-break-after: avoid; }
+      .capa { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 25cm; text-align: center; gap: 1.5cm; }
+      .capa h1 { font-size: 18pt; font-weight: bold; }
+      .capa h2 { font-size: 14pt; font-weight: normal; }
+      .capa p  { font-size: 12pt; }
+      .capa .linha { width: 12cm; border-top: 1pt solid #000; margin: 0.5cm auto; }
+    </style>
+  </head><body>
+    <div class="page">
+      <div class="capa">
+        <div><p>${ies || 'Instituição Federal de Ensino'}</p></div>
+        <div class="linha"></div>
+        <div>
+          <h1>MEMORIAL DESCRITIVO</h1>
+          <h2>Reconhecimento de Saberes e Competências</h2>
+          <h2>${nivel}</h2>
+        </div>
+        <div class="linha"></div>
+        <div><p><strong>${nome}</strong></p></div>
+        <div><p>${new Date().toLocaleDateString('pt-BR', {year:'numeric', month:'long'})}</p></div>
+      </div>
+    </div>
+    <div class="page"><pre>${txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></div>
+  </body></html>`;
+}
+
+async function gerarPDFCompleto() {
+  const nome = document.getElementById('f-nome').value.trim() || 'Servidor';
+  const ies  = document.getElementById('f-ies') ? document.getElementById('f-ies').value.trim() : '';
+  const txt  = document.getElementById('memorial-text').textContent;
+  const nivel = nivelAtivo !== null ? NIVEIS[nivelAtivo].nome : 'RSC-PCCTAE';
+
+  // Collect all items with files
+  const itensComArquivos = [];
+  ITENS.forEach((it, idx) => {
+    if (qtds[idx] > 0) {
+      const ocorrencias = [];
+      for (let o = 0; o < qtds[idx]; o++) {
+        const d = detalhes[idx][o] || {descricao:'', arquivos:[]};
+        if (d.arquivos && d.arquivos.length > 0) {
+          ocorrencias.push({oIdx: o+1, descricao: d.descricao, arquivos: d.arquivos});
+        }
+      }
+      if (ocorrencias.length > 0) {
+        itensComArquivos.push({it, ocorrencias});
+      }
+    }
+  });
+
+  // Build the full HTML with all sections
+  let secoes = [];
+
+  // 1. Capa principal
+  secoes.push(`
+    <div class="page capa-page">
+      <div class="capa">
+        <p class="capa-inst">${ies || 'Instituição Federal de Ensino'}</p>
+        <div class="linha"></div>
+        <div>
+          <h1>MEMORIAL DESCRITIVO</h1>
+          <h2>Reconhecimento de Saberes e Competências</h2>
+          <h2 class="nivel-title">${nivel}</h2>
+        </div>
+        <div class="linha"></div>
+        <p class="capa-nome">${nome}</p>
+        <p class="capa-data">${new Date().toLocaleDateString('pt-BR', {year:'numeric', month:'long'})}</p>
+      </div>
+    </div>`);
+
+  // 2. Memorial
+  secoes.push(`
+    <div class="page">
+      <pre>${txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+    </div>`);
+
+  // 3. For each item with files: capa do item + comprovantes
+  if (itensComArquivos.length > 0) {
+
+    // Índice geral de comprovantes
+    let indiceLinhas = '';
+    itensComArquivos.forEach(({it, ocorrencias}) => {
+      const totalArq = ocorrencias.reduce((s,o) => s+o.arquivos.length, 0);
+      indiceLinhas += `<tr>
+        <td>Req. ${it.req} — Item ${it.num}</td>
+        <td>${it.desc.length > 80 ? it.desc.substring(0,80)+'…' : it.desc}</td>
+        <td style="text-align:center">${ocorrencias.length}</td>
+        <td style="text-align:center">${totalArq}</td>
+      </tr>`;
+    });
+
+    secoes.push(`
+      <div class="page">
+        <div class="secao-capa" style="border-color:#7c3aed">
+          <div class="secao-label" style="background:#7c3aed">DOCUMENTAÇÃO COMPROBATÓRIA</div>
+          <h2 style="margin-top:1cm">Índice de Comprovantes</h2>
+          <p style="margin:.5cm 0;font-size:11pt;color:#444">Os documentos a seguir estão organizados por Requisito e Item, conforme declarado no memorial.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:10pt;margin-top:.5cm">
+            <thead>
+              <tr style="background:#f3eeff">
+                <th style="border:0.5pt solid #ccc;padding:6px 8px;text-align:left">Requisito / Item</th>
+                <th style="border:0.5pt solid #ccc;padding:6px 8px;text-align:left">Critério</th>
+                <th style="border:0.5pt solid #ccc;padding:6px 8px">Ocorrências</th>
+                <th style="border:0.5pt solid #ccc;padding:6px 8px">Arquivos</th>
+              </tr>
+            </thead>
+            <tbody>${indiceLinhas}</tbody>
+          </table>
+        </div>
+      </div>`);
+
+    // Per-item comprovante sections
+    for (const {it, ocorrencias} of itensComArquivos) {
+      // Capa do item
+      secoes.push(`
+        <div class="page">
+          <div class="secao-capa" style="border-color:#1a6fbf">
+            <div class="secao-label" style="background:#1a6fbf">REQUISITO ${it.req} — ITEM ${it.num}</div>
+            <h2 style="margin-top:1cm;font-size:14pt">${it.desc}</h2>
+            <table style="margin-top:1cm;width:100%;font-size:11pt;border-collapse:collapse">
+              <tr><td style="width:160pt;color:#666;padding:4px 0">Unidade de medida:</td><td>${it.unidade}</td></tr>
+              <tr><td style="color:#666;padding:4px 0">Pontuação por ocorrência:</td><td>${fmtPts(it.pts)} pontos</td></tr>
+              <tr><td style="color:#666;padding:4px 0">Ocorrências declaradas:</td><td>${qtds[it.idx]}</td></tr>
+              <tr><td style="color:#666;padding:4px 0">Total de comprovantes:</td><td>${ocorrencias.reduce((s,o)=>s+o.arquivos.length,0)} arquivo(s)</td></tr>
+            </table>
+            <div style="margin-top:1cm">
+              ${ocorrencias.map(o => `
+                <div style="margin-bottom:.5cm;padding:.4cm;background:#f0f7ff;border-radius:4pt;border-left:3pt solid #1a6fbf">
+                  <strong>Ocorrência ${o.oIdx}:</strong> ${o.descricao || '[sem descrição]'}<br>
+                  <span style="font-size:10pt;color:#555">${o.arquivos.map(f=>f.name).join(' · ')}</span>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>`);
+
+      // Each file on its own page
+      for (const ocorrencia of ocorrencias) {
+        for (const arq of ocorrencia.arquivos) {
+          const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(arq.name);
+          const isPdf = /\.pdf$/i.test(arq.name);
+
+          let conteudo = '';
+          if (isImg) {
+            conteudo = `<div style="text-align:center;margin-top:.5cm">
+              <img src="${arq.dataUrl}" style="max-width:100%;max-height:22cm;object-fit:contain;border:0.5pt solid #ddd">
+            </div>`;
+          } else if (isPdf) {
+            conteudo = `<div style="text-align:center;margin-top:1cm;padding:1cm;border:1pt dashed #aaa;border-radius:4pt">
+              <p style="font-size:14pt">📄</p>
+              <p style="margin-top:.3cm;font-size:11pt">${arq.name}</p>
+              <p style="font-size:10pt;color:#666;margin-top:.3cm">Arquivo PDF — (${fmtSize(arq.size)})</p>
+              <p style="font-size:10pt;color:#888;margin-top:.5cm">Para visualizar este documento, abra o arquivo PDF original em separado.</p>
+            </div>`;
+          } else {
+            conteudo = `<div style="text-align:center;margin-top:1cm;padding:1cm;border:1pt dashed #aaa;border-radius:4pt">
+              <p style="font-size:14pt">📎</p>
+              <p style="margin-top:.3cm;font-size:11pt">${arq.name}</p>
+              <p style="font-size:10pt;color:#666;margin-top:.3cm">${fmtSize(arq.size)}</p>
+            </div>`;
+          }
+
+          secoes.push(`
+            <div class="page">
+              <div class="comprov-header">
+                <span class="comprov-tag">Req. ${it.req} · Item ${it.num} · Ocorrência ${ocorrencia.oIdx}</span>
+                <span class="comprov-fname">${arq.name}</span>
+              </div>
+              <p class="comprov-desc">${ocorrencia.descricao || '[sem descrição]'}</p>
+              ${conteudo}
+            </div>`);
+        }
+      }
+    }
+  }
+
+  // Open print window
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head>
+    <meta charset="UTF-8">
+    <title>Memorial + Comprovantes RSC-TAE — ${nome}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.8; color: #000; background: #fff; }
+      pre  { white-space: pre-wrap; font-family: inherit; font-size: inherit; }
+      @page { size: A4; margin: 0; }
+      .page { page-break-after: always; padding: 3cm 2.5cm 2cm 3cm; min-height: 29.7cm; position: relative; }
+      .page:last-child { page-break-after: avoid; }
+      /* Capa principal */
+      .capa-page { display: flex; align-items: center; justify-content: center; }
+      .capa { text-align: center; width: 100%; }
+      .capa h1 { font-size: 20pt; font-weight: bold; margin-bottom: .4cm; }
+      .capa h2 { font-size: 14pt; font-weight: normal; margin-bottom: .3cm; }
+      .nivel-title { font-weight: bold; color: #4c1d95; }
+      .capa-inst { font-size: 12pt; margin-bottom: .5cm; }
+      .capa-nome { font-size: 14pt; font-weight: bold; margin-bottom: .3cm; }
+      .capa-data { font-size: 11pt; color: #555; }
+      .linha { width: 10cm; border-top: 1pt solid #000; margin: .8cm auto; }
+      /* Capa de seção */
+      .secao-capa { border: 2pt solid #ccc; padding: 1.5cm; border-radius: 4pt; }
+      .secao-label { display: inline-block; color: #fff; font-size: 10pt; font-weight: bold; padding: 4px 12px; border-radius: 3pt; margin-bottom: .5cm; letter-spacing: .5px; text-transform: uppercase; }
+      /* Comprovante */
+      .comprov-header { border-bottom: 1pt solid #ddd; padding-bottom: .3cm; margin-bottom: .4cm; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .2cm; }
+      .comprov-tag { font-size: 10pt; font-weight: bold; color: #1a6fbf; }
+      .comprov-fname { font-size: 10pt; color: #555; }
+      .comprov-desc { font-size: 11pt; color: #333; margin-bottom: .5cm; font-style: italic; }
+    </style>
+  </head><body>
+    ${secoes.join('\n')}
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 800);
+}
+
+function fecharPreview() {
+  document.getElementById('memorial-preview').classList.remove('open');
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+const REQ_COLORS = {
+  'I':  '#3b82f6', 'II': '#10b981', 'III':'#f59e0b',
+  'IV': '#8b5cf6', 'V':  '#ef4444', 'VI': '#06b6d4'
+};
+const REQ_LABELS = {
+  'I':'Comissões','II':'Projetos','III':'Prêmios',
+  'IV':'Resp. Técn.','V':'Direção','VI':'Produção'
+};
+
+function toggleDashboard() {
+  const dash = document.getElementById('dashboard');
+  const isOpen = dash.classList.toggle('open');
+  if (isOpen) renderDashboard();
+  if (isOpen) dash.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderDashboard() {
+  const total  = calcTotal();
+  const crit   = calcCriterios();
+  const n      = nivelAtivo !== null ? NIVEIS[nivelAtivo] : null;
+  const body   = document.getElementById('dash-body');
+
+  // Per-req breakdown
+  const reqs   = ['I','II','III','IV','V','VI'];
+  const reqPts = {}, reqCrit = {};
+  reqs.forEach(r => { reqPts[r] = 0; reqCrit[r] = 0; });
+  ITENS.forEach((it, i) => { if (qtds[i] > 0) { reqPts[it.req] += qtds[i]*it.pts; reqCrit[it.req]++; } });
+  const maxReqPts = Math.max(...reqs.map(r => reqPts[r]), 1);
+
+  // KPIs
+  const ptsOk  = n && total >= n.pontos;
+  const critOk = n && crit  >= n.criterios;
+  const pct    = n ? Math.min(100, Math.round(total / n.pontos * 100)) : 0;
+  const kpiClass = !n ? '' : (ptsOk ? 'ok' : total > 0 ? 'warn' : 'bad');
+
+  // Insights
+  const insights = gerarInsights(total, crit, n, reqPts, reqCrit);
+
+  body.innerHTML = `
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi ${kpiClass}">
+        <div class="kpi-label">Pontuação total</div>
+        <div class="kpi-val">${fmtPts(total)}</div>
+        <div class="kpi-sub">${n ? 'mín. ' + fmtPts(n.pontos) + ' pts' : 'selecione o nível'}</div>
+      </div>
+      <div class="kpi ${n ? (critOk?'ok':'bad') : ''}">
+        <div class="kpi-label">Critérios distintos</div>
+        <div class="kpi-val">${crit}</div>
+        <div class="kpi-sub">${n ? 'mín. ' + n.criterios + ' critérios' : '—'}</div>
+      </div>
+      <div class="kpi ${n ? (pct>=100?'ok':pct>=60?'warn':'bad') : ''}">
+        <div class="kpi-label">Progresso no nível</div>
+        <div class="kpi-val">${n ? pct + '%' : '—'}</div>
+        <div class="kpi-sub">${n ? n.nome : 'selecione o nível'}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Requisitos ativos</div>
+        <div class="kpi-val">${reqs.filter(r=>reqPts[r]>0).length}<span style="font-size:14px;font-weight:400"> / 6</span></div>
+        <div class="kpi-sub">dos 6 requisitos</div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <!-- Barras por requisito -->
+      <div class="chart-card">
+        <div class="chart-title">Pontuação por Requisito (Anexos I–VI)</div>
+        <div class="bar-list">
+          ${reqs.map(r => {
+            const pct2 = maxReqPts > 0 ? Math.round(reqPts[r] / maxReqPts * 100) : 0;
+            return `<div class="bar-item">
+              <span class="bar-label">${REQ_LABELS[r]}</span>
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${pct2}%;background:${REQ_COLORS[r]}">
+                  ${reqPts[r]>0?`<span>${fmtPts(reqPts[r])}</span>`:''}
+                </div>
+              </div>
+              <span class="bar-pts">${reqCrit[r]} crit.</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Donut de distribuição -->
+      <div class="chart-card">
+        <div class="chart-title">Distribuição da Pontuação</div>
+        ${total > 0 ? renderDonut(reqs, reqPts, total) : '<div style="text-align:center;padding:2rem;font-size:12px;color:var(--text-ter)">Nenhum critério lançado ainda.</div>'}
+      </div>
+
+      <!-- Radar SVG -->
+      <div class="chart-card">
+        <div class="chart-title">Perfil por Requisito (radar)</div>
+        <div class="radar-wrap">${renderRadar(reqs, reqPts)}</div>
+      </div>
+
+      <!-- Roadmap de níveis -->
+      <div class="chart-card">
+        <div class="chart-title">Progresso para cada nível RSC</div>
+        <div class="roadmap">
+          ${NIVEIS.map((nv, i) => {
+            const p = Math.min(100, Math.round(total / nv.pontos * 100));
+            const done = total >= nv.pontos && crit >= nv.criterios;
+            const isCur = nivelAtivo === i;
+            const fillColor = done ? 'var(--green)' : isCur ? '#7c3aed' : 'var(--blue)';
+            return `<div class="roadmap-item ${done?'done':''} ${isCur&&!done?'current':''}">
+              <span class="roadmap-nivel">${nv.nome}</span>
+              <div class="roadmap-track"><div class="roadmap-fill" style="width:${p}%;background:${fillColor}"></div></div>
+              <span class="roadmap-pct">${p}%${done?' ✓':''}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-title">💡 Análise e Sugestões</div>
+      <div class="insights">
+        ${insights.map(ins => `<div class="insight"><span class="insight-icon">${ins.icon}</span><div>${ins.text}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderDonut(reqs, reqPts, total) {
+  const size = 140, cx = 70, cy = 70, r = 50, stroke = 22;
+  const circum = 2 * Math.PI * r;
+  let offset = 0;
+  let slices = '', legend = '';
+  reqs.forEach(req => {
+    if (reqPts[req] <= 0) return;
+    const frac = reqPts[req] / total;
+    const dash = frac * circum;
+    const gap  = circum - dash;
+    slices += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none"
+      stroke="${REQ_COLORS[req]}" stroke-width="${stroke}"
+      stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}"
+      stroke-dashoffset="${(-offset * circum / (2*Math.PI)).toFixed(2)}"
+      transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += frac * 2 * Math.PI;
+    legend += `<div class="donut-leg-item">
+      <div class="donut-dot" style="background:${REQ_COLORS[req]}"></div>
+      <span>${REQ_LABELS[req]} — ${fmtPts(reqPts[req])} pts (${Math.round(frac*100)}%)</span>
+    </div>`;
+  });
+  return `<div class="svg-wrap">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg-ter)" stroke-width="${stroke}"/>
+      ${slices}
+      <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle"
+        font-size="13" font-weight="600" fill="var(--text)">${fmtPts(total)}</text>
+      <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9" fill="var(--text-ter)">pontos</text>
+    </svg>
+  </div>
+  <div class="donut-legend">${legend}</div>`;
+}
+
+function renderRadar(reqs, reqPts) {
+  const size = 160, cx = 80, cy = 82, maxR = 62;
+  const n = reqs.length;
+  const angles = reqs.map((_, i) => (i / n) * 2 * Math.PI - Math.PI/2);
+  const maxVal = Math.max(...reqs.map(r => reqPts[r]), 1);
+
+  // Grid rings
+  let grid = '';
+  [0.25, 0.5, 0.75, 1].forEach(frac => {
+    const pts = angles.map(a => `${(cx + Math.cos(a)*maxR*frac).toFixed(1)},${(cy + Math.sin(a)*maxR*frac).toFixed(1)}`).join(' ');
+    grid += `<polygon points="${pts}" fill="none" stroke="var(--border)" stroke-width="0.8"/>`;
+  });
+
+  // Axes
+  let axes = angles.map((a,i) => {
+    const x2 = (cx + Math.cos(a)*maxR).toFixed(1);
+    const y2 = (cy + Math.sin(a)*maxR).toFixed(1);
+    const lx = (cx + Math.cos(a)*(maxR+14)).toFixed(1);
+    const ly = (cy + Math.sin(a)*(maxR+14)).toFixed(1);
+    return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="var(--border)" stroke-width="0.8"/>
+      <text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="8" fill="var(--text-sec)">${REQ_LABELS[reqs[i]]}</text>`;
+  }).join('');
+
+  // Data polygon
+  const datapts = angles.map((a, i) => {
+    const frac = maxVal > 0 ? reqPts[reqs[i]] / maxVal : 0;
+    return `${(cx + Math.cos(a)*maxR*frac).toFixed(1)},${(cy + Math.sin(a)*maxR*frac).toFixed(1)}`;
+  }).join(' ');
+
+  return `<svg width="${size}" height="${size+10}" viewBox="0 0 ${size} ${size+10}">
+    ${grid}${axes}
+    <polygon points="${datapts}" fill="rgba(109,40,217,0.18)" stroke="#7c3aed" stroke-width="1.8"/>
+    ${angles.map((a,i)=>{const frac=maxVal>0?reqPts[reqs[i]]/maxVal:0;const px=(cx+Math.cos(a)*maxR*frac).toFixed(1);const py=(cy+Math.sin(a)*maxR*frac).toFixed(1);return reqPts[reqs[i]]>0?`<circle cx="${px}" cy="${py}" r="3" fill="#7c3aed"/>`:'';}).join('')}
+  </svg>`;
+}
+
+function gerarInsights(total, crit, n, reqPts, reqCrit) {
+  const ins = [];
+  const reqs = ['I','II','III','IV','V','VI'];
+  const ativos = reqs.filter(r => reqPts[r] > 0);
+
+  if (total === 0) {
+    ins.push({icon:'👈', text:'Comece lançando as atividades que realizou na calculadora acima. Cada critério acrescentará pontos ao seu perfil.'});
+    return ins;
+  }
+
+  // Nível atingido
+  if (n && total >= n.pontos && crit >= n.criterios) {
+    ins.push({icon:'✅', text:`Parabéns! Você já atingiu a pontuação mínima de <strong>${fmtPts(n.pontos)} pts</strong> e os <strong>${n.criterios} critérios</strong> exigidos para o <strong>${n.nome}</strong>.`});
+  } else if (n) {
+    const faltaPts  = Math.max(0, n.pontos - total);
+    const faltaCrit = Math.max(0, n.criterios - crit);
+    if (faltaPts > 0)  ins.push({icon:'📍', text:`Faltam <strong>${fmtPts(faltaPts)} pontos</strong> para atingir o mínimo do ${n.nome}. Verifique se há atividades não lançadas ainda.`});
+    if (faltaCrit > 0) ins.push({icon:'📋', text:`Faltam <strong>${faltaCrit} critério(s) distinto(s)</strong>. Cada item da calculadora com quantidade maior que zero conta como um critério.`});
+  }
+
+  // Requisito qualitativo
+  if (n && n.qualit) {
+    const qualitOk = n.qualit.some(r => reqCrit[r] > 0);
+    if (!qualitOk) {
+      ins.push({icon:'⚠️', text:`O ${n.nome} exige ao menos <strong>1 critério dos Requisitos ${n.qualit.join(', ')}</strong>. Verifique se possui atividades nesses grupos.`});
+    } else {
+      ins.push({icon:'✔️', text:`Requisito qualitativo atendido: você possui critérios nos Req. ${n.qualit.filter(r=>reqCrit[r]>0).join(', ')}.`});
+    }
+  }
+
+  // Req. mais forte / mais fraco
+  if (ativos.length > 0) {
+    const melhor = ativos.reduce((a,b) => reqPts[a] >= reqPts[b] ? a : b);
+    ins.push({icon:'🏆', text:`Seu maior acúmulo está no <strong>Requisito ${melhor} (${REQ_LABELS[melhor]})</strong> com ${fmtPts(reqPts[melhor])} pts. Diversificar os requisitos pode fortalecer o memorial.`});
+  }
+
+  // Dica de Req. VI
+  if (!reqPts['VI'] || reqPts['VI'] === 0) {
+    ins.push({icon:'📚', text:'O <strong>Requisito VI</strong> (Produção e Difusão de Conhecimento) tem itens de alta pontuação como patentes (30 pts), livros (20 pts) e artigos (7,5 pts). Se tiver produções, não esqueça de lançá-las.'});
+  }
+
+  // Dica próximo nível
+  const proximoNivel = NIVEIS.find(nv => total < nv.pontos || crit < nv.criterios);
+  if (proximoNivel && (!n || proximoNivel.id !== n.id)) {
+    const falta = Math.max(0, proximoNivel.pontos - total);
+    ins.push({icon:'🎯', text:`Para alcançar o <strong>${proximoNivel.nome}</strong>, faltam ${fmtPts(falta)} pts e ${Math.max(0,proximoNivel.criterios-crit)} critério(s) adicionais.`});
+  }
+
+  // Distribuição equilibrada
+  if (ativos.length >= 4) {
+    ins.push({icon:'⚖️', text:`Seu perfil está bem distribuído em <strong>${ativos.length} requisitos</strong> diferentes, o que fortalece a avaliação do memorial pela CRSC-PCCTAE.`});
+  }
+
+  return ins;
+}
+
+// Atualizar dashboard automaticamente se estiver aberto
+const _atualizar = atualizar;
+atualizar = function() {
+  _atualizar();
+  if (document.getElementById('dashboard').classList.contains('open')) renderDashboard();
+};
+
+// ── SESSÃO ───────────────────────────────────────────────────
+const SESSAO_KEY = 'rsc_tae_sessao_v1';
+
+function showToast(msg, dur = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function atualizarIndicador() {
+  try {
+    const raw = localStorage.getItem(SESSAO_KEY);
+    const ind = document.getElementById('save-indicator');
+    const txt = document.getElementById('save-indicator-txt');
+    if (raw) {
+      const s = JSON.parse(raw);
+      const dt = s.savedAt ? new Date(s.savedAt).toLocaleString('pt-BR') : '—';
+      txt.textContent = `Sessão salva em ${dt}`;
+      ind.classList.add('visible');
+    } else {
+      ind.classList.remove('visible');
+    }
+  } catch(e) {}
+}
+
+function salvarSessao() {
+  try {
+    // Serializar detalhes sem dataUrl (muito pesado para localStorage)
+    // Guardar apenas nome e tamanho dos arquivos, não o conteúdo binário
+    const detalhesSlim = detalhes.map(ocList =>
+      ocList.map(oc => ({
+        descricao: oc.descricao,
+        arquivos: (oc.arquivos || []).map(f => ({name: f.name, size: f.size}))
+        // dataUrl omitido — arquivos precisam ser reaneados ao carregar
+      }))
+    );
+
+    const sessao = {
+      savedAt:    new Date().toISOString(),
+      nivelAtivo,
+      filtroAtivo,
+      qtds:       [...qtds],
+      detalhes:   detalhesSlim,
+      formData: {
+        nome:         (document.getElementById('f-nome')  ||{}).value || '',
+        siape:        (document.getElementById('f-siape') ||{}).value || '',
+        cpf:          (document.getElementById('f-cpf')   ||{}).value || '',
+        cargo:        (document.getElementById('f-cargo') ||{}).value || '',
+        ies:          (document.getElementById('f-ies')   ||{}).value || '',
+        setor:        (document.getElementById('f-setor') ||{}).value || '',
+        nivel:        (document.getElementById('f-nivel') ||{}).value || '',
+        ingresso:     (document.getElementById('f-ingresso')||{}).value || '',
+        ultima:       (document.getElementById('f-ultima')||{}).value || '',
+        saldo:        (document.getElementById('f-saldo') ||{}).value || '',
+        trajetoria:   (document.getElementById('f-trajetoria')||{}).value || '',
+        consideracoes:(document.getElementById('f-consideracoes')||{}).value || '',
+        local:        (document.getElementById('f-local') ||{}).value || '',
+      }
+    };
+
+    localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+    atualizarIndicador();
+    showToast('✓ Sessão salva com sucesso!');
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') {
+      showToast('⚠ Armazenamento cheio. Tente remover arquivos anexados e salve novamente.');
+    } else {
+      showToast('Erro ao salvar: ' + e.message);
+    }
+  }
+}
+
+function carregarSessao() {
+  try {
+    const raw = localStorage.getItem(SESSAO_KEY);
+    if (!raw) { showToast('Nenhuma sessão salva encontrada.'); return; }
+
+    const s = JSON.parse(raw);
+    const dt = s.savedAt ? new Date(s.savedAt).toLocaleString('pt-BR') : 'data desconhecida';
+
+    if (!confirm(`Carregar a sessão salva em ${dt}?\n\nOs dados atuais serão substituídos.`)) return;
+
+    // Restore state
+    qtds       = s.qtds ? [...s.qtds] : new Array(ITENS.length).fill(0);
+    nivelAtivo = s.nivelAtivo !== undefined ? s.nivelAtivo : null;
+    filtroAtivo= s.filtroAtivo || 'todos';
+
+    // Restore detalhes (sem dataUrl — arquivos não são restaurados)
+    detalhes = Array.from({length: ITENS.length}, (_, i) => {
+      const saved = s.detalhes && s.detalhes[i] ? s.detalhes[i] : [];
+      return Array.from({length: qtds[i]}, (_, o) => ({
+        descricao: saved[o] ? saved[o].descricao : '',
+        arquivos:  [] // arquivos não são restauráveis — apenas nomes salvos
+      }));
+    });
+
+    // Restore form fields
+    if (s.formData) {
+      const fd = s.formData;
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+      set('f-nome', fd.nome); set('f-siape', fd.siape); set('f-cpf', fd.cpf);
+      set('f-cargo', fd.cargo); set('f-ies', fd.ies); set('f-setor', fd.setor);
+      set('f-nivel', fd.nivel); set('f-ingresso', fd.ingresso);
+      set('f-ultima', fd.ultima); set('f-saldo', fd.saldo);
+      set('f-trajetoria', fd.trajetoria); set('f-consideracoes', fd.consideracoes);
+      set('f-local', fd.local);
+    }
+
+    // Restore tabs UI
+    document.querySelectorAll('.req-tab').forEach((t, i) => {
+      t.classList.toggle('active', i === 0 && filtroAtivo === 'todos' || t.textContent.includes(filtroAtivo));
+    });
+
+    renderNiveis();
+    atualizar();
+    atualizarIndicador();
+
+    // Warn about files
+    const totalArqs = (s.detalhes || []).flat().reduce((acc, oc) => acc + (oc.arquivos||[]).length, 0);
+    if (totalArqs > 0) {
+      showToast(`✓ Sessão carregada! Atenção: ${totalArqs} arquivo(s) anexado(s) não foram restaurados — reanexe os comprovantes.`, 5000);
+    } else {
+      showToast('✓ Sessão carregada com sucesso!');
+    }
+  } catch(e) {
+    showToast('Erro ao carregar sessão: ' + e.message);
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+renderNiveis();
+renderItens();
+atualizarIndicador();
+
+// ── SESSÃO / LOGIN ───────────────────────────────────────────
+const SESSION_KEY = 'rsc_session_v1';
+function getSession() { try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch(e) { return null; } }
+function fazerLogout() {
+  if (confirm('Deseja sair do sistema? O progresso não salvo será perdido.')) {
+    sessionStorage.removeItem(SESSION_KEY);
+    window.location.href = 'rsc-login.html';
+  }
+}
+function iniciarSessaoUI() {
+  const params    = new URLSearchParams(window.location.search);
+  const userName  = params.get('user')  || '';
+  const userSiape = params.get('siape') || '';
+  const userCargo = params.get('cargo') || '';
+  const sessao    = getSession();
+  if (userName) {
+    document.getElementById('session-bar').style.display = 'flex';
+    document.getElementById('s-name').textContent  = userName;
+    document.getElementById('s-siape').textContent = userSiape ? 'SIAPE: ' + userSiape : '';
+    const setV = (id,v) => { const el=document.getElementById(id); if(el&&!el.value) el.value=v; };
+    setV('f-nome', userName); setV('f-siape', userSiape); setV('f-cargo', userCargo);
+    history.replaceState({}, '', window.location.pathname);
+  } else if (sessao && sessao.user) {
+    document.getElementById('session-bar').style.display = 'flex';
+    document.getElementById('s-name').textContent  = sessao.user.nome || sessao.user.user;
+    document.getElementById('s-siape').textContent = 'SIAPE: ' + (sessao.user.user || '');
+    document.getElementById('s-role').textContent  = sessao.user.role === 'admin' ? 'Admin' : 'Servidor';
+  }
+}
+iniciarSessaoUI();
+
+// ── STICKY BAR ───────────────────────────────────────────────
+function atualizarStickyBar() {
+  const bar = document.getElementById('sticky-bar');
+  if (nivelAtivo === null) { bar.classList.remove('visible'); return; }
+
+  const n     = NIVEIS[nivelAtivo];
+  const total = calcTotal();
+  const crit  = calcCriterios();
+  const ptsOk = total >= n.pontos;
+  const critOk= crit  >= n.criterios;
+  const qualitOk = !n.qualit || calcCriteriosReq(n.qualit) >= 1;
+  const ok    = ptsOk && critOk && qualitOk;
+  const pct   = Math.min(100, Math.round(total / n.pontos * 100));
+
+  document.getElementById('sticky-badge').textContent  = n.nome;
+  document.getElementById('sticky-name').textContent   = n.eq;
+  document.getElementById('sticky-pts').textContent    = fmtPts(total) + ' pts';
+
+  const ptsEl = document.getElementById('sticky-pts');
+  ptsEl.className = 'sticky-pts ' + (ok ? 'ok' : pct >= 60 ? 'warn' : 'nok');
+
+  const fillEl = document.getElementById('sticky-fill');
+  fillEl.style.width = pct + '%';
+  fillEl.className   = 'sticky-prog-fill' + (ok ? '' : pct >= 60 ? ' warn' : ' danger');
+
+  const faltaPts  = Math.max(0, n.pontos - total);
+  const faltaCrit = Math.max(0, n.criterios - crit);
+  let statusTxt = ok
+    ? `✓ Atingido (${fmtPts(total)} / ${fmtPts(n.pontos)} pts)`
+    : faltaPts > 0
+      ? `Faltam ${fmtPts(faltaPts)} pts · ${fmtPts(total)} / ${fmtPts(n.pontos)}`
+      : `Faltam ${faltaCrit} critério(s)`;
+  document.getElementById('sticky-status').textContent = statusTxt;
+}
+
+// Observa quando o card de nível sai de vista
+const sentinel = document.getElementById('nivel-card');
+const observer = new IntersectionObserver(
+  ([entry]) => {
+    const bar = document.getElementById('sticky-bar');
+    if (!entry.isIntersecting && nivelAtivo !== null) {
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+    }
+  },
+  { threshold: 0, rootMargin: '-10px 0px 0px 0px' }
+);
+observer.observe(sentinel);
+
+// Adicionar espaço no topo da page-wrap para não sobrepor conteúdo
+document.querySelector('.page-wrap').style.scrollPaddingTop = '52px';
+
+// Sobrescrever atualizar para incluir sticky
+const _atualizarBase = atualizar;
+atualizar = function() {
+  _atualizarBase();
+  atualizarStickyBar();
+};
+</script>
+</body>
+</html>

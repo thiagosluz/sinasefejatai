@@ -50,65 +50,69 @@ export async function getDocumentoVerificacao(tipo_documento: string, documento_
   }
 }
 
-// Busca os dados do usuário para a assinatura baseando-se no vínculo de perfil e gestão atual
 export async function getAssinanteInfo(): Promise<ActionResponse<{ nome: string, cargo: string }>> {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Usuário não autenticado.' }
-
-  // Busca o perfil
-  const { data: perfil } = await supabase
-    .from('perfis')
-    .select('filiado_id, role')
-    .eq('id', user.id)
-    .single()
+  try {
+    const supabase = await createClient()
     
-  if (!perfil?.filiado_id) return { success: false, error: 'Seu usuário não possui um perfil de filiado vinculado.' }
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (!user || userError) return { success: false, error: 'Usuário não autenticado.' }
 
-  // Busca o nome do filiado
-  const { data: filiado } = await supabase
-    .from('filiados')
-    .select('nome')
-    .eq('id', perfil.filiado_id)
-    .single()
-    
-  if (!filiado?.nome) return { success: false, error: 'Nome do filiado não encontrado.' }
+    // Busca o perfil
+    const { data: perfil, error: perfilError } = await supabase
+      .from('perfis')
+      .select('filiado_id, role')
+      .eq('id', user.id)
+      .single()
+      
+    if (perfilError || !perfil?.filiado_id) return { success: false, error: 'Seu usuário não possui um perfil de filiado vinculado.' }
 
-  let cargoNome = null;
+    // Busca o nome do filiado
+    const { data: filiado, error: filiadoError } = await supabase
+      .from('filiados')
+      .select('nome')
+      .eq('id', perfil.filiado_id)
+      .single()
+      
+    if (filiadoError || !filiado?.nome) return { success: false, error: 'Nome do filiado não encontrado.' }
 
-  if (perfil.role === 'conselho_fiscal') {
-    const { data: cargo, error: cargoError } = await supabase
-      .from('conselho_fiscal_membros')
-      .select('cargo_nome, conselho_fiscal_gestoes!inner(is_atual)')
-      .eq('filiado_id', perfil.filiado_id)
-      .eq('conselho_fiscal_gestoes.is_atual', true)
-      .order('criado_em', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    let cargoNome = null;
 
-    if (cargoError) console.error('Erro ao buscar cargo conselho:', cargoError)
-    cargoNome = cargo?.cargo_nome;
-  } else {
-    // Busca o cargo atual na diretoria
-    const { data: cargo, error: cargoError } = await supabase
-      .from('gestao_membros')
-      .select('cargo_nome, gestoes!inner(is_atual)')
-      .eq('filiado_id', perfil.filiado_id)
-      .eq('gestoes.is_atual', true)
-      .order('criado_em', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    if (perfil.role === 'conselho_fiscal') {
+      const { data: cargo, error: cargoError } = await supabase
+        .from('conselho_fiscal_membros')
+        .select('cargo_nome, conselho_fiscal_gestoes!inner(is_atual)')
+        .eq('filiado_id', perfil.filiado_id)
+        .eq('conselho_fiscal_gestoes.is_atual', true)
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-    if (cargoError) console.error('Erro ao buscar cargo diretoria:', cargoError)
-    cargoNome = cargo?.cargo_nome;
+      if (cargoError) console.error('Erro ao buscar cargo conselho:', cargoError)
+      cargoNome = cargo?.cargo_nome;
+    } else {
+      // Busca o cargo atual na diretoria
+      const { data: cargo, error: cargoError } = await supabase
+        .from('gestao_membros')
+        .select('cargo_nome, gestoes!inner(is_atual)')
+        .eq('filiado_id', perfil.filiado_id)
+        .eq('gestoes.is_atual', true)
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (cargoError) console.error('Erro ao buscar cargo diretoria:', cargoError)
+      cargoNome = cargo?.cargo_nome;
+    }
+
+    if (!cargoNome) {
+      return { success: false, error: 'Você não possui um cargo ativo na gestão atual para assinar este documento.' }
+    }
+
+    return { success: true, data: { nome: filiado.nome, cargo: cargoNome } }
+  } catch (error) {
+    console.error('Erro fatal em getAssinanteInfo:', error)
+    return { success: false, error: 'Erro interno do servidor ao verificar assinatura.' }
   }
-
-  if (!cargoNome) {
-    return { success: false, error: 'Você não possui um cargo ativo na gestão atual para assinar este documento.' }
-  }
-
-  return { success: true, data: { nome: filiado.nome, cargo: cargoNome } }
 }
 
 // Função para o botão de "Assinar"
